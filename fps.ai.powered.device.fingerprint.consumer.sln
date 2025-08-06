@@ -1,0 +1,43 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36401.2
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FPS.Device.Fingerprint.DataAccess", "FPS.Device.Fingerprint.DataAccess\FPS.Device.Fingerprint.DataAccess.csproj", "{FC1F9587-D0D8-45D3-8BCF-9036D4A52BDE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FPS.Device.Fingerprint.Service", "FPS.Device.Fingerprint.Service\FPS.Device.Fingerprint.Service.csproj", "{C6AB6D6C-CAB0-411F-8CBC-5444122FA0CF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FPS.AI.Powered.Device.Fingerprint.Consumer.Worker", "FPS.AI.Powered.Device.Fingerprint.Consumer.Worker\FPS.AI.Powered.Device.Fingerprint.Consumer.Worker.csproj", "{A744205E-4A56-40DD-4EFD-85FF24F04761}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FPS.AI.Powered.Device.Fingerprint.Consumer.Test", "FPS.AI.Powered.Device.Fingerprint.Consumer.Test\FPS.AI.Powered.Device.Fingerprint.Consumer.Test.csproj", "{89B5D2DC-4BB2-D6C2-9B57-2CEF03892F6D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FC1F9587-D0D8-45D3-8BCF-9036D4A52BDE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FC1F9587-D0D8-45D3-8BCF-9036D4A52BDE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FC1F9587-D0D8-45D3-8BCF-9036D4A52BDE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FC1F9587-D0D8-45D3-8BCF-9036D4A52BDE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C6AB6D6C-CAB0-411F-8CBC-5444122FA0CF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C6AB6D6C-CAB0-411F-8CBC-5444122FA0CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C6AB6D6C-CAB0-411F-8CBC-5444122FA0CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C6AB6D6C-CAB0-411F-8CBC-5444122FA0CF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A744205E-4A56-40DD-4EFD-85FF24F04761}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A744205E-4A56-40DD-4EFD-85FF24F04761}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A744205E-4A56-40DD-4EFD-85FF24F04761}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A744205E-4A56-40DD-4EFD-85FF24F04761}.Release|Any CPU.Build.0 = Release|Any CPU
+		{89B5D2DC-4BB2-D6C2-9B57-2CEF03892F6D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{89B5D2DC-4BB2-D6C2-9B57-2CEF03892F6D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{89B5D2DC-4BB2-D6C2-9B57-2CEF03892F6D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{89B5D2DC-4BB2-D6C2-9B57-2CEF03892F6D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {4F867512-5BA8-48E6-85AC-F06E95F69F7E}
+	EndGlobalSection
+EndGlobal
