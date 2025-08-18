@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 
 namespace Device.FingerPrint.Core.Encoders
 {
@@ -35,8 +36,9 @@ namespace Device.FingerPrint.Core.Encoders
                 map[j] = x;
             }
 
-            var encryptedValue = string.Empty;
-            int i2 = 0, j2 = 0;
+            var encryptedValueBuilder = new StringBuilder();
+            int i2 = 0;
+            int j2 = 0;
             for (int y = 0; y < valueLength; y++)
             {
                 i2 = (i2 + 1) % 256;
@@ -44,10 +46,10 @@ namespace Device.FingerPrint.Core.Encoders
                 var x = map[i2];
                 map[i2] = map[j2];
                 map[j2] = x;
-                encryptedValue += Convert.ToChar(valueCharArray[y] ^ map[(map[i2] + map[j2]) % 256]);
+                encryptedValueBuilder.Append(Convert.ToChar(valueCharArray[y] ^ map[(map[i2] + map[j2]) % 256]));
             }
 
-            return encryptedValue;
+            return encryptedValueBuilder.ToString();
         }
 
         public static string Decrypt(string key, string value)

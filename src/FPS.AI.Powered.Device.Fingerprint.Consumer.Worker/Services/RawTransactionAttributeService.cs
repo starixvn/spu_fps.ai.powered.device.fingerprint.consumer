@@ -215,7 +215,10 @@ namespace Device.FingerPrint.QueueConsumer.Services
 
         private static void UpdateIPInfo(RawTransactionModel model, HeaderModel headerModel)
         {
-            if (model == null || headerModel == null) return;
+            if (model == null || headerModel == null)
+            {
+                return;
+            }
 
             var realIP = headerModel.RealIP?.Trim();
 
@@ -251,7 +254,10 @@ namespace Device.FingerPrint.QueueConsumer.Services
             UpdateIsIncognitoMode(rawTransModel, attributesDictionary, rawTransModel.UserAgentInfo?.ClientName);
 
             var fingerPrintAttribute = TransformFPFingerPrintInfo(attributesDictionary);
-            if (fingerPrintAttribute == null) return result;
+            if (fingerPrintAttribute == null)
+            {
+                return result;
+            }
 
             UpdateFPFingerPrintInfo(result, fingerPrintAttribute);
 

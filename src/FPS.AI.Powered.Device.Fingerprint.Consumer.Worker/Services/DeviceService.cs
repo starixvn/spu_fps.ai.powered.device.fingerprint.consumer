@@ -95,7 +95,7 @@
             {
                 AppVersion = deviceInfo.AppVersion,
                 Version = deviceInfo.Version,
-                CapturedDate = (long)(deviceInfo.CapturedDate ?? DateTimeOffset.Now.Ticks),
+                CapturedDate = deviceInfo.CapturedDate ?? DateTimeOffset.Now.Ticks,
                 DeviceFPCode = deviceInfo.DeviceCode,
                 DeviceNo = deviceInfo.DeviceId,
                 HRef = deviceInfo.HRef,
