@@ -61,50 +61,9 @@ namespace Device.FingerPrint.QueueConsumer.Services
         {
             try
             {
-                var isLogged = false;
-
                 if (model != null)
                 {
-
-                    CheckScriptVersion(model);
-
-                    model.RawUserAgent = model.UserAgent;
-                    model.UserAgentInfo = GetUserAgentInfo(model.UserAgent);
-                    model.FPUserAgentCode = crypto.GetMD5Hash(model.UserAgent);
-
-                    if (!string.IsNullOrEmpty(model.SessionKey))
-                    {
-                        if (!model.SessionKey.Contains(':'))
-                        {
-                            _ = LogConsumerErrorAsync(model, LogType.SessionKeyColon);
-                            isLogged = true;
-                        }
-
-                        var sessionKey = Core.Utilities.ParseSessionKey(model.SessionKey, appSettings.RedisDatabase);
-                        if (sessionKey != null)
-                        {
-                            var redisValues = redisMultiplexService.HashGetWithDbIndex(sessionKey.RedisDbIndex, sessionKey.SessionKey, fieldKeys);
-
-                            var fingerPrintEncode = redisValues[0];
-                            var header = redisValues[1];
-
-                            var fingerPrintModel = GetFingerPrintModel(fingerPrintEncode);
-                            var headerModel = GetHeaderModel(header);
-                            UpdateIPInfo(model, headerModel);
-
-                            model.FingerprintAttribute = TransformFingerprintAttributes(model, fingerPrintModel, headerModel);
-
-                            HandleTaggingProcess(model, sessionKey.SessionKey);
-                        }
-                        else if (!isLogged)
-                        {
-                            _ = LogConsumerErrorAsync(model, LogType.SessionKeyParse);
-                        }
-                    }
-                    else if (model.SessionKey == null)
-                    {
-                        _ = LogConsumerErrorAsync(model, LogType.SessionKeyNull);
-                    }
+                    ProcessModel(model);
                 }
             }
             catch (Exception ex)
@@ -113,6 +72,63 @@ namespace Device.FingerPrint.QueueConsumer.Services
             }
 
             return model;
+        }
+
+        private void ProcessModel(RawTransactionModel model)
+        {
+            CheckScriptVersion(model);
+
+            model.RawUserAgent = model.UserAgent;
+            model.UserAgentInfo = GetUserAgentInfo(model.UserAgent);
+            model.FPUserAgentCode = crypto.GetMD5Hash(model.UserAgent);
+
+            ProcessSessionKey(model);
+        }
+
+        private void ProcessSessionKey(RawTransactionModel model)
+        {
+            if (string.IsNullOrEmpty(model.SessionKey))
+            {
+                if (model.SessionKey == null)
+                {
+                    _ = LogConsumerErrorAsync(model, LogType.SessionKeyNull);
+                }
+                return;
+            }
+
+            var isLogged = false;
+
+            if (!model.SessionKey.Contains(':'))
+            {
+                _ = LogConsumerErrorAsync(model, LogType.SessionKeyColon);
+                isLogged = true;
+            }
+
+            var sessionKey = Core.Utilities.ParseSessionKey(model.SessionKey, appSettings.RedisDatabase);
+            if (sessionKey != null)
+            {
+                ProcessValidSessionKey(model, sessionKey);
+            }
+            else if (!isLogged)
+            {
+                _ = LogConsumerErrorAsync(model, LogType.SessionKeyParse);
+            }
+        }
+
+        private void ProcessValidSessionKey(RawTransactionModel model, SessionKeyModel sessionKey)
+        {
+            var redisValues = redisMultiplexService.HashGetWithDbIndex(sessionKey.RedisDbIndex, sessionKey.SessionKey, fieldKeys);
+
+            var fingerPrintEncode = redisValues[0];
+            var header = redisValues[1];
+
+            var fingerPrintModel = GetFingerPrintModel(fingerPrintEncode);
+            var headerModel = GetHeaderModel(header);
+            UpdateIPInfo(model, headerModel);
+
+            model.FingerprintAttribute = TransformFingerprintAttributes(model, fingerPrintModel, headerModel);
+
+            HandleTaggingProcess(model, sessionKey.SessionKey);
         }
 
         private void CheckScriptVersion(RawTransactionModel model)
@@ -138,7 +154,7 @@ namespace Device.FingerPrint.QueueConsumer.Services
 
         private static int CompareVersionsWithTryParse(string versionA, string versionB)
         {
-            if (Version.TryParse(versionA, out Version verA) && Version.TryParse(versionB, out Version verB))
+            if (Version.TryParse(versionA, out var verA) && Version.TryParse(versionB, out var verB))
             {
                 if (verA.Major != verB.Major)
                 {
@@ -276,7 +292,7 @@ namespace Device.FingerPrint.QueueConsumer.Services
 
         private static void UpdateIsIncognitoMode(RawTransactionModel rawTransModel, Dictionary<string, string> attributesDictionary, string browserName)
         {
-            if (!string.IsNullOrEmpty(browserName) && attributesDictionary.TryGetValue("isIncognitoMode", out string value) && bool.TryParse(value, out bool result))
+            if (!string.IsNullOrEmpty(browserName) && attributesDictionary.TryGetValue("isIncognitoMode", out var value) && bool.TryParse(value, out var result))
             {
                 rawTransModel.IsIncognitoMode = result;
                 if (IgnoreDetectPrivateMode(browserName))
@@ -295,16 +311,25 @@ namespace Device.FingerPrint.QueueConsumer.Services
             const string _UCBROWSER = "uc browser";
             const string _MIBROWSER = "miui browser";
 
-            if (browserName.ToLowerInvariant().Contains(_UCBROWSER)) return true;  //no need to detect incognito mode
+            if (browserName.ToLowerInvariant().Contains(_UCBROWSER))
+            {
+                return true;  //no need to detect incognito mode
+            }
 
-            if (browserName.ToLowerInvariant().Contains(_MIBROWSER)) return true;  //skip to detect incognito mode
+            if (browserName.ToLowerInvariant().Contains(_MIBROWSER))
+            {
+                return true;  //skip to detect incognito mode
+            }
 
             return false;
         }
 
         private UserAgentInfoModel GetUserAgentInfo(string userAgent)
         {
-            if (string.IsNullOrEmpty(userAgent)) return new UserAgentInfoModel();
+            if (string.IsNullOrEmpty(userAgent))
+            {
+                return new UserAgentInfoModel();
+            }
 
             var deviceDetector = new DeviceDetector(userAgent);
 
@@ -349,8 +374,10 @@ namespace Device.FingerPrint.QueueConsumer.Services
                 return new Dictionary<string, string>();
             }
 
-            return JsonConvert.DeserializeObject<Dictionary<string, object>>(attributesJson)
-                .ToDictionary(kvp => kvp.Key, kvp => kvp.Value == null ? null : JsonConvert.SerializeObject(kvp.Value));
+            var deserializedData = JsonConvert.DeserializeObject<Dictionary<string, object>>(attributesJson);
+            return deserializedData.ToDictionary(
+                kvp => kvp.Key, 
+                kvp => kvp.Value == null ? null : JsonConvert.SerializeObject(kvp.Value));
         }
 
 
@@ -450,16 +477,25 @@ namespace Device.FingerPrint.QueueConsumer.Services
 
         private static int GetDeviceType(DeviceDetector deviceDetector)
         {
-            int _OTHERTYPE = 0;
-            int _DESTOPTYPE = 1;
-            int _TABLETTYPE = 2;
-            int _MOBILETYPE = 3;
+            const int _OTHERTYPE = 0;
+            const int _DESTOPTYPE = 1;
+            const int _TABLETTYPE = 2;
+            const int _MOBILETYPE = 3;
 
-            if (deviceDetector.IsDesktop()) return _DESTOPTYPE;
+            if (deviceDetector.IsDesktop())
+            {
+                return _DESTOPTYPE;
+            }
 
-            if (deviceDetector.IsTablet()) return _TABLETTYPE;
+            if (deviceDetector.IsTablet())
+            {
+                return _TABLETTYPE;
+            }
 
-            if (deviceDetector.IsMobile()) return _MOBILETYPE;
+            if (deviceDetector.IsMobile())
+            {
+                return _MOBILETYPE;
+            }
 
             return _OTHERTYPE;
         }
@@ -471,7 +507,7 @@ namespace Device.FingerPrint.QueueConsumer.Services
             var openDatabase = fingerprintAttributeModel?.OpenDatabase == "true";
             var indexedDb = fingerprintAttributeModel?.IndexedDB == "true";
 
-            return localStorage + "|" + sessionStorage + "|" + openDatabase + "|" + indexedDb;
+            return $"{localStorage}|{sessionStorage}|{openDatabase}|{indexedDb}";
         }
 
         // Method intentionally left empty - duplicate functionality removed
@@ -490,6 +526,7 @@ namespace Device.FingerPrint.QueueConsumer.Services
                 }
                 catch
                 {
+                    // Exception intentionally ignored - decryption failed
                 }
             }
 
@@ -505,6 +542,7 @@ namespace Device.FingerPrint.QueueConsumer.Services
                 }
                 catch
                 {
+                    // Exception intentionally ignored - decryption failed
                 }
             }
 

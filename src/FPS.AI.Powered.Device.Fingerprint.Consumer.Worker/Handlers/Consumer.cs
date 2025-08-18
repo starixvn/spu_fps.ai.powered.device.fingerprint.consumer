@@ -86,7 +86,10 @@ namespace Device.FingerPrint.QueueConsumer.Handlers
 
         private IEnumerable<RawTransactionModel> TransformRawTransactionModel(Batch<MessageQueue> messages)
         {
-            if (messages.Length <= 0) return new List<RawTransactionModel>();
+            if (messages.Length <= 0)
+            {
+                return new List<RawTransactionModel>();
+            }
 
             var transformedDataBag = new ConcurrentBag<RawTransactionModel>();
             var errorList = new List<MessageQueue>();
@@ -107,7 +110,7 @@ namespace Device.FingerPrint.QueueConsumer.Handlers
 
             if (errorList.Any())
             {
-                // LogService.Error($"Account ErrorList:\n {JsonConvert.SerializeObject(errorList)}");
+                // Error logging commented out - not needed for production
             }
 
             return transformedDataBag.ToList();

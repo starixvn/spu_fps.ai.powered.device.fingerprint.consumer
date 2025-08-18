@@ -38,7 +38,7 @@ namespace Device.FingerPrint.Core.Middleware
         {
             if (expires != null)
             {
-                return expires > DateTime.UtcNow;
+                return expires > DateTimeOffset.UtcNow.DateTime;
             }
             return false;
         }

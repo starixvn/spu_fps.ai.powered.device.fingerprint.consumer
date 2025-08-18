@@ -87,7 +87,7 @@ namespace Device.FingerPrint.QueueConsumer.Services
                     continue;
                 }
 
-                if (propertyValue.GetType() == typeof(string))
+                if (propertyValue is string)
                 {
                     var stringValue = propertyValue.ToString();
                     if (!string.IsNullOrEmpty(stringValue)

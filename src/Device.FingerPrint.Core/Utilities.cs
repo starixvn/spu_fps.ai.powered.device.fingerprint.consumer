@@ -113,7 +113,7 @@ namespace Device.FingerPrint.Core
 
         public static IEnumerable<List<T>> Partition<T>(this IList<T> source, Int32 size)
         {
-            for (int i = 0; i < (source.Count / size) + (source.Count % size > 0 ? 1 : 0); i++)
+            for (var i = 0; i < (source.Count / size) + (source.Count % size > 0 ? 1 : 0); i++)
             {
                 yield return new List<T>(source.Skip(size * i).Take(size));
             }
@@ -131,15 +131,15 @@ namespace Device.FingerPrint.Core
                 throw new ArgumentOutOfRangeException(nameof(totalPartitions));
             }
 
-            List<T>[] partitions = new List<T>[totalPartitions];
+            var partitions = new List<T>[totalPartitions];
 
             int maxSize = (int)Math.Ceiling(list.Count / (double)totalPartitions);
-            int k = 0;
+            var k = 0;
 
-            for (int i = 0; i < partitions.Length; i++)
+            for (var i = 0; i < partitions.Length; i++)
             {
                 partitions[i] = new List<T>();
-                for (int j = k; j < k + maxSize; j++)
+                for (var j = k; j < k + maxSize; j++)
                 {
                     if (j >= list.Count)
                     {
@@ -206,9 +206,8 @@ namespace Device.FingerPrint.Core
         public static string Long2DotIPV6(string bigint)
         {
             string retval = "";
-            var intval = BigInteger.Zero;
 
-            if (System.Numerics.BigInteger.TryParse(bigint, out intval))
+            if (System.Numerics.BigInteger.TryParse(bigint, out var intval))
             {
                 retval = intval.ToString("x").PadLeft(32, '0');
                 char[] trimme = new[] { ':' };
@@ -270,7 +269,7 @@ namespace Device.FingerPrint.Core
         {
             var sb = new StringBuilder();
 
-            for (int i = 0; i < bits.Count; i++)
+            for (var i = 0; i < bits.Count; i++)
             {
                 char c = bits[i] ? '1' : '0';
                 sb.Append(c);
@@ -316,7 +315,9 @@ namespace Device.FingerPrint.Core
             for (var i = 1; i < segments.Length - 1; i++)
             {
                 if (!segments[i].Equals("casino", StringComparison.OrdinalIgnoreCase))
+                {
                     return rawUrl;
+                }
             }
 
             if (first == "casino" && last != "casino")
