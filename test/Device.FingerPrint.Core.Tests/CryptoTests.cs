@@ -27,14 +27,14 @@ namespace Device.FingerPrint.Core.Tests
         [Fact]
         public void Encrypt_Empty_ReturnsEmpty()
         {
-            var crypto = new Crypto(CreateAppSettings());
+            using var crypto = new Crypto(CreateAppSettings());
             crypto.Encrypt(string.Empty).Should().BeEmpty();
         }
 
         [Fact]
         public void Encrypt_Then_Decrypt_Roundtrip()
         {
-            var crypto = new Crypto(CreateAppSettings());
+            using var crypto = new Crypto(CreateAppSettings());
             var encrypted = crypto.Encrypt("hello");
             encrypted.Should().NotBeNullOrEmpty();
 
@@ -45,15 +45,25 @@ namespace Device.FingerPrint.Core.Tests
         [Fact]
         public void GetMD5Hash_Empty_ReturnsEmpty()
         {
-            var crypto = new Crypto(CreateAppSettings());
+            using var crypto = new Crypto(CreateAppSettings());
             crypto.GetMD5Hash(string.Empty).Should().BeEmpty();
         }
 
         [Fact]
         public void GetMD5Hash_KnownValue()
         {
-            var crypto = new Crypto(CreateAppSettings());
+            using var crypto = new Crypto(CreateAppSettings());
             crypto.GetMD5Hash("abc").Should().Be("900150983cd24fb0d6963f7d28e17f72");
+        }
+
+        [Fact]
+        public void Dispose_ShouldDisposeRijndael()
+        {
+            var crypto = new Crypto(CreateAppSettings());
+            crypto.Dispose();
+            
+            // Should not throw when disposed
+            crypto.Dispose();
         }
     }
 }

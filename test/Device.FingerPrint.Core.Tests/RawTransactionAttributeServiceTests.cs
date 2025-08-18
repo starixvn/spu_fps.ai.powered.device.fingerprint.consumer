@@ -19,7 +19,7 @@ using Xunit;
 
 namespace Device.FingerPrint.Core.Tests
 {
-    public class RawTransactionAttributeServiceTests
+    public class RawTransactionAttributeServiceTests : IDisposable
     {
         private readonly Mock<ICrypto> _mockCrypto;
         private readonly Mock<IRedisMultiplexDbService> _mockRedisService;
@@ -50,6 +50,11 @@ namespace Device.FingerPrint.Core.Tests
                 _mockRedisService.Object,
                 _mockLogInfoServices.Object,
                 _mockAppSettings.Object);
+        }
+
+        public void Dispose()
+        {
+            _mockCrypto.Object?.Dispose();
         }
 
         [Fact]
