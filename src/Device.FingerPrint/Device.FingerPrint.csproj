@@ -7,15 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Features\ClientTransaction\Model\**" />
-    <Compile Remove="Features\SummaryTransaction\Model\**" />
-    <EmbeddedResource Remove="Features\ClientTransaction\Model\**" />
-    <EmbeddedResource Remove="Features\SummaryTransaction\Model\**" />
-    <None Remove="Features\ClientTransaction\Model\**" />
-    <None Remove="Features\SummaryTransaction\Model\**" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="DeviceDetector.NET" Version="4.3.0" />
     <PackageReference Include="Fanex.Data" Version="4.3.4" />
     <PackageReference Include="Fanex.Data.Repository" Version="4.3.4" />
@@ -24,10 +15,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Device.FingerPrint.Model\Device.FingerPrint.Model.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Features\Archive\Model\" />
   </ItemGroup>
 
 </Project>
