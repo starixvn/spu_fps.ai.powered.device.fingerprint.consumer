@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 namespace FPS.AI.Powered.Device.Fingerprint.Consumer.Worker.Encoders
 {
     public class Base64
-    {
+    { 
         public static string Decode(string encodedData)
         {
             var validEncodedData = ValidEncodedData(encodedData);
