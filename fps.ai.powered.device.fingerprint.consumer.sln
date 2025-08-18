@@ -9,7 +9,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FPS.Device.Fingerprint.Serv
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FPS.AI.Powered.Device.Fingerprint.Consumer.Worker", "src\FPS.AI.Powered.Device.Fingerprint.Consumer.Worker\FPS.AI.Powered.Device.Fingerprint.Consumer.Worker.csproj", "{A744205E-4A56-40DD-4EFD-85FF24F04761}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FPS.AI.Powered.Device.Fingerprint.Consumer.Test", "test\FPS.AI.Powered.Device.Fingerprint.Consumer.Test\FPS.AI.Powered.Device.Fingerprint.Consumer.Test.csproj", "{89B5D2DC-4BB2-D6C2-9B57-2CEF03892F6D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FPS.AI.Powered.Device.Fingerprint.Consumer.Tests", "test\FPS.AI.Powered.Device.Fingerprint.Consumer.Tests\FPS.AI.Powered.Device.Fingerprint.Consumer.Tests.csproj", "{89B5D2DC-4BB2-D6C2-9B57-2CEF03892F6D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Device.FingerPrint.Core", "src\Device.FingerPrint.Core\Device.FingerPrint.Core.csproj", "{FB67D184-81EE-404C-B0BF-223A8DB15055}"
 EndProject
@@ -21,15 +21,15 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Device.FingerPrint.Redis", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Device.FingerPrint", "src\Device.FingerPrint\Device.FingerPrint.csproj", "{689C407E-046A-4455-BA45-E1BDB75AF259}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Device.FingerPrint.Test", "test\Device.FingerPrint.Test\Device.FingerPrint.Test.csproj", "{F56FC3A6-B9FA-4D81-A36F-B525264CEDDE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Device.FingerPrint.Tests", "test\Device.FingerPrint.Tests\Device.FingerPrint.Tests.csproj", "{F56FC3A6-B9FA-4D81-A36F-B525264CEDDE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Device.FingerPrint.Core.Test", "test\Device.FingerPrint.Core.Test\Device.FingerPrint.Core.Test.csproj", "{6EE2968E-4345-4DBB-BD00-E1D736865502}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Device.FingerPrint.Core.Tests", "test\Device.FingerPrint.Core.Tests\Device.FingerPrint.Core.Tests.csproj", "{6EE2968E-4345-4DBB-BD00-E1D736865502}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Device.FingerPrint.Redis.Test", "test\Device.FingerPrint.Redis.Test\Device.FingerPrint.Redis.Test.csproj", "{C1A4B848-FEAD-429F-999A-6F053CD9E4AC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Device.FingerPrint.Redis.Tests", "test\Device.FingerPrint.Redis.Tests\Device.FingerPrint.Redis.Tests.csproj", "{C1A4B848-FEAD-429F-999A-6F053CD9E4AC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Device.FingerPrint.Queue.Test", "test\Device.FingerPrint.Queue.Test\Device.FingerPrint.Queue.Test.csproj", "{3A95DB45-398E-44F6-8F58-6467799A7D46}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Device.FingerPrint.Queue.Tests", "test\Device.FingerPrint.Queue.Tests\Device.FingerPrint.Queue.Tests.csproj", "{3A95DB45-398E-44F6-8F58-6467799A7D46}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FPS.AI.Powered.Device.Fingerprint.Consumer.Worker.Test", "test\FPS.AI.Powered.Device.Fingerprint.Consumer.Worker.Test\FPS.AI.Powered.Device.Fingerprint.Consumer.Worker.Test.csproj", "{4F0AA6CE-33A6-4915-AAD4-F881683BA5A3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FPS.AI.Powered.Device.Fingerprint.Consumer.Worker.Tests", "test\FPS.AI.Powered.Device.Fingerprint.Consumer.Worker.Tests\FPS.AI.Powered.Device.Fingerprint.Consumer.Worker.Tests.csproj", "{4F0AA6CE-33A6-4915-AAD4-F881683BA5A3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
