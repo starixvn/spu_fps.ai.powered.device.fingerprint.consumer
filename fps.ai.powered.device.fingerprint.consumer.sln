@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FPS.AI.Powered.Device.Finge
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FPS.AI.Powered.Device.Fingerprint.Consumer.Test", "FPS.AI.Powered.Device.Fingerprint.Consumer.Test\FPS.AI.Powered.Device.Fingerprint.Consumer.Test.csproj", "{89B5D2DC-4BB2-D6C2-9B57-2CEF03892F6D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Device.FingerPrint.Redis", "Device.FingerPrint.Redis\Device.FingerPrint.Redis.csproj", "{C83531E3-F9B0-4E68-9C6E-2506E11767DA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{89B5D2DC-4BB2-D6C2-9B57-2CEF03892F6D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{89B5D2DC-4BB2-D6C2-9B57-2CEF03892F6D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{89B5D2DC-4BB2-D6C2-9B57-2CEF03892F6D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C83531E3-F9B0-4E68-9C6E-2506E11767DA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C83531E3-F9B0-4E68-9C6E-2506E11767DA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C83531E3-F9B0-4E68-9C6E-2506E11767DA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C83531E3-F9B0-4E68-9C6E-2506E11767DA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
