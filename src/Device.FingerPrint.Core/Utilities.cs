@@ -209,7 +209,7 @@ namespace Device.FingerPrint.Core
 
             if (System.Numerics.BigInteger.TryParse(bigint, out var intval))
             {
-                retval = intval.ToString("x").PadLeft(32, '0');
+                retval = intval.ToString("x", System.Globalization.CultureInfo.InvariantCulture).PadLeft(32, '0');
                 char[] trimme = new[] { ':' };
                 retval = System.Text.RegularExpressions.Regex.Replace(retval, "(.{4})", "$1:").TrimEnd(trimme);
             }
@@ -220,7 +220,7 @@ namespace Device.FingerPrint.Core
         public static string Long2DotIP(BigInteger IPNum)
         {
             string result = "";
-            result = ((IPNum / 16777216) % 256) + "." + ((IPNum / 65536) % 256) + "." + ((IPNum / 256) % 256) + "." + (IPNum % 256);
+            result = ((IPNum / 16_777_216) % 256) + "." + ((IPNum / 65_536) % 256) + "." + ((IPNum / 256) % 256) + "." + (IPNum % 256);
             return result;
         }
 
@@ -229,19 +229,18 @@ namespace Device.FingerPrint.Core
             if (ipAddress.AddressFamily == AddressFamily.InterNetwork)  // IPv4
             {
                 var strings = ipAddress.GetAddressBytes()
-                    .Select(b => string.Format("{0:D3}", b));   // format bytes with padded 0s
+                    .Select(b => string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0:D3}", b));   // format bytes with padded 0s
 
                 return string.Join(".", strings);   // join padded strings with '.' character
             }
 
             if (ipAddress.AddressFamily == AddressFamily.InterNetworkV6)    // IPv6
             {
-
                 var strings = Enumerable.Range(0, 8)    // create index
                                         .Select(i => ipAddress.GetAddressBytes().ToList().GetRange(i * 2, 2))       // get 8 chunks of bytes
                                         .Select(selector: i => { i.Reverse(); return i; })    // reverse bytes for endianness
                                         .Select(bytes => BitConverter.ToInt16(bytes.ToArray(), 0))  // convert bytes to 16 bit int
-                                        .Select(int16 => string.Format("{0:X4}", int16).ToUpper()); // format int as a 4 digit hex 
+                                        .Select(int16 => string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0:X4}", int16).ToUpper()); // format int as a 4 digit hex 
 
                 return string.Join(":", strings);   // join hex ints with ':'
             }
@@ -293,9 +292,11 @@ namespace Device.FingerPrint.Core
         public static string SubStringUrl(string url)
         {
             if (string.IsNullOrEmpty(url))
+            {
                 return null;
+            }
 
-            int cutIndex = url.IndexOfAny(new char[] { '?', '#' });
+            int cutIndex = url.IndexOfAny(new[] { '?', '#' });
             var cleanUrl = cutIndex != -1 ? url.Substring(0, cutIndex) : url;
 
             return CollapseCasinoPaths(cleanUrl);
@@ -307,7 +308,9 @@ namespace Device.FingerPrint.Core
             var segments = uri.AbsolutePath.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
 
             if (segments.Length < 4)
+            {
                 return rawUrl;
+            }
 
             var first = segments[0];
             var last = segments[segments.Length - 1];  
@@ -332,14 +335,16 @@ namespace Device.FingerPrint.Core
         public static string StripUnicodeCharactersFromString(string inputValue)
         {
             if (string.IsNullOrEmpty(inputValue))
+            {
                 return null;
+            }
 
             return Regex.Replace(inputValue, @"[^\u0000-\u007F]", string.Empty);
         }
 
         public static string EncodeCapturedData(DeviceInfoModel deviceInfo)
         {
-            return Cipher.Encrypt(string.Format("{0}#{1}#{2}#{3}#{4}",
+            return Cipher.Encrypt(string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0}#{1}#{2}#{3}#{4}",
                 deviceInfo.Battery,
                 deviceInfo.CapturedDate,
                 deviceInfo.OSName,
@@ -403,7 +408,10 @@ namespace Device.FingerPrint.Core
 
         public static string RemoveRedisPrefix(string input, string prefix)
         {
-            if (string.IsNullOrEmpty(input)) return string.Empty;
+            if (string.IsNullOrEmpty(input))
+            {
+                return string.Empty;
+            }
 
             if (input.StartsWith(prefix))
             {

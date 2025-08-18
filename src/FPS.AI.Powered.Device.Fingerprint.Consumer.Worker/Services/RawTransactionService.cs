@@ -10,10 +10,8 @@
     using System;
     using System.Collections;
     using System.Collections.Generic;
-
     using System.Linq;
     using System.Threading.Tasks;
-    using System.Transactions;
 
     public interface IRawTransactionService
     {
@@ -103,6 +101,10 @@
                 deviceInfo.DeviceNo = null;
                 transBit.Set((int)TransStatus.InvalidDI, true);
             }
+            else
+            {
+                // Device validation passed - no action needed
+            }
 
             return transBit;
         }
@@ -124,7 +126,18 @@
             return (realIP, ipConverted);
         }
 
-        private RawTransactionModel CreateRawTransactionModel(MessageQueue message, DeviceInfoModel deviceInfo, string url, string userAgent, string invalidDevice, BitArray transBit, BotDModel botDModel, string flaggedCode, string botDetection, string realIP, IpModel ipConverted)
+        private RawTransactionModel CreateRawTransactionModel(
+            MessageQueue message, 
+            DeviceInfoModel deviceInfo, 
+            string url, 
+            string userAgent, 
+            string invalidDevice, 
+            BitArray transBit, 
+            BotDModel botDModel, 
+            string flaggedCode, 
+            string botDetection, 
+            string realIP, 
+            IpModel ipConverted)
         {
             return new RawTransactionModel
             {
@@ -139,7 +152,9 @@
                 URL = string.IsNullOrWhiteSpace(url) ? Utilities.ConvertNA2Empty(Utilities.SubStringUrl(deviceInfo.HRef)) : Utilities.SubStringUrl(url),
                 Action = message.Action,
                 ActionResult = message.ActionResult,
-                UserAgent = string.IsNullOrWhiteSpace(userAgent) ? Utilities.ConvertNA2Empty(Utilities.StripUnicodeCharactersFromString(deviceInfo.UserAgent)) : Utilities.StripUnicodeCharactersFromString(userAgent),
+                UserAgent = string.IsNullOrWhiteSpace(userAgent) 
+                    ? Utilities.ConvertNA2Empty(Utilities.StripUnicodeCharactersFromString(deviceInfo.UserAgent)) 
+                    : Utilities.StripUnicodeCharactersFromString(userAgent),
                 FingerprintCode = deviceInfo.DeviceFPCode != "N/A" ? deviceInfo.DeviceFPCode : null,
                 FingerprintMoreInfo = deviceInfo.DeviceFPCode != "N/A" ? Utilities.EncodeCapturedData(deviceInfo) : null,
                 SessionKey = message.SessionKey,
@@ -167,7 +182,6 @@
                         value: DateTimeOffset.Now.ToString(),
                         expiry: expiry,
                         keepTtl: false,
-                        when: When.Always,
                         flags: CommandFlags.FireAndForget
                     );
                 }

@@ -196,19 +196,6 @@ namespace Device.FingerPrint.Core.Tests
             result.FingerprintAttributes.Should().Contain("Fonts");
         }
 
-        [Fact]
-        public void LogException_ShouldCallLoggerError()
-        {
-            // Arrange
-            var exception = new Exception("Test exception");
-
-            // Act
-            CallLogException(exception);
-
-            // Assert
-            _mockLogger.Verify(x => x.Error(It.IsAny<string>()), Times.Once);
-        }
-
         // Helper methods to call private methods using reflection
         private TransactionLogstashModel CallTransformLogMessage(RawTransactionModel transaction)
         {
@@ -223,13 +210,6 @@ namespace Device.FingerPrint.Core.Tests
                 BindingFlags.NonPublic | BindingFlags.Instance);
             var genericMethod = method.MakeGenericMethod(typeof(T));
             return (FingerprintLogstashModel)genericMethod.Invoke(_logstashService, new object[] { fingerprintAttribute });
-        }
-
-        private void CallLogException(Exception exception)
-        {
-            var method = typeof(LogstashService).GetMethod("LogException", 
-                BindingFlags.NonPublic | BindingFlags.Instance);
-            method.Invoke(_logstashService, new object[] { exception });
         }
     }
 }

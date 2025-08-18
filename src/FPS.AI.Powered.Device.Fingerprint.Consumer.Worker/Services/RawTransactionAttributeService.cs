@@ -95,6 +95,10 @@ namespace Device.FingerPrint.QueueConsumer.Services
                 }
                 return;
             }
+            else
+            {
+                // Continue processing when SessionKey is not null or empty
+            }
 
             var isLogged = false;
 
@@ -112,6 +116,10 @@ namespace Device.FingerPrint.QueueConsumer.Services
             else if (!isLogged)
             {
                 _ = LogConsumerErrorAsync(model, LogType.SessionKeyParse);
+            }
+            else
+            {
+                // No action needed when sessionKey is null and already logged
             }
         }
 
@@ -150,6 +158,10 @@ namespace Device.FingerPrint.QueueConsumer.Services
 
                 _ = LogConsumerErrorAsync(model, LogType.ScriptVersionParse);
             }
+            else
+            {
+                // Script version is valid - no action needed
+            }
         }
 
         private static int CompareVersionsWithTryParse(string versionA, string versionB)
@@ -179,6 +191,10 @@ namespace Device.FingerPrint.QueueConsumer.Services
             else if (model.FPTagging.Length != 32)
             {
                 _ = LogConsumerErrorAsync(model, LogType.TaggingLength);
+            }
+            else
+            {
+                // FPTagging is valid - no action needed
             }
 
             if (!string.IsNullOrEmpty(realTagging))
@@ -257,22 +273,45 @@ namespace Device.FingerPrint.QueueConsumer.Services
         {
             var result = new InsertFPFingerprintEntity();
 
-            if (rawTransModel == null || fpModel == null || string.IsNullOrEmpty(fpModel.Attributes))
-                return result;
-
-            var attributesDictionary = DeserializeToDictionary(fpModel.Attributes);
-
-            if (attributesDictionary == null || !attributesDictionary.Any())
+            if (!ValidateInputs(rawTransModel, fpModel))
             {
                 return result;
             }
 
+            var attributesDictionary = DeserializeToDictionary(fpModel.Attributes);
+            if (!ValidateAttributesDictionary(attributesDictionary))
+            {
+                return result;
+            }
+
+            ProcessFingerprintAttributes(rawTransModel, attributesDictionary, headerModel, fpModel.Platform, result);
+
+            return result;
+        }
+
+        private static bool ValidateInputs(RawTransactionModel rawTransModel, FingerprintModel fpModel)
+        {
+            return rawTransModel != null && fpModel != null && !string.IsNullOrEmpty(fpModel.Attributes);
+        }
+
+        private static bool ValidateAttributesDictionary(Dictionary<string, string> attributesDictionary)
+        {
+            return attributesDictionary != null && attributesDictionary.Any();
+        }
+
+        private void ProcessFingerprintAttributes(
+            RawTransactionModel rawTransModel, 
+            Dictionary<string, string> attributesDictionary, 
+            HeaderModel headerModel, 
+            string platform, 
+            InsertFPFingerprintEntity result)
+        {
             UpdateIsIncognitoMode(rawTransModel, attributesDictionary, rawTransModel.UserAgentInfo?.ClientName);
 
             var fingerPrintAttribute = TransformFPFingerPrintInfo(attributesDictionary);
             if (fingerPrintAttribute == null)
             {
-                return result;
+                return;
             }
 
             UpdateFPFingerPrintInfo(result, fingerPrintAttribute);
@@ -280,14 +319,17 @@ namespace Device.FingerPrint.QueueConsumer.Services
             var oldFingerPrintAttribute = TransformFPOldFingerprintInfo(attributesDictionary, fingerPrintAttribute, rawTransModel.UserAgentInfo);
             UpdateFPOldFingerprintInfo(result, oldFingerPrintAttribute);
 
-            var fingerprintExtra = TransformFingerprintAttributeExtra(headerModel, rawTransModel, oldFingerPrintAttribute, fpModel.Platform);
+            var fingerprintExtra = TransformFingerprintAttributeExtra(headerModel, rawTransModel, oldFingerPrintAttribute, platform);
             UpdateFPFingerprintExtra(result, fingerprintExtra);
 
+            UpdateRawTransactionModel(rawTransModel, result);
+        }
+
+        private static void UpdateRawTransactionModel(RawTransactionModel rawTransModel, InsertFPFingerprintEntity result)
+        {
             rawTransModel.FPFingerPrintCode = result.FPFingerPrintCode;
             rawTransModel.FPFingerPrintExtraCode = result.FPFingerPrintExtraCode;
             rawTransModel.FPFingerPrintOldCode = result.FPFingerPrintOldCode;
-
-            return result;
         }
 
         private static void UpdateIsIncognitoMode(RawTransactionModel rawTransModel, Dictionary<string, string> attributesDictionary, string browserName)
@@ -332,12 +374,22 @@ namespace Device.FingerPrint.QueueConsumer.Services
             }
 
             var deviceDetector = new DeviceDetector(userAgent);
-
             deviceDetector.SkipBotDetection();
             deviceDetector.Parse();
 
             var userAgentInfo = new UserAgentInfoModel { UserAgent = userAgent };
 
+            ProcessClientInfo(deviceDetector, userAgentInfo);
+            ProcessOSInfo(deviceDetector, userAgentInfo);
+            ProcessDeviceInfo(deviceDetector, userAgentInfo);
+
+            userAgentInfo.FPUserAgentCode = crypto.GetMD5Hash(userAgent);
+
+            return userAgentInfo;
+        }
+
+        private static void ProcessClientInfo(DeviceDetector deviceDetector, UserAgentInfoModel userAgentInfo)
+        {
             var clientInfo = deviceDetector.GetClient();
 
             if (clientInfo != null && clientInfo.Success)
@@ -346,7 +398,10 @@ namespace Device.FingerPrint.QueueConsumer.Services
                 userAgentInfo.ClientName = clientInfo.Match.Name;
                 userAgentInfo.ClientVersion = clientInfo.Match.Version;
             }
+        }
 
+        private static void ProcessOSInfo(DeviceDetector deviceDetector, UserAgentInfoModel userAgentInfo)
+        {
             var osInfo = deviceDetector.GetOs();
 
             if (osInfo != null && osInfo.Success)
@@ -356,15 +411,14 @@ namespace Device.FingerPrint.QueueConsumer.Services
                 userAgentInfo.OSVersion = osInfo.Match.Version;
                 userAgentInfo.OSPlatform = osInfo.Match.Platform;
             }
+        }
 
+        private static void ProcessDeviceInfo(DeviceDetector deviceDetector, UserAgentInfoModel userAgentInfo)
+        {
             userAgentInfo.Device = deviceDetector.GetDeviceName();
             userAgentInfo.Brand = deviceDetector.GetBrandName();
             userAgentInfo.Model = deviceDetector.GetModel();
             userAgentInfo.DeviceType = GetDeviceType(deviceDetector);
-
-            userAgentInfo.FPUserAgentCode = crypto.GetMD5Hash(userAgent);
-
-            return userAgentInfo;
         }
 
         private static Dictionary<string, string> DeserializeToDictionary(string attributesJson)
@@ -396,7 +450,10 @@ namespace Device.FingerPrint.QueueConsumer.Services
             }
         }
 
-        private static FPOldFingerprintAttributeModel TransformFPOldFingerprintInfo(Dictionary<string, string> attributesDictionary, FPFingerprintAttributeModel fingerPrintAttribute, UserAgentInfoModel userAgentInfo)
+        private static FPOldFingerprintAttributeModel TransformFPOldFingerprintInfo(
+            Dictionary<string, string> attributesDictionary, 
+            FPFingerprintAttributeModel fingerPrintAttribute, 
+            UserAgentInfoModel userAgentInfo)
         {
             var oldFingerPrintAttribute = JsonConvert.DeserializeObject<FPOldFingerprintAttributeModel>(JsonConvert.SerializeObject(attributesDictionary));
             oldFingerPrintAttribute.SuperCookies = GetSuperCookies(fingerPrintAttribute);
@@ -438,7 +495,11 @@ namespace Device.FingerPrint.QueueConsumer.Services
             }
         }
 
-        private static FPFingerprintAttributeExtraModel TransformFingerprintAttributeExtra(HeaderModel headerModel, RawTransactionModel rawTransModel, FPOldFingerprintAttributeModel oldFingerPrintAttribute, string platform)
+        private static FPFingerprintAttributeExtraModel TransformFingerprintAttributeExtra(
+            HeaderModel headerModel, 
+            RawTransactionModel rawTransModel, 
+            FPOldFingerprintAttributeModel oldFingerPrintAttribute, 
+            string platform)
         {
             var fingerprintAttributeExtra = new FPFingerprintAttributeExtraModel
             {

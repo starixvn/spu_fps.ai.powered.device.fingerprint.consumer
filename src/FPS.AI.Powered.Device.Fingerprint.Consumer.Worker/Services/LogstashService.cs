@@ -73,7 +73,9 @@ namespace Device.FingerPrint.QueueConsumer.Services
             var unhandledAttributes = new List<string>();
 
             if (EqualityComparer<T>.Default.Equals(fingerprintAttribute, default(T)))
+            {
                 return null;
+            }
 
             var unhandledValues = appSettings.UnhandledFingerprintAttributeValues;
 
@@ -110,17 +112,6 @@ namespace Device.FingerPrint.QueueConsumer.Services
                 FingerprintAttributes = attributes,
                 UnhandledAttributes = unhandledAttributes
             };
-        }
-
-        private void LogException(Exception ex)
-        {
-            var logMessage = new LogMessage(ex.Message)
-                   .AddSection("Database Info", DatabaseInfoGetters.GetDbExceptionInfo(ex))
-                   .AddSection("Server Info", CommonInfoGetters.GetServerInfo())
-                   .AddSection("Exception Info", CommonInfoGetters.GetExceptionInfo(ex))
-                   .ToString();
-
-            logger.Error(logMessage);
         }
     }
 }
