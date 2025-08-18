@@ -9,12 +9,22 @@ namespace Device.FingerPrint.Queue
     {
         public static IDisposable Consume(this IAdvancedBus bus, IQueue queue, Action<byte[], MessageProperties, MessageReceivedInfo> onMessage)
         {
-            return bus.Consume(queue, (bytes, properties, info) => ExecuteSynchronously(() => onMessage(bytes, properties, info)));
+            // Use dynamic to call the original IAdvancedBus.Consume method, bypassing extension method resolution
+            dynamic dynamicBus = bus;
+            Func<byte[], MessageProperties, MessageReceivedInfo, Task> messageHandler = 
+                (bytes, properties, info) => ExecuteSynchronously(() => onMessage(bytes, properties, info));
+            
+            return dynamicBus.Consume(queue, messageHandler);
         }
 
         public static IDisposable Consume(this IAdvancedBus bus, IQueue queue, Action<byte[], MessageProperties, MessageReceivedInfo> onMessage, Action<IConsumerConfiguration> configure)
         {
-            return bus.Consume(queue, (bytes, properties, info) => ExecuteSynchronously(() => onMessage(bytes, properties, info)), configure);
+            // Use dynamic to call the original IAdvancedBus.Consume method, bypassing extension method resolution
+            dynamic dynamicBus = bus;
+            Func<byte[], MessageProperties, MessageReceivedInfo, Task> messageHandler = 
+                (bytes, properties, info) => ExecuteSynchronously(() => onMessage(bytes, properties, info));
+            
+            return dynamicBus.Consume(queue, messageHandler, configure);
         }
 
         private static Task ExecuteSynchronously(Action action)
@@ -24,7 +34,6 @@ namespace Device.FingerPrint.Queue
             try
             {
                 action();
-
                 tcs.SetResult(null);
             }
             catch (Exception e)

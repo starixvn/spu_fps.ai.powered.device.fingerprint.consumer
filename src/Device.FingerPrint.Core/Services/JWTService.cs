@@ -9,13 +9,15 @@ namespace Device.FingerPrint.Core.Services
     public class JWTService
     {
         private readonly IAppSettings appSettings;
-        public readonly byte[] keyJWT;
+        private readonly byte[] keyJWT;
 
         public JWTService(IAppSettings appSettings)
         {
             this.appSettings = appSettings;
             keyJWT = Encoding.ASCII.GetBytes(appSettings.JWTPassword);
         }
+
+        public byte[] GetJWTKey() => keyJWT;
         public string GenerateJwtToken()
         {
             var tokenHandler = new JwtSecurityTokenHandler();

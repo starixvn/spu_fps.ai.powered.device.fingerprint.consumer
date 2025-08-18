@@ -54,7 +54,7 @@ namespace Device.FingerPrint.Core.Middleware
                 tokenHandler.ValidateToken(token, new TokenValidationParameters
                 {
                     ValidateIssuerSigningKey = false,
-                    IssuerSigningKey = new SymmetricSecurityKey(JWTService.keyJWT),
+                    IssuerSigningKey = new SymmetricSecurityKey(JWTService.GetJWTKey()),
                     ValidateIssuer = false,
                     ValidateAudience = false,
                     ValidateLifetime = true,

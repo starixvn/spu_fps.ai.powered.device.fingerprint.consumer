@@ -13,13 +13,13 @@ namespace Device.FingerPrint.Core.Services
         string GetMD5Hash(string str);
     }
 
-    public class Crypto: ICrypto, IDisposable
+    public class Crypto: ICrypto
     {
         private readonly RijndaelManaged myRijndael = new RijndaelManaged();
         private readonly int iterations;
         private readonly byte[] salt;
         private IAppSettings appSettings;
-        private bool disposed = false;
+        private bool disposed;
 
         public Crypto(IAppSettings appSettings)
         {

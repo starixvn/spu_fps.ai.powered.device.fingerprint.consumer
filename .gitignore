@@ -345,3 +345,4 @@ FodyWeavers.xsd
 # Global ignore patterns for bin and obj folders
 **/bin/
 **/obj/
+/coverage/*
