@@ -11,6 +11,16 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FPS.AI.Powered.Device.Finge
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FPS.AI.Powered.Device.Fingerprint.Consumer.Test", "FPS.AI.Powered.Device.Fingerprint.Consumer.Test\FPS.AI.Powered.Device.Fingerprint.Consumer.Test.csproj", "{89B5D2DC-4BB2-D6C2-9B57-2CEF03892F6D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Device.FingerPrint.Core", "Device.FingerPrint.Core\Device.FingerPrint.Core.csproj", "{FB67D184-81EE-404C-B0BF-223A8DB15055}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Device.FingerPrint.Model", "Device.FingerPrint.Model\Device.FingerPrint.Model.csproj", "{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Device.FingerPrint.Queue", "Device.FingerPrint.Queue\Device.FingerPrint.Queue.csproj", "{E3C8BF00-933D-426C-82C0-613335E617F1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Device.FingerPrint.Redis", "Device.FingerPrint.Redis\Device.FingerPrint.Redis.csproj", "{A39DFB94-CF35-4758-B134-AFAB05C810D0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Device.FingerPrint", "Device.FingerPrint\Device.FingerPrint.csproj", "{689C407E-046A-4455-BA45-E1BDB75AF259}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +43,26 @@ Global
 		{89B5D2DC-4BB2-D6C2-9B57-2CEF03892F6D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{89B5D2DC-4BB2-D6C2-9B57-2CEF03892F6D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{89B5D2DC-4BB2-D6C2-9B57-2CEF03892F6D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FB67D184-81EE-404C-B0BF-223A8DB15055}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FB67D184-81EE-404C-B0BF-223A8DB15055}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FB67D184-81EE-404C-B0BF-223A8DB15055}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FB67D184-81EE-404C-B0BF-223A8DB15055}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E3C8BF00-933D-426C-82C0-613335E617F1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E3C8BF00-933D-426C-82C0-613335E617F1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E3C8BF00-933D-426C-82C0-613335E617F1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E3C8BF00-933D-426C-82C0-613335E617F1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A39DFB94-CF35-4758-B134-AFAB05C810D0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A39DFB94-CF35-4758-B134-AFAB05C810D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A39DFB94-CF35-4758-B134-AFAB05C810D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A39DFB94-CF35-4758-B134-AFAB05C810D0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{689C407E-046A-4455-BA45-E1BDB75AF259}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{689C407E-046A-4455-BA45-E1BDB75AF259}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{689C407E-046A-4455-BA45-E1BDB75AF259}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{689C407E-046A-4455-BA45-E1BDB75AF259}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

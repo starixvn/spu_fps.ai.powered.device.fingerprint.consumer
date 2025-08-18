@@ -1,4 +1,7 @@
-namespace FPS.AI.Powered.Device.Fingerprint.Worker
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+
+namespace Device.FingerPrint.QueueConsumer
 {
     public class Worker : BackgroundService
     {
@@ -17,7 +20,7 @@ namespace FPS.AI.Powered.Device.Fingerprint.Worker
                 {
                     _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
                 }
-                await Task.Delay(1000, stoppingToken);
+                await Task.Delay(10000, stoppingToken);
             }
         }
     }
