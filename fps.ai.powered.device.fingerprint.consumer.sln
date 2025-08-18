@@ -21,6 +21,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Device.FingerPrint", "src\D
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FPS.AI.Powered.Device.Fingerprint.Consumer.Tests", "FPS.AI.Powered.Device.Fingerprint.Consumer.Tests\FPS.AI.Powered.Device.Fingerprint.Consumer.Tests.csproj", "{242CD985-C020-4F4E-8D14-E6A6D1DA0D35}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{0C88DD14-F956-CE84-757C-A364CCF449FC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Device.FingerPrint.Core.Tests", "test\Device.FingerPrint.Core.Tests\Device.FingerPrint.Core.Tests.csproj", "{83063307-412F-49BB-A282-57DFD466C2F9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -139,9 +143,24 @@ Global
 		{242CD985-C020-4F4E-8D14-E6A6D1DA0D35}.Release|x64.Build.0 = Release|Any CPU
 		{242CD985-C020-4F4E-8D14-E6A6D1DA0D35}.Release|x86.ActiveCfg = Release|Any CPU
 		{242CD985-C020-4F4E-8D14-E6A6D1DA0D35}.Release|x86.Build.0 = Release|Any CPU
+		{83063307-412F-49BB-A282-57DFD466C2F9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{83063307-412F-49BB-A282-57DFD466C2F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{83063307-412F-49BB-A282-57DFD466C2F9}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{83063307-412F-49BB-A282-57DFD466C2F9}.Debug|x64.Build.0 = Debug|Any CPU
+		{83063307-412F-49BB-A282-57DFD466C2F9}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{83063307-412F-49BB-A282-57DFD466C2F9}.Debug|x86.Build.0 = Debug|Any CPU
+		{83063307-412F-49BB-A282-57DFD466C2F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{83063307-412F-49BB-A282-57DFD466C2F9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{83063307-412F-49BB-A282-57DFD466C2F9}.Release|x64.ActiveCfg = Release|Any CPU
+		{83063307-412F-49BB-A282-57DFD466C2F9}.Release|x64.Build.0 = Release|Any CPU
+		{83063307-412F-49BB-A282-57DFD466C2F9}.Release|x86.ActiveCfg = Release|Any CPU
+		{83063307-412F-49BB-A282-57DFD466C2F9}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{83063307-412F-49BB-A282-57DFD466C2F9} = {0C88DD14-F956-CE84-757C-A364CCF449FC}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {12345678-1234-5678-9ABC-DEF123456789}
