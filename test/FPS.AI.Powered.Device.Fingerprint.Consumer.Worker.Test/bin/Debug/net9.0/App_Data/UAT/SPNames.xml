@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+
+<Functions>
+	<Function Name="Transaction">
+		<Setting Key="DCS_DC_Transform_RawTrans_Insert" SpName="DCS_DC_Transform_RawTrans_Insert" DbName="CTSMain.DCS_DataCenter.ctsServiceAdmin"/>
+
+		<Setting Key="DCS_DC_Transform_FP_TaggingInsert" SpName="DCS_DC_Transform_FP_TaggingInsert" DbName="CTSMain.DCS_DataCenter.ctsServiceAdmin"/>
+		<Setting Key="DCS_DC_Transform_FP_UserAgentInsert" SpName="DCS_DC_Transform_FP_UserAgentInsert" DbName="CTSMain.DCS_DataCenter.ctsServiceAdmin"/>
+		<Setting Key="DCS_DC_Transform_JSChallengeInfo_Insert" SpName="DCS_DC_Transform_JSChallengeInfo_Insert" DbName="CTSMain.DCS_DataCenter.ctsServiceAdmin"/>
+		<Setting Key="DCS_DC_Transform_FP_FingerPrintInsert" SpName="DCS_DC_Transform_FP_FingerPrintInsert" DbName="CTSMain.DCS_DataCenter.ctsServiceAdmin"/>
+	</Function>
+	<Function Name="LogInfo">
+		<Setting Key="DCS_DT_Log_DCSConsumerLog_Insert" SpName="DCS_DT_Log_DCSConsumerLog_Insert" DbName="CTSMain.DCS_DataTrace.ctsServiceAdmin"/>
+	</Function>
+</Functions>

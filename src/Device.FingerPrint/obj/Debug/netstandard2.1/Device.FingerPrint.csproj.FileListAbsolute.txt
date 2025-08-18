@@ -1,0 +1,13 @@
+D:\Code\NewClone\device.fingerprint.api\src\Device.FingerPrint\bin\Debug\netstandard2.1\Device.FingerPrint.deps.json
+D:\Code\NewClone\device.fingerprint.api\src\Device.FingerPrint\bin\Debug\netstandard2.1\Device.FingerPrint.dll
+D:\Code\NewClone\device.fingerprint.api\src\Device.FingerPrint\bin\Debug\netstandard2.1\Device.FingerPrint.pdb
+D:\Code\NewClone\device.fingerprint.api\src\Device.FingerPrint\bin\Debug\netstandard2.1\Device.FingerPrint.Model.dll
+D:\Code\NewClone\device.fingerprint.api\src\Device.FingerPrint\bin\Debug\netstandard2.1\Device.FingerPrint.Model.pdb
+D:\Code\NewClone\device.fingerprint.api\src\Device.FingerPrint\obj\Debug\netstandard2.1\Device.FingerPrint.csproj.AssemblyReference.cache
+D:\Code\NewClone\device.fingerprint.api\src\Device.FingerPrint\obj\Debug\netstandard2.1\Device.FingerPrint.GeneratedMSBuildEditorConfig.editorconfig
+D:\Code\NewClone\device.fingerprint.api\src\Device.FingerPrint\obj\Debug\netstandard2.1\Device.FingerPrint.AssemblyInfoInputs.cache
+D:\Code\NewClone\device.fingerprint.api\src\Device.FingerPrint\obj\Debug\netstandard2.1\Device.FingerPrint.AssemblyInfo.cs
+D:\Code\NewClone\device.fingerprint.api\src\Device.FingerPrint\obj\Debug\netstandard2.1\Device.FingerPrint.csproj.CoreCompileInputs.cache
+D:\Code\NewClone\device.fingerprint.api\src\Device.FingerPrint\obj\Debug\netstandard2.1\Device.F.8EFB119A.Up2Date
+D:\Code\NewClone\device.fingerprint.api\src\Device.FingerPrint\obj\Debug\netstandard2.1\Device.FingerPrint.dll
+D:\Code\NewClone\device.fingerprint.api\src\Device.FingerPrint\obj\Debug\netstandard2.1\Device.FingerPrint.pdb
