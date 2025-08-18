@@ -3,7 +3,7 @@ using Fanex.Data;
 
 namespace Device.FingerPrint.Features.Transaction.Criterias
 {
-    internal class InsertRawTransactionCriteria : NonQueryCommand
+    public class InsertRawTransactionCriteria : NonQueryCommand
     {
         [SpParam(SqlParamName = "ip_RawTransJson", AllowNull = true)]
         public string RawTransJson { get; set; }
@@ -13,14 +13,7 @@ namespace Device.FingerPrint.Features.Transaction.Criterias
 
         public override string GetSettingKey()
         {
-            if (this.IsTransOfDBExtra)
-            {
-                return "DCS_ET_Transform_RawTrans_Insert";
-            }
-            else
-            {
-                return "DCS_DC_Transform_RawTrans_Insert";
-            }
+            return this.IsTransOfDBExtra ? "DCS_ET_Transform_RawTrans_Insert" : "DCS_DC_Transform_RawTrans_Insert";
         }
 
         public override bool IsValid()

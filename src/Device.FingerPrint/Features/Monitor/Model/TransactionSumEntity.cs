@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Device.FingerPrint.Features.Monitor.Model
+﻿namespace Device.FingerPrint.Features.Monitor.Model
 {
     public class TransactionSumEntity
     {

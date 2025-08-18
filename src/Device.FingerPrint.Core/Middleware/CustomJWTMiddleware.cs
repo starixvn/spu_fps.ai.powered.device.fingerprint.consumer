@@ -23,7 +23,8 @@
 
         public async Task Invoke(HttpContext context)
         {
-            var token = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(' ').Last();
+            var authHeader = context.Request.Headers["Authorization"].FirstOrDefault();
+            var token = authHeader?.Split(' ').Length > 1 ? authHeader.Split(' ')[authHeader.Split(' ').Length - 1] : null;
 
             if (JWTEnable && (token == null || !ValidateToken(token)))
             {
@@ -56,7 +57,7 @@
                     ValidateAudience = false,
                     ValidateLifetime = false,
                     RequireExpirationTime = false,
-                }, out SecurityToken validatedToken);
+                }, out _);
             }
             catch
             {

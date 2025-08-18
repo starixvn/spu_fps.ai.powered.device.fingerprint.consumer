@@ -36,8 +36,10 @@ namespace Device.FingerPrint.QueueConsumer.Services
 
             foreach (var transaction in transactions)
             {
-                if (appSettings.LogstashIgnoreSubscribers.Count != 0 && appSettings.LogstashIgnoreSubscribers.Contains(transaction.SubscriberName.ToLower()))
+                if (appSettings.LogstashIgnoreSubscribers.Count != 0 && appSettings.LogstashIgnoreSubscribers.Contains(transaction.SubscriberName.ToLowerInvariant()))
+                {
                     continue;
+                }
 
                 var logMessage = TransformLogMessage(transaction);
 
@@ -52,7 +54,7 @@ namespace Device.FingerPrint.QueueConsumer.Services
         {
             var fingerprintLogstashModel = GetFingerprintAttributes(transaction.FingerprintAttribute?.FPFingerPrintAttribute);
 
-            transaction.SubscriberName = transaction.SubscriberName.ToLower();
+            transaction.SubscriberName = transaction.SubscriberName.ToLowerInvariant();
 
             var logMessage = new TransactionLogstashModel
             {
@@ -70,7 +72,7 @@ namespace Device.FingerPrint.QueueConsumer.Services
             var attributes = new List<string>();
             var unhandledAttributes = new List<string>();
 
-            if (fingerprintAttribute == null)
+            if (EqualityComparer<T>.Default.Equals(fingerprintAttribute, default(T)))
                 return null;
 
             var unhandledValues = appSettings.UnhandledFingerprintAttributeValues;
@@ -89,7 +91,7 @@ namespace Device.FingerPrint.QueueConsumer.Services
                 {
                     var stringValue = propertyValue.ToString();
                     if (!string.IsNullOrEmpty(stringValue)
-                        && !unhandledValues.Contains(stringValue.Trim('"').ToLower()))
+                        && !unhandledValues.Contains(stringValue.Trim('"').ToLowerInvariant()))
                     {
                         attributes.Add(property.Name);
                         continue;

@@ -114,16 +114,22 @@ namespace Device.FingerPrint.Core
         public static IEnumerable<List<T>> Partition<T>(this IList<T> source, Int32 size)
         {
             for (int i = 0; i < (source.Count / size) + (source.Count % size > 0 ? 1 : 0); i++)
+            {
                 yield return new List<T>(source.Skip(size * i).Take(size));
+            }
         }
 
         public static List<T>[] Partition<T>(List<T> list, int totalPartitions)
         {
             if (list == null)
-                throw new ArgumentNullException("list");
+            {
+                throw new ArgumentNullException(nameof(list));
+            }
 
             if (totalPartitions < 1)
-                throw new ArgumentOutOfRangeException("totalPartitions");
+            {
+                throw new ArgumentOutOfRangeException(nameof(totalPartitions));
+            }
 
             List<T>[] partitions = new List<T>[totalPartitions];
 
@@ -136,7 +142,9 @@ namespace Device.FingerPrint.Core
                 for (int j = k; j < k + maxSize; j++)
                 {
                     if (j >= list.Count)
+                    {
                         break;
+                    }
                     partitions[i].Add(list[j]);
                 }
                 k += maxSize;

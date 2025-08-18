@@ -133,7 +133,7 @@ namespace Device.FingerPrint.Model
     {
         public override object StringToField(string from)
         {
-            return from.ToString();
+            return from;
         }
     }
 }

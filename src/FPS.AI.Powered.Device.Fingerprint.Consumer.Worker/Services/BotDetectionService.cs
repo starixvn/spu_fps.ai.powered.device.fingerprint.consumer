@@ -108,7 +108,7 @@ namespace Device.FingerPrint.QueueConsumer.Services
 
         private static bool IsHeadless(string userAgent)
         {
-            return userAgent.ToLower().Contains("headless");
+            return userAgent.ToLowerInvariant().Contains("headless");
         }
     }
 }

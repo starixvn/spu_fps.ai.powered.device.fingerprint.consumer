@@ -38,7 +38,7 @@ namespace Device.FingerPrint.Redis
             return redisEverTaggingDb;
         }
 
-        public async Task HashSetMultipleFieldsWithDbIndexAsync(int redisDatabaseIndex, string hashKey, Dictionary<string, string> fieldKeyValuePairs, long expireSecond = 0)
+        public async Task HashSetMultipleFieldsWithDbIndexAsync(int redisDatabaseIndex, string hashKey, Dictionary<string, string> fieldKeyValuePairs, long expireSecond)
         {
             var db = connectionMultiplexer.GetDatabase(redisDatabaseIndex);
 

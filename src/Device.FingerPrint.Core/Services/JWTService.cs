@@ -17,14 +17,14 @@ namespace Device.FingerPrint.Core.Services
             keyJWT = Encoding.ASCII.GetBytes(appSettings.JWTPassword);
         }
 
-        public byte[] GetJWTKey() => keyJWT;
+        public byte[] GetJWTKey() => (byte[])keyJWT.Clone();
         public string GenerateJwtToken()
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(new[] { new Claim("id", appSettings.ApiUrl) }),
-                Expires = DateTime.UtcNow.AddMinutes(1),
+                Expires = DateTimeOffset.UtcNow.AddMinutes(1).DateTime,
                 Issuer = appSettings.ApiUrl,
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(keyJWT), SecurityAlgorithms.HmacSha256Signature)
             };

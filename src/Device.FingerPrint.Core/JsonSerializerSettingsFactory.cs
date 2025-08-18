@@ -5,18 +5,13 @@
 
     public static class JsonSerializerSettingsFactory
     {
-        private static volatile JsonSerializerSettings _instance;
+        private static readonly JsonSerializerSettings _instance = new JsonSerializerSettings
+        {
+            NullValueHandling = NullValueHandling.Ignore,
+            MissingMemberHandling = MissingMemberHandling.Ignore,
+            ContractResolver = new CamelCasePropertyNamesContractResolver()
+        };
 
         public static JsonSerializerSettings Instance => _instance;
-
-        static JsonSerializerSettingsFactory()
-        {
-            _instance = new JsonSerializerSettings
-            {
-                NullValueHandling = NullValueHandling.Ignore,
-                MissingMemberHandling = MissingMemberHandling.Ignore,
-                ContractResolver = new CamelCasePropertyNamesContractResolver()
-            };
-        }
     }
 }

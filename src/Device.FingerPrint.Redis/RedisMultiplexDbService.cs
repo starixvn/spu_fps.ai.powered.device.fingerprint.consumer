@@ -58,6 +58,15 @@ namespace Device.FingerPrint.Redis
             await db.KeyExpireAsync(hashedKey, TimeSpan.FromSeconds(expireInSecond));
         }
 
+        public void HashSetMultipleFieldsWithDbIndexAsync(int dbIndex, string hashedKey, HashEntry[] hashEntries, long expireInSecond)
+        {
+            var db = this.GetDatabase(dbIndex);
+
+            db.HashSetAsync(hashedKey, hashEntries);
+
+            db.KeyExpireAsync(hashedKey, TimeSpan.FromSeconds(expireInSecond));
+        }
+
         public async Task<double> GetTimeSpan(int dbIndex, string hashedKey)
         {
             var db = this.GetDatabase(dbIndex);
@@ -70,15 +79,6 @@ namespace Device.FingerPrint.Redis
             }
 
             return -1;
-        }
-
-        public void HashSetMultipleFieldsWithDbIndexAsync(int dbIndex, string hashedKey, HashEntry[] hashEntries, long expireInSecond)
-        {
-            var db = this.GetDatabase(dbIndex);
-
-            db.HashSetAsync(hashedKey, hashEntries);
-
-            db.KeyExpireAsync(hashedKey, TimeSpan.FromSeconds(expireInSecond));
         }
 
 

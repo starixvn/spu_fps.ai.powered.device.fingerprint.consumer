@@ -73,16 +73,13 @@
                 if (string.IsNullOrWhiteSpace(deviceInfo.DeviceNo) || deviceInfo.DeviceNo == "N/A")
                 {
                     deviceInfo.DeviceNo = null;
-                    transBit.Set((int)TransStatusEnum.DeviceCodeIsEmpty, true);
+                    transBit.Set((int)TransStatus.DeviceCodeIsEmpty, true);
                 }
-                else
+                else if (!Utilities.IsGuidDeviceId(deviceInfo.DeviceNo) || deviceInfo.InvalidDeviceId)
                 {
-                    if (!Utilities.IsGuidDeviceId(deviceInfo.DeviceNo) || deviceInfo.InvalidDeviceId)
-                    {
-                        invalidDevice = deviceCode;
-                        deviceInfo.DeviceNo = null;
-                        transBit.Set((int)TransStatusEnum.InvalidDI, true);
-                    }
+                    invalidDevice = deviceCode;
+                    deviceInfo.DeviceNo = null;
+                    transBit.Set((int)TransStatus.InvalidDI, true);
                 }
 
                 var botDModel = botDetectionService.TransformBotdModel(message);
@@ -202,22 +199,13 @@
         {
             return transactions
                 .Select(selector)
-                .Where(result => result != null)
+                .Where(result => !EqualityComparer<TResult>.Default.Equals(result, default(TResult)))
                 .Distinct();
         }
        
         public void LogTransactions(IEnumerable<RawTransactionModel> transactions)
         {
-            //var logFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs", $"transactions_{DateTime.Now:yyyyMMdd_HH}.log");
-
-            //Directory.CreateDirectory(Path.GetDirectoryName(logFilePath));
-
-            //using (var writer = new StreamWriter(logFilePath, true))
-            //{
-            //    var logMessage = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} - Transaction: {JsonConvert.SerializeObject(transactions)}";
-
-            //    writer.WriteLine(logMessage);
-            //}
+            // Method intentionally left empty - logging functionality removed
         }     
 
     }

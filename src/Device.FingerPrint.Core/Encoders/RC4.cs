@@ -26,7 +26,8 @@ namespace Device.FingerPrint.Core.Encoders
                 map[i] = i;
             }
 
-            for (int i = 0, j = 0; i < 256; i++)
+            int j = 0;
+            for (int i = 0; i < 256; i++)
             {
                 j = (j + map[i] + keyCharArray[i % keyLength]) % 256;
                 var x = map[i];
@@ -35,14 +36,15 @@ namespace Device.FingerPrint.Core.Encoders
             }
 
             var encryptedValue = string.Empty;
-            for (int y = 0, i = 0, j = 0; y < valueLength; y++)
+            int i2 = 0, j2 = 0;
+            for (int y = 0; y < valueLength; y++)
             {
-                i = (i + 1) % 256;
-                j = (j + map[i]) % 256;
-                var x = map[i];
-                map[i] = map[j];
-                map[j] = x;
-                encryptedValue += Convert.ToChar(valueCharArray[y] ^ map[(map[i] + map[j]) % 256]);
+                i2 = (i2 + 1) % 256;
+                j2 = (j2 + map[i2]) % 256;
+                var x = map[i2];
+                map[i2] = map[j2];
+                map[j2] = x;
+                encryptedValue += Convert.ToChar(valueCharArray[y] ^ map[(map[i2] + map[j2]) % 256]);
             }
 
             return encryptedValue;

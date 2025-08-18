@@ -11,7 +11,7 @@ namespace Device.FingerPrint.Model
         FingerPrintEncode
     }
 
-    public class RedisString
+    public static class RedisString
     {
         public static string GetRedisKeyName(RedisKey redisKey)
         {

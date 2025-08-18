@@ -13,14 +13,7 @@ namespace Device.FingerPrint.Features.Transaction.Criterias
 
         public override string GetSettingKey()
         {
-            if (this.IsTransOfDBExtra)
-            {
-                return "";
-            }
-            else
-            {
-                return "DCS_DC_Transform_JSChallengeInfo_Insert";
-            }
+            return this.IsTransOfDBExtra ? "" : "DCS_DC_Transform_JSChallengeInfo_Insert";
         }
 
         public override bool IsValid()

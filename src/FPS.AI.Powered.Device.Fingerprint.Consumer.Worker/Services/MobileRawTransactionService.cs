@@ -1,9 +1,7 @@
 ﻿using Device.FingerPrint.Model;
 using System;
-using System.Collections;
 using Device.FingerPrint.Core;
 using Fanex.Logging;
-using EasyNetQ;
 
 namespace Device.FingerPrint.QueueConsumer.Services
 {
@@ -14,14 +12,12 @@ namespace Device.FingerPrint.QueueConsumer.Services
 
     public class MobileRawTransactionService : IMobileRawTransactionService
     {
-        private readonly IUserAgentService userAgentService;
         private readonly IAppSettings appSettings;
 
         public MobileRawTransactionService(
             IUserAgentService userAgentService,
             IAppSettings appSettings)
         {
-            this.userAgentService = userAgentService;
             this.appSettings = appSettings;
         }
 

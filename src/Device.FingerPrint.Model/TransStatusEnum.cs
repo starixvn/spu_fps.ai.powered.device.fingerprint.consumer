@@ -1,6 +1,6 @@
 ﻿namespace Device.FingerPrint.Model
 {
-    public enum TransStatusEnum
+    public enum TransStatus
     {
         /// <summary>
         /// Binary: 0 - Decimal: 0

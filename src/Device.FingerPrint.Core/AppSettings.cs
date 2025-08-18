@@ -122,59 +122,124 @@ namespace Device.FingerPrint.Core
         {
             this.configuration = configuration;
 
-            apiUrl = GetValue<string>("AppConfig:ApiUrl") ?? string.Empty;
+            // Initialize all settings in constructor to avoid readonly field assignment issues
+            var (apiUrlVal, cdnApiUrlVal, portalApiUrlVal, spNameVal, environmentVal, sentryDsnVal) = GetApiSettings();
+            var (cryptoPasswordVal, cryptoIVVal, cryptoSaltVal) = GetCryptoSettings();
+            var (redisDatabaseVal, redisExpiredVal, everTaggingExpireSecondVal, everTaggingDBIndexVal, apiEverTaggingCacheMaxAgeVal) = GetRedisSettings();
+            var (jWTPasswordVal, jWTIssueVal, jWTAudienceVal, jWTVal) = GetJWTSettings();
+            var (isEnableLogstashVal, logstashTcpHostnameVal, logstashTcpPortVal, unhandledFingerprintAttributeValuesVal, logstashIgnoreSubscribersVal) = GetLogstashSettings();
+            var (isExtraSubVal, maxMonthsGetAssociationByDeviceVal, isDisableJsChallengeVal) = GetConsumerSettings();
+            var isVaultEnableVal = GetVaultSettings();
 
-            cdnApiUrl = GetValue<string>("AppConfig:CDNApiUrl") ?? string.Empty;
+            // Assign to readonly fields
+            apiUrl = apiUrlVal;
+            cdnApiUrl = cdnApiUrlVal;
+            portalApiUrl = portalApiUrlVal;
+            spName = spNameVal;
+            environment = environmentVal;
+            sentryDsn = sentryDsnVal;
+            cryptoPassword = cryptoPasswordVal;
+            cryptoIV = cryptoIVVal;
+            cryptoSalt = cryptoSaltVal;
+            redisDatabase = redisDatabaseVal;
+            redisExpired = redisExpiredVal;
+            everTaggingExpireSecond = everTaggingExpireSecondVal;
+            everTaggingDBIndex = everTaggingDBIndexVal;
+            apiEverTaggingCacheMaxAge = apiEverTaggingCacheMaxAgeVal;
+            jWTPassword = jWTPasswordVal;
+            jWTIssue = jWTIssueVal;
+            jWTAudience = jWTAudienceVal;
+            jWT = jWTVal;
+            isEnableLogstash = isEnableLogstashVal;
+            logstashTcpHostname = logstashTcpHostnameVal;
+            logstashTcpPort = logstashTcpPortVal;
+            unhandledFingerprintAttributeValues = unhandledFingerprintAttributeValuesVal;
+            logstashIgnoreSubscribers = logstashIgnoreSubscribersVal;
+            isExtraSub = isExtraSubVal;
+            maxMonthsGetAssociationByDevice = maxMonthsGetAssociationByDeviceVal;
+            isDisableJsChallenge = isDisableJsChallengeVal;
+            isVaultEnable = isVaultEnableVal;
+        }
 
-            portalApiUrl = GetValue<string>("AppConfig:PortalApiUrl") ?? string.Empty;
+        private (string apiUrl, string cdnApiUrl, string portalApiUrl, string spName, string environment, string sentryDsn) GetApiSettings()
+        {
+            return (
+                GetValue<string>("AppConfig:ApiUrl") ?? string.Empty,
+                GetValue<string>("AppConfig:CDNApiUrl") ?? string.Empty,
+                GetValue<string>("AppConfig:PortalApiUrl") ?? string.Empty,
+                GetValue<string>("StoredProcedurePath") ?? "App_Data",
+                GetValue<string>("AppConfig:Environment") ?? string.Empty,
+                GetValue<string>("Sentry:Dsn") ?? string.Empty
+            );
+        }
 
-            cryptoPassword = GetValue<string>("AppConfig:Crypto:Password") ?? string.Empty;
+        private (string cryptoPassword, string cryptoIV, string cryptoSalt) GetCryptoSettings()
+        {
+            return (
+                GetValue<string>("AppConfig:Crypto:Password") ?? string.Empty,
+                GetValue<string>("AppConfig:Crypto:IV") ?? string.Empty,
+                GetValue<string>("AppConfig:Crypto:Salt") ?? string.Empty
+            );
+        }
 
-            cryptoIV = GetValue<string>("AppConfig:Crypto:IV") ?? string.Empty;
+        private (int redisDatabase, int redisExpired, long everTaggingExpireSecond, int everTaggingDBIndex, long apiEverTaggingCacheMaxAge) GetRedisSettings()
+        {
+            var redisDatabaseValue = GetValue<string>("Redis:Database");
+            var redisExpiredValue = GetValue<string>("Redis:Expired");
+            var everTaggingExpireValue = GetValue<string>("Redis:EverTaggingExpireSecond");
+            var everTaggingDbIndexValue = GetValue<string>("Redis:EverTaggingDbIndex");
+            var apiEverTaggingCacheValue = GetValue<string>("ApiEverTaggingCacheMaxAge");
 
-            cryptoSalt = GetValue<string>("AppConfig:Crypto:Salt") ?? string.Empty;
+            return (
+                Convert.ToInt32(string.IsNullOrEmpty(redisDatabaseValue) ? "0" : redisDatabaseValue),
+                Convert.ToInt32(string.IsNullOrEmpty(redisExpiredValue) ? "3600" : redisExpiredValue),
+                Convert.ToInt64(string.IsNullOrEmpty(everTaggingExpireValue) ? "3600" : everTaggingExpireValue),
+                Convert.ToInt32(string.IsNullOrEmpty(everTaggingDbIndexValue) ? "0" : everTaggingDbIndexValue),
+                Convert.ToInt64(string.IsNullOrEmpty(apiEverTaggingCacheValue) ? "86400" : apiEverTaggingCacheValue)
+            );
+        }
 
-            spName = GetValue<string>("StoredProcedurePath") ?? "App_Data";
+        private (string jWTPassword, string jWTIssue, string jWTAudience, string jWT) GetJWTSettings()
+        {
+            return (
+                GetValue<string>("AppConfig:JWT:Password") ?? "!QAZxdr567890",
+                GetValue<string>("AppConfig:JWT:Issue") ?? string.Empty,
+                GetValue<string>("AppConfig:JWT:Audience") ?? string.Empty,
+                GetValue<string>("AppConfig:JWT") ?? string.Empty
+            );
+        }
 
-            sentryDsn = GetValue<string>("Sentry:Dsn") ?? string.Empty;
+        private (bool isEnableLogstash, string logstashTcpHostname, int logstashTcpPort, List<string> unhandledFingerprintAttributeValues, List<string> logstashIgnoreSubscribers) GetLogstashSettings()
+        {
+            var isEnableLogstashValue = GetValue<string>("Logstash:IsEnable");
+            var logstashTcpPortValue = GetValue<string>("Logstash:Tcp:Port");
 
-            environment = GetValue<string>("AppConfig:Environment") ?? string.Empty;
+            return (
+                !string.IsNullOrEmpty(isEnableLogstashValue) && Convert.ToBoolean(isEnableLogstashValue),
+                GetValue<string>("Logstash:Tcp:Hostname") ?? string.Empty,
+                Convert.ToInt32(string.IsNullOrEmpty(logstashTcpPortValue) ? "32705" : logstashTcpPortValue),
+                GetSection<List<string>>("Fingerprint:UnhandledAttributeValues") ?? new List<string>(),
+                GetSection<List<string>>("Logstash:IgnoreSubscribers") ?? new List<string>()
+            );
+        }
 
-            redisDatabase = Convert.ToInt32(string.IsNullOrEmpty(GetValue<string>("Redis:Database")) ? "0" : GetValue<string>("Redis:Database"));
+        private (bool isExtraSub, int maxMonthsGetAssociationByDevice, bool isDisableJsChallenge) GetConsumerSettings()
+        {
+            var isExtraSubValue = GetValue<string>("Consumer:IsExtraSub");
+            var maxMonthsValue = GetValue<string>("API:MaxMonthsGetAssociationByDevice");
+            var isDisableJsChallengeValue = GetValue<string>("Consumer:IsDisableJsChallenge");
 
-            redisExpired = Convert.ToInt32(string.IsNullOrEmpty(GetValue<string>("Redis:Expired")) ? "3600" : GetValue<string>("Redis:Expired"));
+            return (
+                !string.IsNullOrEmpty(isExtraSubValue) && Convert.ToBoolean(isExtraSubValue),
+                Convert.ToInt32(string.IsNullOrEmpty(maxMonthsValue) ? "0" : maxMonthsValue),
+                !string.IsNullOrEmpty(isDisableJsChallengeValue) && Convert.ToBoolean(isDisableJsChallengeValue)
+            );
+        }
 
-            jWTPassword = GetValue<string>("AppConfig:JWT:Password") ?? "!QAZxdr567890";
-
-            jWTIssue = GetValue<string>("AppConfig:JWT:Issue") ?? string.Empty;
-
-            jWTAudience = GetValue<string>("AppConfig:JWT:Audience") ?? string.Empty;
-
-            jWT = GetValue<string>("AppConfig:JWT") ?? string.Empty;
-
-            isEnableLogstash = !string.IsNullOrEmpty(GetValue<string>("Logstash:IsEnable")) && Convert.ToBoolean(GetValue<string>("Logstash:IsEnable"));
-
-            logstashTcpHostname = GetValue<string>("Logstash:Tcp:Hostname") ?? string.Empty;
-
-            logstashTcpPort = Convert.ToInt32(string.IsNullOrEmpty(GetValue<string>("Logstash:Tcp:Port")) ? "32705" : GetValue<string>("Logstash:Tcp:Port"));
-
-            unhandledFingerprintAttributeValues = GetSection<List<string>>("Fingerprint:UnhandledAttributeValues") ?? new List<string>();
-
-            logstashIgnoreSubscribers = GetSection<List<string>>("Logstash:IgnoreSubscribers") ?? new List<string>();
-
-            isExtraSub = !string.IsNullOrEmpty(GetValue<string>("Consumer:IsExtraSub")) && Convert.ToBoolean(GetValue<string>("Consumer:IsExtraSub"));
-
-            maxMonthsGetAssociationByDevice = Convert.ToInt32(string.IsNullOrEmpty(GetValue<string>("API:MaxMonthsGetAssociationByDevice")) ? "0" : GetValue<string>("API:MaxMonthsGetAssociationByDevice"));
-            
-            everTaggingExpireSecond = Convert.ToInt64(string.IsNullOrEmpty(GetValue<string>("Redis:EverTaggingExpireSecond")) ? "3600" : GetValue<string>("Redis:EverTaggingExpireSecond"));
-
-            everTaggingDBIndex = Convert.ToInt32(string.IsNullOrEmpty(GetValue<string>("Redis:EverTaggingDbIndex")) ? "0" : GetValue<string>("Redis:EverTaggingDbIndex"));
-
-            apiEverTaggingCacheMaxAge = Convert.ToInt64(string.IsNullOrEmpty(GetValue<string>("ApiEverTaggingCacheMaxAge")) ? "86400" : GetValue<string>("ApiEverTaggingCacheMaxAge"));
-
-            isDisableJsChallenge = !string.IsNullOrEmpty(GetValue<string>("Consumer:IsDisableJsChallenge")) && Convert.ToBoolean(GetValue<string>("Consumer:IsDisableJsChallenge"));
-
-            isVaultEnable = !string.IsNullOrEmpty(GetValue<string>("VaultOptions:Enable")) && Convert.ToBoolean(GetValue<string>("VaultOptions:Enable"));
+        private bool GetVaultSettings()
+        {
+            var isVaultEnableValue = GetValue<string>("VaultOptions:Enable");
+            return !string.IsNullOrEmpty(isVaultEnableValue) && Convert.ToBoolean(isVaultEnableValue);
         }
 
         public string ApiUrl => apiUrl;

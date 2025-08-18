@@ -46,27 +46,16 @@ namespace Device.FingerPrint.QueueConsumer.Handlers
         {
             try
             {
-                if (appSettings.GetValue<bool>("Consumer:IsConsume"))
+                if (!appSettings.GetValue<bool>("Consumer:IsConsume"))
                 {
-                    var rawTransModels = TransformRawTransactionModel(context.Message);
+                    return Task.CompletedTask;
+                }
 
-                    if (rawTransModels != null && rawTransModels.Any())
-                    {
-                        rawTransactionService.InsertRawTransactionDetail(rawTransModels, appSettings.IsExtraSub);
+                var rawTransModels = TransformRawTransactionModel(context.Message);
 
-                        try
-                        {
-                            transactionService.InsertRawTransaction(rawTransModels, appSettings.IsExtraSub);
-                        }
-                        catch
-                        {
-                            rawTransactionService.LogTransactions(rawTransModels);
-
-                            throw;
-                        }
-
-                        _ = AdditionalProcessingNotAwait(rawTransModels);
-                    }
+                if (rawTransModels != null && rawTransModels.Any())
+                {
+                    ProcessRawTransactions(rawTransModels);
                 }
 
                 return Task.CompletedTask;
@@ -76,6 +65,23 @@ namespace Device.FingerPrint.QueueConsumer.Handlers
                 _ = QueueConsumer.Utilities.LogErrorAsync(ex);
                 throw;
             }
+        }
+
+        private void ProcessRawTransactions(IEnumerable<RawTransactionModel> rawTransModels)
+        {
+            rawTransactionService.InsertRawTransactionDetail(rawTransModels, appSettings.IsExtraSub);
+
+            try
+            {
+                transactionService.InsertRawTransaction(rawTransModels, appSettings.IsExtraSub);
+            }
+            catch
+            {
+                rawTransactionService.LogTransactions(rawTransModels);
+                throw;
+            }
+
+            _ = AdditionalProcessingNotAwait(rawTransModels);
         }
 
         private IEnumerable<RawTransactionModel> TransformRawTransactionModel(Batch<MessageQueue> messages)
@@ -89,37 +95,9 @@ namespace Device.FingerPrint.QueueConsumer.Handlers
 
             Parallel.ForEach(validedMessages, new ParallelOptions { MaxDegreeOfParallelism = 10 }, message =>
             {
-                if (message?.Message != null
-                    && !string.IsNullOrEmpty(message.Message.Account)
-                    && !Utilities.ContainsUnicodeCharacter(message.Message.Account)
-                    && message.Message.Account.Length <= 100)
+                if (IsValidMessage(message))
                 {
-                    try
-                    {
-                        if (message.Message.Mobile != null && message.Message.Mobile.IsMobileAppTrans)
-                        {
-                            var rawTransFinalModel = mobileRawTransactionService.TransformRawTransaction(message.Message);
-
-                            if (rawTransFinalModel != null)
-                            {
-                                transformedDataBag.Add(rawTransFinalModel);
-                            }
-                        }
-                        else
-                        {
-                            var rawTransModel = rawTransactionService.TransformRawTransaction(message.Message);
-                            var rawTransFinalModel = rawTransactionAttributeService.GetTransactionAttribute(rawTransModel);
-
-                            if (rawTransFinalModel != null)
-                            {
-                                transformedDataBag.Add(rawTransFinalModel);
-                            }
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        _ = QueueConsumer.Utilities.LogErrorAsync(ex);
-                    }
+                    ProcessMessage(message, transformedDataBag);
                 }
                 else
                 {
@@ -133,6 +111,44 @@ namespace Device.FingerPrint.QueueConsumer.Handlers
             }
 
             return transformedDataBag.ToList();
+        }
+
+        private static bool IsValidMessage(ConsumeContext<MessageQueue> message)
+        {
+            return message?.Message != null
+                && !string.IsNullOrEmpty(message.Message.Account)
+                && !Utilities.ContainsUnicodeCharacter(message.Message.Account)
+                && message.Message.Account.Length <= 100;
+        }
+
+        private void ProcessMessage(ConsumeContext<MessageQueue> message, ConcurrentBag<RawTransactionModel> transformedDataBag)
+        {
+            try
+            {
+                var rawTransFinalModel = TransformMessageToRawTransaction(message.Message);
+
+                if (rawTransFinalModel != null)
+                {
+                    transformedDataBag.Add(rawTransFinalModel);
+                }
+            }
+            catch (Exception ex)
+            {
+                _ = QueueConsumer.Utilities.LogErrorAsync(ex);
+            }
+        }
+
+        private RawTransactionModel TransformMessageToRawTransaction(MessageQueue message)
+        {
+            if (message.Mobile != null && message.Mobile.IsMobileAppTrans)
+            {
+                return mobileRawTransactionService.TransformRawTransaction(message);
+            }
+            else
+            {
+                var rawTransModel = rawTransactionService.TransformRawTransaction(message);
+                return rawTransactionAttributeService.GetTransactionAttribute(rawTransModel);
+            }
         }
 
         private async Task AdditionalProcessingNotAwait(IEnumerable<RawTransactionModel> transactionModels)

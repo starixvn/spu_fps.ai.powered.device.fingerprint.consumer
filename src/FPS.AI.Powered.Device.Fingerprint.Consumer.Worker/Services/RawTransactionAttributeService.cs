@@ -119,13 +119,14 @@ namespace Device.FingerPrint.QueueConsumer.Services
         {
             var curScriptVersion = appSettings.GetSection<string>("Consumer:ScriptVersion");
             var compareScriptVersion = CompareVersionsWithTryParse(model.ScriptVersion, curScriptVersion);
+            
             if (compareScriptVersion == 0)
             {
                 _ = LogConsumerErrorAsync(model, LogType.ScriptVersionOld);
             }
             else if (compareScriptVersion == -1)
             {
-                int maxLength = 10;
+                const int maxLength = 10;
                 if (!string.IsNullOrEmpty(model.ScriptVersion) && model.ScriptVersion.Length > maxLength)
                 {
                     model.ScriptVersion = model.ScriptVersion.Substring(0, maxLength);
@@ -167,6 +168,10 @@ namespace Device.FingerPrint.QueueConsumer.Services
             if (!string.IsNullOrEmpty(realTagging))
             {
                 _ = everTaggingRedisDB.KeyDeleteAsync(_realTaggingPrefix + sessionKey);
+            }
+            else
+            {
+                // No action needed when realTagging is null or empty
             }
         }
 
@@ -281,12 +286,12 @@ namespace Device.FingerPrint.QueueConsumer.Services
 
         private static bool IgnoreDetectPrivateMode(string browserName)
         {
-            string _UCBROWSER = "uc browser";
-            string _MIBROWSER = "miui browser";
+            const string _UCBROWSER = "uc browser";
+            const string _MIBROWSER = "miui browser";
 
-            if (browserName.ToLower().Contains(_UCBROWSER)) return true;  //no need to detect incognito mode
+            if (browserName.ToLowerInvariant().Contains(_UCBROWSER)) return true;  //no need to detect incognito mode
 
-            if (browserName.ToLower().Contains(_MIBROWSER)) return true;  //skip to detect incognito mode
+            if (browserName.ToLowerInvariant().Contains(_MIBROWSER)) return true;  //skip to detect incognito mode
 
             return false;
         }
@@ -463,17 +468,7 @@ namespace Device.FingerPrint.QueueConsumer.Services
             return localStorage + "|" + sessionStorage + "|" + openDatabase + "|" + indexedDb;
         }
 
-        private static bool IsIgnoreDetectPrivateMode(string browserName)
-        {
-            string _UCBROWSER = "uc browser";
-            string _MIBROWSER = "miui browser";
-
-            if (browserName.ToLower().Contains(_UCBROWSER)) return true;  //no need to detect incognito mode
-
-            if (browserName.ToLower().Contains(_MIBROWSER)) return true;  //skip to detect incognito mode
-
-            return false;
-        }
+        // Method intentionally left empty - duplicate functionality removed
 
         private static string GetTaggingValue(string realTagging, string sessionKey)
         {

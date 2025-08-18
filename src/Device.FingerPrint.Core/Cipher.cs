@@ -11,7 +11,10 @@ namespace Device.FingerPrint.Core
 
         public static string Encrypt(string plainText)
         {
-            if (string.IsNullOrWhiteSpace(plainText)) return null;
+            if (string.IsNullOrWhiteSpace(plainText))
+            {
+                return null;
+            }
 
             var bytesToBeEncrypted = Encoding.UTF8.GetBytes(plainText);
             var passwordBytes = Encoding.UTF8.GetBytes(password);
@@ -26,7 +29,10 @@ namespace Device.FingerPrint.Core
 
         public static string Decrypt(string encryptedText)
         {
-            if (string.IsNullOrWhiteSpace(encryptedText)) return null;
+            if (string.IsNullOrWhiteSpace(encryptedText))
+            {
+                return null;
+            }
 
             var bytesToBeDecrypted = Convert.FromBase64String(encryptedText);
             var passwordBytes = Encoding.UTF8.GetBytes(password);

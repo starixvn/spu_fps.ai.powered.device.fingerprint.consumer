@@ -1,7 +1,5 @@
 ﻿using Fanex.Data;
 using Fanex.Data.Repository;
-using System;
-using System.Security.Permissions;
 
 namespace Device.FingerPrint.Features.Transaction.Criterias
 {

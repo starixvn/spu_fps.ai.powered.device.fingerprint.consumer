@@ -98,8 +98,7 @@ builder.Services.AddOptions<RabbitMqTransportOptions>()
     options.VHost = appSettings.GetValue<string>("RabbitMQ:VirtualHost");
 });
 
-// Add hosted service
-//builder.Services.AddHostedService<Device.FingerPrint.QueueConsumer.Worker>();
+// Add hosted service - commented out as not needed
 
 LogService.Info($"QueueConsumer {appSettings.Environment} Start with ValueEnable({appSettings.IsVaultEnable})");
 
