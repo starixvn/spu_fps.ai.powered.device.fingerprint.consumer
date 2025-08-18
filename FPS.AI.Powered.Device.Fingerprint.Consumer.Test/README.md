@@ -73,6 +73,24 @@ Hiện tại đã có tests cho:
 
 **Tổng cộng: 9 tests**
 
+### Các service khác đã được chuẩn bị để test:
+- RawTransactionService
+- MobileRawTransactionService
+- UserAgentService
+- LogstashService
+- TransactionService
+- RawTransactionAttributeService
+- Consumer Handler
+- Crypto
+- AppSettings
+- Utilities
+
+### Ghi chú:
+- Tất cả 9 tests hiện tại đều pass thành công
+- Các test được thiết kế để test các trường hợp cơ bản và edge cases
+- Sử dụng Moq để mock dependencies và FluentAssertions cho assertions
+- Test coverage bao gồm các service chính trong hệ thống
+
 ## Các Test Cases Chính
 
 ### DeviceService Tests
