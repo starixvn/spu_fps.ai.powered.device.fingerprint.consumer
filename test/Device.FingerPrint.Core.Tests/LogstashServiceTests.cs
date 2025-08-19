@@ -1,17 +1,10 @@
-using Device.FingerPrint.QueueConsumer.Services;
-using Device.FingerPrint.QueueConsumer.Models;
 using Device.FingerPrint.Model;
-using Device.FingerPrint.Model.DTO;
-using Device.FingerPrint.Core;
+using Device.FingerPrint.QueueConsumer.Models;
+using Device.FingerPrint.QueueConsumer.Services;
 using Fanex.Logging;
 using FluentAssertions;
 using Moq;
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace Device.FingerPrint.Core.Tests
@@ -19,14 +12,12 @@ namespace Device.FingerPrint.Core.Tests
     public class LogstashServiceTests
     {
         private readonly Mock<IAppSettings> _mockAppSettings;
-        private readonly Mock<ILogger> _mockLogger;
         private readonly LogstashService _logstashService;
 
         public LogstashServiceTests()
         {
             _mockAppSettings = new Mock<IAppSettings>();
-            _mockLogger = new Mock<ILogger>();
-            _logstashService = new LogstashService(_mockAppSettings.Object, _mockLogger.Object);
+            _logstashService = new LogstashService(_mockAppSettings.Object);
 
             // Setup default app settings
             _mockAppSettings.Setup(x => x.LogstashTcpHostname).Returns("localhost");
@@ -85,7 +76,7 @@ namespace Device.FingerPrint.Core.Tests
         public void GetFingerprintAttributes_WithNullAttribute_ShouldReturnNull()
         {
             // Arrange
-            FPFingerprintAttributeModel fingerprintAttribute = null;
+            FPFingerprintAttributeModel? fingerprintAttribute = null;
 
             // Act
             var result = CallGetFingerprintAttributes(fingerprintAttribute);
@@ -136,27 +127,27 @@ namespace Device.FingerPrint.Core.Tests
             result.UnhandledAttributes.Should().Contain("Fonts");
         }
 
-        		[Fact]
-		public void GetFingerprintAttributes_WithEmptyStringValues_ShouldAddToUnhandledAttributes()
-		{
-			// Arrange
-			var fingerprintAttribute = new FPFingerprintAttributeModel
-			{
-				Canvas = "",
-				Fonts = "   ",
-				WebGlBasics = "test-webgl"
-			};
+        [Fact]
+        public void GetFingerprintAttributes_WithEmptyStringValues_ShouldAddToUnhandledAttributes()
+        {
+            // Arrange
+            var fingerprintAttribute = new FPFingerprintAttributeModel
+            {
+                Canvas = "",
+                Fonts = "   ",
+                WebGlBasics = "test-webgl"
+            };
 
-			// Act
-			var result = CallGetFingerprintAttributes(fingerprintAttribute);
+            // Act
+            var result = CallGetFingerprintAttributes(fingerprintAttribute);
 
-			// Assert
-			result.Should().NotBeNull();
-			result.FingerprintAttributes.Should().Contain("WebGlBasics");
-			// Note: The actual logic processes all properties, so we just verify the structure
-			result.FingerprintAttributes.Should().NotBeEmpty();
-			result.UnhandledAttributes.Should().NotBeEmpty();
-		}
+            // Assert
+            result.Should().NotBeNull();
+            result.FingerprintAttributes.Should().Contain("WebGlBasics");
+            // Note: The actual logic processes all properties, so we just verify the structure
+            result.FingerprintAttributes.Should().NotBeEmpty();
+            result.UnhandledAttributes.Should().NotBeEmpty();
+        }
 
         [Fact]
         public void GetFingerprintAttributes_WithNullPropertyValues_ShouldAddToUnhandledAttributes()
@@ -199,17 +190,18 @@ namespace Device.FingerPrint.Core.Tests
         // Helper methods to call private methods using reflection
         private TransactionLogstashModel CallTransformLogMessage(RawTransactionModel transaction)
         {
-            var method = typeof(LogstashService).GetMethod("TransformLogMessage", 
+            var method = typeof(LogstashService).GetMethod("TransformLogMessage",
                 BindingFlags.NonPublic | BindingFlags.Instance);
             return (TransactionLogstashModel)method.Invoke(_logstashService, new object[] { transaction });
         }
 
-        private FingerprintLogstashModel CallGetFingerprintAttributes<T>(T fingerprintAttribute)
+        private FingerprintLogstashModel? CallGetFingerprintAttributes<T>(T? fingerprintAttribute)
         {
-            var method = typeof(LogstashService).GetMethod("GetFingerprintAttributes", 
+            var method = typeof(LogstashService).GetMethod("GetFingerprintAttributes",
                 BindingFlags.NonPublic | BindingFlags.Instance);
+            if (method == null) return null;
             var genericMethod = method.MakeGenericMethod(typeof(T));
-            return (FingerprintLogstashModel)genericMethod.Invoke(_logstashService, new object[] { fingerprintAttribute });
+            return (FingerprintLogstashModel?)genericMethod.Invoke(_logstashService, new object?[] { fingerprintAttribute });
         }
     }
 }

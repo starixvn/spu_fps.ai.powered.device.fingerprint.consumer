@@ -1,9 +1,6 @@
-using Device.FingerPrint.QueueConsumer.Services;
 using Device.FingerPrint.Core;
 using Device.FingerPrint.Core.Services;
-using Device.FingerPrint.Model;
-using FluentAssertions;
-using Xunit;
+using Device.FingerPrint.QueueConsumer.Services;
 
 namespace FPS.AI.Powered.Device.Fingerprint.Consumer.Tests.Services
 {
@@ -18,7 +15,7 @@ namespace FPS.AI.Powered.Device.Fingerprint.Consumer.Tests.Services
             _mockCrypto = Substitute.For<ICrypto>();
             _mockAppSettings = Substitute.For<IAppSettings>();
             _mockAppSettings.Environment.Returns("TEST");
-            
+
             _userAgentService = new UserAgentService(_mockCrypto, _mockAppSettings);
         }
 

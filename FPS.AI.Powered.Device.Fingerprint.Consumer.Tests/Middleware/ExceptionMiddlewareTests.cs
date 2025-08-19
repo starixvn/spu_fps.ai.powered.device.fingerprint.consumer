@@ -1,10 +1,5 @@
 using Device.FingerPrint.QueueConsumer;
-using Fanex.Logging;
 using Microsoft.AspNetCore.Http;
-using FluentAssertions;
-using FluentAssertions.Extensions;
-using Xunit;
-using System.Threading.Tasks;
 
 namespace FPS.AI.Powered.Device.Fingerprint.Consumer.Tests.Middleware
 {
@@ -98,7 +93,7 @@ namespace FPS.AI.Powered.Device.Fingerprint.Consumer.Tests.Middleware
             await middleware.InvokeAsync(httpContext);
 
             // Assert
-            _mockLogger.Received(1).ErrorAsync(Arg.Is<string>(s => 
+            _mockLogger.Received(1).ErrorAsync(Arg.Is<string>(s =>
                 s.Contains("Custom operation failed")));
         }
 

@@ -1,15 +1,9 @@
-using Device.FingerPrint.QueueConsumer.Handlers;
-using Device.FingerPrint.QueueConsumer.Services;
 using Device.FingerPrint.Features.Transaction.Services;
 using Device.FingerPrint.Model;
-using Device.FingerPrint.Core;
-using FluentAssertions;
+using Device.FingerPrint.QueueConsumer.Handlers;
+using Device.FingerPrint.QueueConsumer.Services;
 using MassTransit;
 using Moq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace Device.FingerPrint.Core.Tests
@@ -353,32 +347,32 @@ namespace Device.FingerPrint.Core.Tests
             await Assert.ThrowsAsync<NotImplementedException>(() => _consumer.Consume(context));
         }
 
-                    private static ConsumeContext<Batch<MessageQueue>> CreateMockContext(IEnumerable<MessageQueue> messages)
+        private static ConsumeContext<Batch<MessageQueue>> CreateMockContext(IEnumerable<MessageQueue> messages)
+        {
+            var mockContext = new Moq.Mock<ConsumeContext<Batch<MessageQueue>>>();
+            var mockBatch = new Moq.Mock<Batch<MessageQueue>>();
+
+            // Build iterable list of ConsumeContext<MessageQueue>
+            var consumeContexts = messages.Select(m =>
             {
-                var mockContext = new Moq.Mock<ConsumeContext<Batch<MessageQueue>>>();
-                var mockBatch = new Moq.Mock<Batch<MessageQueue>>();
+                var mc = new Moq.Mock<ConsumeContext<MessageQueue>>();
+                mc.Setup(x => x.Message).Returns(m);
+                return mc.Object;
+            }).ToList();
 
-                // Build iterable list of ConsumeContext<MessageQueue>
-                var consumeContexts = messages.Select(m =>
-                {
-                    var mc = new Moq.Mock<ConsumeContext<MessageQueue>>();
-                    mc.Setup(x => x.Message).Returns(m);
-                    return mc.Object;
-                }).ToList();
+            // Length
+            mockBatch.SetupGet(x => x.Length).Returns(consumeContexts.Count);
 
-                // Length
-                mockBatch.SetupGet(x => x.Length).Returns(consumeContexts.Count);
+            // Make Batch<MessageQueue> act as IEnumerable<ConsumeContext<MessageQueue>>
+            mockBatch.As<IEnumerable<ConsumeContext<MessageQueue>>>()
+                    .Setup(x => x.GetEnumerator())
+                    .Returns(() => consumeContexts.GetEnumerator());
+            mockBatch.As<System.Collections.IEnumerable>()
+                    .Setup(x => x.GetEnumerator())
+                    .Returns(() => ((System.Collections.IEnumerable)consumeContexts).GetEnumerator());
 
-                // Make Batch<MessageQueue> act as IEnumerable<ConsumeContext<MessageQueue>>
-                mockBatch.As<IEnumerable<ConsumeContext<MessageQueue>>>()
-                        .Setup(x => x.GetEnumerator())
-                        .Returns(() => consumeContexts.GetEnumerator());
-                mockBatch.As<System.Collections.IEnumerable>()
-                        .Setup(x => x.GetEnumerator())
-                        .Returns(() => ((System.Collections.IEnumerable)consumeContexts).GetEnumerator());
-
-                mockContext.Setup(x => x.Message).Returns(mockBatch.Object);
-                return mockContext.Object;
-            }
+            mockContext.Setup(x => x.Message).Returns(mockBatch.Object);
+            return mockContext.Object;
+        }
     }
 }

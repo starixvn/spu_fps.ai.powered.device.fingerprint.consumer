@@ -1,10 +1,6 @@
 using Device.FingerPrint.QueueConsumer;
-using Microsoft.Extensions.Logging;
-using FluentAssertions;
-using Xunit;
 using Microsoft.Extensions.Hosting;
-using System.Threading;
-using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace FPS.AI.Powered.Device.Fingerprint.Consumer.Tests.Workers
 {
@@ -38,10 +34,10 @@ namespace FPS.AI.Powered.Device.Fingerprint.Consumer.Tests.Workers
 
             // Act
             var task = worker.StartAsync(cancellationToken);
-            
+
             // Wait a bit for the worker to start
             await Task.Delay(100);
-            
+
             // Stop the worker
             cancellationTokenSource.Cancel();
             await task;
@@ -61,10 +57,10 @@ namespace FPS.AI.Powered.Device.Fingerprint.Consumer.Tests.Workers
 
             // Act
             var startTask = worker.StartAsync(cancellationToken);
-            
+
             // Cancel immediately
             cancellationTokenSource.Cancel();
-            
+
             await startTask;
 
             // Assert
@@ -83,10 +79,10 @@ namespace FPS.AI.Powered.Device.Fingerprint.Consumer.Tests.Workers
 
             // Act
             var task = worker.StartAsync(cancellationToken);
-            
+
             // Wait a bit
             await Task.Delay(100);
-            
+
             // Stop the worker
             cancellationTokenSource.Cancel();
             await task;
@@ -111,10 +107,10 @@ namespace FPS.AI.Powered.Device.Fingerprint.Consumer.Tests.Workers
 
             // Act
             var task = worker.StartAsync(cancellationToken);
-            
+
             // Wait for multiple log cycles (10 seconds delay in worker)
             await Task.Delay(500);
-            
+
             // Stop the worker
             cancellationTokenSource.Cancel();
             await task;

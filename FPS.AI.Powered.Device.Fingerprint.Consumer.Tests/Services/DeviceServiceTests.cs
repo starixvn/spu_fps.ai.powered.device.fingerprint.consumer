@@ -1,8 +1,5 @@
-using Device.FingerPrint.QueueConsumer.Services;
-using Device.FingerPrint.QueueConsumer.Models;
 using Device.FingerPrint.Model;
-using FluentAssertions;
-using Xunit;
+using Device.FingerPrint.QueueConsumer.Services;
 
 namespace FPS.AI.Powered.Device.Fingerprint.Consumer.Tests.Services
 {

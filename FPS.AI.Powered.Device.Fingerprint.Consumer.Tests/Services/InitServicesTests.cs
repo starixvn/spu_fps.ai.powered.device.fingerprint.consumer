@@ -1,11 +1,7 @@
+using Device.FingerPrint.Features.LogInfo.Services;
+using Device.FingerPrint.Features.Transaction.Services;
 using Device.FingerPrint.QueueConsumer.Services;
 using Microsoft.Extensions.DependencyInjection;
-using FluentAssertions;
-using Xunit;
-using Device.FingerPrint.Features.Transaction.Services;
-using Device.FingerPrint.Features.LogInfo.Services;
-using Device.FingerPrint.Queue;
-using ConsumerHandler = Device.FingerPrint.QueueConsumer.Handlers.Consumer;
 
 namespace FPS.AI.Powered.Device.Fingerprint.Consumer.Tests.Services
 {

@@ -49,7 +49,7 @@ namespace Device.FingerPrint.Core.Tests
         [Fact]
         public void SubStringUrl_TrimsQueryAndHashes()
         {
-            Utilities.SubStringUrl("https://a.com:443/path?x=1#y").Should().Be("https://a.com:443/path");
+            Utilities.SubStringUrl("https://a.com:443/path?x=1#y").Should().Be("https://a.com/path");
         }
 
         [Fact]

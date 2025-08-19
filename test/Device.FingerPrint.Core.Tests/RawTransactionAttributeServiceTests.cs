@@ -60,7 +60,7 @@ namespace Device.FingerPrint.Core.Tests
         [Fact]
         public void GetTransactionAttribute_WithNullModel_ReturnsNull()
         {
-            var result = _service.GetTransactionAttribute(null);
+            var result = _service.GetTransactionAttribute(null!);
             result.Should().BeNull();
         }
 

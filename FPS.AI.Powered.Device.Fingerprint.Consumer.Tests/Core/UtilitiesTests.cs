@@ -1,7 +1,5 @@
-using Device.FingerPrint.QueueConsumer;
 using Device.FingerPrint.Core.Services;
-using FluentAssertions;
-using Xunit;
+using Device.FingerPrint.QueueConsumer;
 using Newtonsoft.Json;
 
 namespace FPS.AI.Powered.Device.Fingerprint.Consumer.Tests.Core

@@ -1,6 +1,5 @@
 using Device.FingerPrint.Core.Encoders;
 using FluentAssertions;
-using System;
 using Xunit;
 
 namespace Device.FingerPrint.Core.Tests

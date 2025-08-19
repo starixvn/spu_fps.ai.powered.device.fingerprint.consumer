@@ -199,8 +199,8 @@ namespace Device.FingerPrint.Core.Tests
 				HRef = "https://test.com",
 				CapturedDate = 123456789,
 				Version = "2.0.0",
-				Screen = null,
-				BotD = null
+				Screen = null!,
+				BotD = null!
 			};
 
 			var deviceCode = Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(deviceInfo, JsonSerializerSettingsFactory.Instance)));
@@ -234,7 +234,7 @@ namespace Device.FingerPrint.Core.Tests
 				UserAgent = "test-ua",
 				DeviceId = "test-id",
 				HRef = "https://test.com",
-				CapturedDate = null,
+				CapturedDate = null!,
 				Version = "2.0.0",
 				Screen = new DeviceScreen { Width = 1920, Height = 1080, ColorDepth = 24 },
 				BotD = new BotD()
@@ -268,7 +268,7 @@ namespace Device.FingerPrint.Core.Tests
 				CapturedDate = 123456789,
 				Version = "2.0.0",
 				Screen = new DeviceScreen { Width = 1920, Height = 1080, ColorDepth = 24 },
-				BotD = null
+				BotD = null!
 			};
 
 			var deviceCode = Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(deviceInfo, JsonSerializerSettingsFactory.Instance)));
@@ -388,7 +388,7 @@ namespace Device.FingerPrint.Core.Tests
 				CapturedDate = 123456789,
 				Version = "2.0.0",
 				Screen = new DeviceScreen { Width = 1920, Height = 1080, ColorDepth = 24 },
-				BotD = new BotD { Result = null, Detection = "detected", Component = "component" }
+				BotD = new BotD { Result = null!, Detection = "detected", Component = "component" }
 			};
 
 			var deviceCode = Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(deviceInfo, JsonSerializerSettingsFactory.Instance)));

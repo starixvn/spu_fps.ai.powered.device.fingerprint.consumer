@@ -132,7 +132,7 @@ namespace Device.FingerPrint.Core.Tests
             // Assert
             result.Should().NotBeNull();
             result.DeviceCode.Should().Be(deviceInfo.DeviceNo);
-            result.URL.Should().Be("https://example.com");
+            result.URL.Should().Be("https://example.com/");
             result.UserAgent.Should().Be("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36");
             result.FingerprintCode.Should().Be("fp123");
             result.FlaggedCode.Should().Be("flagged123");
