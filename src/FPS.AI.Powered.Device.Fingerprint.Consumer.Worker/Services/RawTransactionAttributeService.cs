@@ -249,6 +249,7 @@ namespace Device.FingerPrint.QueueConsumer.Services
             return new HeaderModel();
         }
 
+#pragma warning disable S1541
         private static void UpdateIPInfo(RawTransactionModel model, HeaderModel headerModel)
         {
             if (model == null || headerModel == null)
@@ -272,6 +273,7 @@ namespace Device.FingerPrint.QueueConsumer.Services
                 }
             }
         }
+#pragma warning restore S1541
 
         private InsertFPFingerprintEntity TransformFingerprintAttributes(RawTransactionModel rawTransModel, FingerprintModel fpModel, HeaderModel headerModel)
         {

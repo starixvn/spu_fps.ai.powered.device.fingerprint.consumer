@@ -112,6 +112,8 @@ namespace Device.FingerPrint.Core
             return data != "N/A" ? data : null;
         }
 
+
+#pragma warning disable S3995
         public static string SubStringUrl(string url)
         {
             if (string.IsNullOrEmpty(url))
@@ -124,6 +126,7 @@ namespace Device.FingerPrint.Core
 
             return CollapseCasinoPaths(cleanUrl)?.ToString();
         }
+#pragma warning restore S3995
 
         private static Uri CollapseCasinoPaths(string rawUrl)
         {

@@ -54,7 +54,7 @@
             try
             {
                 var (deviceInfo, url, userAgent, invalidDevice) = ProcessDeviceInfo(message);
-                var transBit = ProcessDeviceValidation(deviceInfo, ref invalidDevice);
+                var transBit = ProcessDeviceValidation(deviceInfo);
                 var (botDModel, flaggedCode, botDetection) = ProcessBotDetection(message, deviceInfo, userAgent);
                 var (realIP, ipConverted) = ProcessIPInfo(message);
 
@@ -86,7 +86,7 @@
             return (deviceInfo, url, userAgent, invalidDevice);
         }
 
-        private BitArray ProcessDeviceValidation(DeviceInfoModel deviceInfo, ref string invalidDevice)
+        private BitArray ProcessDeviceValidation(DeviceInfoModel deviceInfo)
         {
             var transBit = new BitArray(16);
 
@@ -126,6 +126,8 @@
             return (realIP, ipConverted);
         }
 
+
+#pragma warning disable S107
         private RawTransactionModel CreateRawTransactionModel(
             MessageQueue message, 
             DeviceInfoModel deviceInfo, 
@@ -168,6 +170,7 @@
                 ScriptVersion = deviceInfo.Version
             };
         }
+#pragma warning restore S107
 
         public void InsertOrUpdateEverTagging(string hashKey, IEnumerable<string> everTaggings, long expireSecond)
         {
@@ -181,7 +184,6 @@
                         key: $"{hashKey}:{code}",
                         value: DateTimeOffset.Now.ToString(),
                         expiry: expiry,
-                        keepTtl: false,
                         flags: CommandFlags.FireAndForget
                     );
                 }

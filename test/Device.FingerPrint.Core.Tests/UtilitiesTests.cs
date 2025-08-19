@@ -53,6 +53,20 @@ namespace Device.FingerPrint.Core.Tests
         }
 
         [Fact]
+        public void SubStringUrl_WithPort443_RemovesPort()
+        {
+            // Test that port 443 is removed from HTTPS URLs
+            Utilities.SubStringUrl("https://a.com:443/path").Should().Be("https://a.com/path");
+        }
+
+        [Fact]
+        public void SubStringUrl_WithNonStandardPort_KeepsPort()
+        {
+            // Test that non-standard ports are kept
+            Utilities.SubStringUrl("https://a.com:8080/path").Should().Be("https://a.com:8080/path");
+        }
+
+        [Fact]
         public void StripUnicode_RemovesNonAscii()
         {
             Utilities.StripUnicodeCharactersFromString("abcĐ").Should().Be("abc");
