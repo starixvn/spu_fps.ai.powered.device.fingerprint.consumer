@@ -12,7 +12,7 @@ COPY ["./src/Device.FingerPrint.Queue", "Device.FingerPrint.Queue/"]
 
 COPY ["./src/Device.FingerPrint.Redis", "Device.FingerPrint.Redis/"]
 
-COPY ["./src/Core/Device.FingerPrint.Core", "Core/Device.FingerPrint.Core/"]
+COPY ["./src/Device.FingerPrint.Core", "Device.FingerPrint.Core/"]
 
 COPY ["./src/FPS.AI.Powered.Device.Fingerprint.Consumer.Worker/FPS.AI.Powered.Device.Fingerprint.Consumer.Worker.csproj", "FPS.AI.Powered.Device.Fingerprint.Consumer.Worker/"]
 
