@@ -1,15 +1,9 @@
 ﻿using Device.FingerPrint.Core;
 using Device.FingerPrint.Model;
 using Device.FingerPrint.QueueConsumer.Models;
-using Fanex.Logging;
-using Fanex.Logging.Extensions;
-using Fanex.Logging.Extensions.Database;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Device.FingerPrint.QueueConsumer.Services
 {
@@ -21,12 +15,10 @@ namespace Device.FingerPrint.QueueConsumer.Services
     public class LogstashService : ILogstashService
     {
         private readonly IAppSettings appSettings;
-        private readonly Fanex.Logging.ILogger logger;
 
-        public LogstashService(IAppSettings appSettings, Fanex.Logging.ILogger logger)
+        public LogstashService(IAppSettings appSettings)
         {
             this.appSettings = appSettings;
-            this.logger = logger;
         }
 
         public async Task PushLogAsync(IEnumerable<RawTransactionModel> transactions)

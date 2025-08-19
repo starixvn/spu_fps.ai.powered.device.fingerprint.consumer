@@ -4,12 +4,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Net.Sockets;
 using System.Numerics;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Xml;
-using System.Xml.Serialization;
 
 namespace Device.FingerPrint.Core
 {
@@ -17,140 +14,11 @@ namespace Device.FingerPrint.Core
     {
         private const int _TotalRedisDB = 16;
 
-        public static string GetURLFromDeviceCode(string di)
-        {
-            if (string.IsNullOrWhiteSpace(di))
-            {
-                return string.Empty;
-            }
-
-            var requestData = di.Split(new[] { "###" }, StringSplitOptions.None);
-
-            var url = requestData.Length >= 8 ? requestData[7] : string.Empty;
-
-            return url;
-        }
-
-        public static string GetUserAgentFromDeviceCode(string di)
-        {
-            if (string.IsNullOrWhiteSpace(di))
-            {
-                return string.Empty;
-            }
-
-            var deviceSplited = di.Split(new[] { "###" }, StringSplitOptions.None);
-
-            return deviceSplited.Length > 3 ? deviceSplited[3] : string.Empty;
-        }
-
         public static bool IsGuidDeviceId(string deviceCode)
         {
             Guid newGuid;
 
             return Guid.TryParse(deviceCode, out newGuid);
-        }
-
-        public static string GetDeviceCodeFromCapturedData(string di)
-        {
-            string[] splitingDI = di.Split(new[] { "###" }, StringSplitOptions.None);
-
-            return splitingDI.Length >= 7 ? splitingDI[6] : string.Empty;
-        }
-
-        public static string GetAnalysis(string di)
-        {
-            string[] splitedDI = di.Split(new[] { "###" }, StringSplitOptions.None);
-
-            return splitedDI.Length > 8 ? splitedDI[8] : string.Empty;
-        }
-
-        public static string XMLConvert(object data)
-        {
-            var emptyNamespaces = new XmlSerializerNamespaces(new[] { XmlQualifiedName.Empty });
-
-            var settings = new XmlWriterSettings { Indent = true, OmitXmlDeclaration = true };
-
-
-            var serializer = new XmlSerializer(data.GetType(), new XmlRootAttribute("root"));
-
-            using (var stringWriter = new System.IO.StringWriter())
-            {
-                using (var writer = XmlWriter.Create(stringWriter, settings))
-                {
-                    serializer.Serialize(writer, data, emptyNamespaces);
-
-                    return stringWriter.ToString();
-                }
-            }
-        }
-
-        public static IEnumerable<IEnumerable<TValue>> Chunk<TValue>(
-            this IEnumerable<TValue> values,
-            Int32 chunkSize)
-        {
-            return values
-                .Select((v, i) => new { v, groupIndex = i / chunkSize })
-                .GroupBy(x => x.groupIndex)
-                .Select(g => g.Select(x => x.v));
-        }
-
-        public static IEnumerable<IEnumerable<T>> Split<T>(this IEnumerable<T> list, int parts)
-        {
-            var numberOfPage = list.Count() / parts;
-            var floatPoint = list.Count() % parts;
-            if (floatPoint != 0)
-            {
-                parts += floatPoint;
-            }
-
-            for (var i = 0; i < parts; i++)
-            {
-                var takes = list.Skip(numberOfPage * i).Take(numberOfPage);
-
-                yield return takes;
-            }
-        }
-
-        public static IEnumerable<List<T>> Partition<T>(this IList<T> source, Int32 size)
-        {
-            for (var i = 0; i < (source.Count / size) + (source.Count % size > 0 ? 1 : 0); i++)
-            {
-                yield return new List<T>(source.Skip(size * i).Take(size));
-            }
-        }
-
-        public static List<T>[] Partition<T>(List<T> list, int totalPartitions)
-        {
-            if (list == null)
-            {
-                throw new ArgumentNullException(nameof(list));
-            }
-
-            if (totalPartitions < 1)
-            {
-                throw new ArgumentOutOfRangeException(nameof(totalPartitions));
-            }
-
-            var partitions = new List<T>[totalPartitions];
-
-            int maxSize = (int)Math.Ceiling(list.Count / (double)totalPartitions);
-            var k = 0;
-
-            for (var i = 0; i < partitions.Length; i++)
-            {
-                partitions[i] = new List<T>();
-                for (var j = k; j < k + maxSize; j++)
-                {
-                    if (j >= list.Count)
-                    {
-                        break;
-                    }
-                    partitions[i].Add(list[j]);
-                }
-                k += maxSize;
-            }
-
-            return partitions;
         }
 
         public static IpModel Ip2Long(this string ipAddress)
@@ -201,51 +69,6 @@ namespace Device.FingerPrint.Core
                     IsIpV6 = false
                 };
             }
-        }
-
-        public static string Long2DotIPV6(string bigint)
-        {
-            string retval = "";
-
-            if (System.Numerics.BigInteger.TryParse(bigint, out var intval))
-            {
-                retval = intval.ToString("x", System.Globalization.CultureInfo.InvariantCulture).PadLeft(32, '0');
-                char[] trimme = new[] { ':' };
-                retval = System.Text.RegularExpressions.Regex.Replace(retval, "(.{4})", "$1:").TrimEnd(trimme);
-            }
-
-            return retval;
-        }
-
-        public static string Long2DotIP(BigInteger IPNum)
-        {
-            string result = "";
-            result = ((IPNum / 16_777_216) % 256) + "." + ((IPNum / 65_536) % 256) + "." + ((IPNum / 256) % 256) + "." + (IPNum % 256);
-            return result;
-        }
-
-        public static string ToUncompressedString(this IPAddress ipAddress)
-        {
-            if (ipAddress.AddressFamily == AddressFamily.InterNetwork)  // IPv4
-            {
-                var strings = ipAddress.GetAddressBytes()
-                    .Select(b => string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0:D3}", b));   // format bytes with padded 0s
-
-                return string.Join(".", strings);   // join padded strings with '.' character
-            }
-
-            if (ipAddress.AddressFamily == AddressFamily.InterNetworkV6)    // IPv6
-            {
-                var strings = Enumerable.Range(0, 8)    // create index
-                                        .Select(i => ipAddress.GetAddressBytes().ToList().GetRange(i * 2, 2))       // get 8 chunks of bytes
-                                        .Select(selector: i => { i.Reverse(); return i; })    // reverse bytes for endianness
-                                        .Select(bytes => BitConverter.ToInt16(bytes.ToArray(), 0))  // convert bytes to 16 bit int
-                                        .Select(int16 => string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0:X4}", int16).ToUpper()); // format int as a 4 digit hex 
-
-                return string.Join(":", strings);   // join hex ints with ':'
-            }
-
-            return ipAddress.ToString();    // all else treat as to string
         }
 
         public static int ConvertBitArray2Int(BitArray bitArray)
@@ -299,37 +122,37 @@ namespace Device.FingerPrint.Core
             int cutIndex = url.IndexOfAny(new[] { '?', '#' });
             var cleanUrl = cutIndex != -1 ? url.Substring(0, cutIndex) : url;
 
-            return CollapseCasinoPaths(cleanUrl);
+            return CollapseCasinoPaths(cleanUrl)?.ToString();
         }
 
-        private static string CollapseCasinoPaths(string rawUrl)
+        private static Uri CollapseCasinoPaths(string rawUrl)
         {
             var uri = new Uri(rawUrl);
             var segments = uri.AbsolutePath.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
 
             if (segments.Length < 4)
             {
-                return rawUrl;
+                return uri;
             }
 
             var first = segments[0];
-            var last = segments[segments.Length - 1];  
+            var last = segments[segments.Length - 1];
 
             for (var i = 1; i < segments.Length - 1; i++)
             {
                 if (!segments[i].Equals("casino", StringComparison.OrdinalIgnoreCase))
                 {
-                    return rawUrl;
+                    return uri;
                 }
             }
 
             if (first == "casino" && last != "casino")
             {
                 string shortPath = $"/casino/.../casino/{last}";
-                return $"{uri.Scheme}://{uri.Host}:{uri.Port}{shortPath}";
+                return new Uri($"{uri.Scheme}://{uri.Host}:{uri.Port}{shortPath}");
             }
 
-            return rawUrl;
+            return uri;
         }
 
         public static string StripUnicodeCharactersFromString(string inputValue)
@@ -413,10 +236,13 @@ namespace Device.FingerPrint.Core
                 return string.Empty;
             }
 
+            #pragma warning disable S1449
             if (input.StartsWith(prefix))
             {
                 return input.Replace(prefix, string.Empty);
             }
+            #pragma warning restore S1449
+
             return input;
         }
     }

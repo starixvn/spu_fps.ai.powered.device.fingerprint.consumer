@@ -85,6 +85,7 @@ namespace Device.FingerPrint.QueueConsumer.Services
             ProcessSessionKey(model);
         }
 
+        #pragma warning disable S1541
         private void ProcessSessionKey(RawTransactionModel model)
         {
             if (string.IsNullOrEmpty(model.SessionKey))
@@ -122,6 +123,7 @@ namespace Device.FingerPrint.QueueConsumer.Services
                 // No action needed when sessionKey is null and already logged
             }
         }
+        #pragma warning restore S1541
 
         private void ProcessValidSessionKey(RawTransactionModel model, SessionKeyModel sessionKey)
         {
@@ -139,6 +141,7 @@ namespace Device.FingerPrint.QueueConsumer.Services
             HandleTaggingProcess(model, sessionKey.SessionKey);
         }
 
+        #pragma warning disable S1541
         private void CheckScriptVersion(RawTransactionModel model)
         {
             var curScriptVersion = appSettings.GetSection<string>("Consumer:ScriptVersion");
@@ -163,6 +166,7 @@ namespace Device.FingerPrint.QueueConsumer.Services
                 // Script version is valid - no action needed
             }
         }
+        #pragma warning restore S1541
 
         private static int CompareVersionsWithTryParse(string versionA, string versionB)
         {

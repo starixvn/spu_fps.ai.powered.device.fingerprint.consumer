@@ -1,24 +1,12 @@
-using Device.FingerPrint.Core;
 using Device.FingerPrint.Model;
 using FluentAssertions;
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Numerics;
 using Xunit;
 
 namespace Device.FingerPrint.Core.Tests
 {
     public class UtilitiesTests
     {
-        [Fact]
-        public void GetURLFromDeviceCode_Returns8thSegment()
-        {
-            var di = string.Join("###", Enumerable.Repeat("x", 7).Concat(new[] { "http://example.com" }));
-            Utilities.GetURLFromDeviceCode(di).Should().Be("http://example.com");
-        }
 
         [Theory]
         [InlineData("not-a-guid", false)]
@@ -37,26 +25,11 @@ namespace Device.FingerPrint.Core.Tests
         }
 
         [Fact]
-        public void Long2DotIP_Works()
-        {
-            var result = Utilities.Long2DotIP(new BigInteger(2130706433)); // 127.0.0.1
-            result.Should().Be("127.0.0.1");
-        }
-
-        [Fact]
         public void ConvertBitArray2Int_Roundtrip()
         {
             var arr = new BitArray(new[] { true, false, true, false, true, false, true, false });
             var value = Utilities.ConvertBitArray2Int(arr);
             value.Should().BeGreaterThanOrEqualTo(0);
-        }
-
-        [Fact]
-        public void Partition_ListSize_Splits()
-        {
-            var list = Enumerable.Range(1, 10).ToList();
-            var parts = Utilities.Partition(list, 3);
-            parts.Length.Should().Be(3);
         }
 
         [Fact]
