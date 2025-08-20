@@ -10,6 +10,7 @@
     <PackageReference Include="DeviceDetector.NET" Version="4.3.0" />
     <PackageReference Include="Fanex.Data" Version="4.3.4" />
     <PackageReference Include="Fanex.Data.Repository" Version="4.3.4" />
+    <PackageReference Include="LiteDB" Version="5.0.13" />
     <PackageReference Include="System.Security.Cryptography.Algorithms" Version="4.3.1" />
   </ItemGroup>
 
