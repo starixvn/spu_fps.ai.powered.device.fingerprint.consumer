@@ -1,0 +1,7 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+
+<Functions>
+	<Function Name="Transaction">
+		<Setting Key="DCS_DC_Transform_RawTrans_Insert" SpName="DCS_DC_Transform_RawTrans_Insert" DbName="CTSMain.DCS_DataCenter.ctsServiceAdmin"/>
+	</Function>
+</Functions>
