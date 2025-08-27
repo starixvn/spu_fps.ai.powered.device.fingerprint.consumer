@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "fcqRN2bDeNM=",
+  "success": true,
+  "projectFilePath": "D:\\Code\\NewClone\\fps.ai.powered.device.fingerprint.consumer\\src\\FPS.Device.Fingerprint.Service\\FPS.Device.Fingerprint.Service.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\jonathan.doan\\.nuget\\packages\\filehelpers\\3.5.2\\filehelpers.3.5.2.nupkg.sha512",
+    "C:\\Users\\jonathan.doan\\.nuget\\packages\\newtonsoft.json\\13.0.1\\newtonsoft.json.13.0.1.nupkg.sha512"
+  ],
+  "logs": []
+}

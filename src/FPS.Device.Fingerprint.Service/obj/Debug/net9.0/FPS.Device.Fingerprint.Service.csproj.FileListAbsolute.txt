@@ -1,0 +1,10 @@
+D:\Code\NewClone\fps.ai.powered.device.fingerprint.consumer\FPS.Device.Fingerprint.Service\obj\Debug\net9.0\FPS.Device.Fingerprint.Service.csproj.AssemblyReference.cache
+D:\Code\NewClone\fps.ai.powered.device.fingerprint.consumer\FPS.Device.Fingerprint.Service\obj\Debug\net9.0\FPS.Device.Fingerprint.Service.GeneratedMSBuildEditorConfig.editorconfig
+D:\Code\NewClone\fps.ai.powered.device.fingerprint.consumer\FPS.Device.Fingerprint.Service\obj\Debug\net9.0\FPS.Device.Fingerprint.Service.AssemblyInfoInputs.cache
+D:\Code\NewClone\fps.ai.powered.device.fingerprint.consumer\FPS.Device.Fingerprint.Service\obj\Debug\net9.0\FPS.Device.Fingerprint.Service.AssemblyInfo.cs
+D:\Code\NewClone\fps.ai.powered.device.fingerprint.consumer\FPS.Device.Fingerprint.Service\obj\Debug\net9.0\FPS.Device.Fingerprint.Service.csproj.CoreCompileInputs.cache
+D:\Code\NewClone\fps.ai.powered.device.fingerprint.consumer\src\FPS.Device.Fingerprint.Service\obj\Debug\net9.0\FPS.Device.Fingerprint.Service.csproj.AssemblyReference.cache
+D:\Code\NewClone\fps.ai.powered.device.fingerprint.consumer\src\FPS.Device.Fingerprint.Service\obj\Debug\net9.0\FPS.Device.Fingerprint.Service.GeneratedMSBuildEditorConfig.editorconfig
+D:\Code\NewClone\fps.ai.powered.device.fingerprint.consumer\src\FPS.Device.Fingerprint.Service\obj\Debug\net9.0\FPS.Device.Fingerprint.Service.AssemblyInfoInputs.cache
+D:\Code\NewClone\fps.ai.powered.device.fingerprint.consumer\src\FPS.Device.Fingerprint.Service\obj\Debug\net9.0\FPS.Device.Fingerprint.Service.AssemblyInfo.cs
+D:\Code\NewClone\fps.ai.powered.device.fingerprint.consumer\src\FPS.Device.Fingerprint.Service\obj\Debug\net9.0\FPS.Device.Fingerprint.Service.csproj.CoreCompileInputs.cache

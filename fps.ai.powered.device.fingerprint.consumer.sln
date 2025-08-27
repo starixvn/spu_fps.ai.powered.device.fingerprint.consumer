@@ -3,13 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.14.36401.2
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FPS.Device.Fingerprint.DataAccess", "FPS.Device.Fingerprint.DataAccess\FPS.Device.Fingerprint.DataAccess.csproj", "{FC1F9587-D0D8-45D3-8BCF-9036D4A52BDE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FPS.Device.Fingerprint.DataAccess", "src\FPS.Device.Fingerprint.DataAccess\FPS.Device.Fingerprint.DataAccess.csproj", "{FC1F9587-D0D8-45D3-8BCF-9036D4A52BDE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FPS.Device.Fingerprint.Service", "FPS.Device.Fingerprint.Service\FPS.Device.Fingerprint.Service.csproj", "{C6AB6D6C-CAB0-411F-8CBC-5444122FA0CF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FPS.Device.Fingerprint.Service", "src\FPS.Device.Fingerprint.Service\FPS.Device.Fingerprint.Service.csproj", "{C6AB6D6C-CAB0-411F-8CBC-5444122FA0CF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FPS.AI.Powered.Device.Fingerprint.Consumer.Worker", "FPS.AI.Powered.Device.Fingerprint.Consumer.Worker\FPS.AI.Powered.Device.Fingerprint.Consumer.Worker.csproj", "{A744205E-4A56-40DD-4EFD-85FF24F04761}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FPS.AI.Powered.Device.Fingerprint.Consumer.Worker", "src\FPS.AI.Powered.Device.Fingerprint.Consumer.Worker\FPS.AI.Powered.Device.Fingerprint.Consumer.Worker.csproj", "{A744205E-4A56-40DD-4EFD-85FF24F04761}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FPS.AI.Powered.Device.Fingerprint.Consumer.Test", "FPS.AI.Powered.Device.Fingerprint.Consumer.Test\FPS.AI.Powered.Device.Fingerprint.Consumer.Test.csproj", "{89B5D2DC-4BB2-D6C2-9B57-2CEF03892F6D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FPS.AI.Powered.Device.Fingerprint.Consumer.Tests", "src\FPS.AI.Powered.Device.Fingerprint.Consumer.Tests\FPS.AI.Powered.Device.Fingerprint.Consumer.Tests.csproj", "{89B5D2DC-4BB2-D6C2-9B57-2CEF03892F6D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

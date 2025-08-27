@@ -1,0 +1,39 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+	<PropertyGroup>
+		<TargetFramework>net9.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<UserSecretsId>dotnet-FPS.AI.Powered.Device.Fingerprint.Worker-19010a98-66e1-4505-aaa5-86dd1fba2f54</UserSecretsId>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Fanex.Data" Version="4.3.4" />
+		<PackageReference Include="Fanex.Data.MySql" Version="4.3.4" />
+		<PackageReference Include="Fanex.Data.Repository" Version="4.3.4" />
+		<PackageReference Include="Fanex.Logging.Extensions.AspNetCore" Version="1.0.0" />
+		<PackageReference Include="Fanex.Logging.Extensions.Database" Version="1.0.8" />
+		<PackageReference Include="Fanex.Logging.Sentry" Version="1.0.6" />
+		<PackageReference Include="MassTransit" Version="8.0.0" />
+		<PackageReference Include="MassTransit.RabbitMQ" Version="8.0.0" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+		<PackageReference Include="StackExchange.Redis.Extensions.Core" Version="10.2.0" />
+		<PackageReference Include="StackExchange.Redis.Extensions.MsgPack" Version="10.2.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\FPS.Device.Fingerprint.Service\FPS.Device.Fingerprint.Service.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Update="App_Data\LOCAL\SPNames.xml">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="App_Data\PROD\SPNames.xml">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="App_Data\UAT\SPNames.xml">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
+</Project>

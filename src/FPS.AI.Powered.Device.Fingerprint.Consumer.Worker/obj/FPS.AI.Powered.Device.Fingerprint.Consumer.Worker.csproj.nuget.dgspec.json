@@ -1,0 +1,200 @@
+{
+  "format": 1,
+  "restore": {
+    "D:\\Code\\NewClone\\fps.ai.powered.device.fingerprint.consumer\\src\\FPS.AI.Powered.Device.Fingerprint.Consumer.Worker\\FPS.AI.Powered.Device.Fingerprint.Consumer.Worker.csproj": {}
+  },
+  "projects": {
+    "D:\\Code\\NewClone\\fps.ai.powered.device.fingerprint.consumer\\src\\FPS.AI.Powered.Device.Fingerprint.Consumer.Worker\\FPS.AI.Powered.Device.Fingerprint.Consumer.Worker.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "D:\\Code\\NewClone\\fps.ai.powered.device.fingerprint.consumer\\src\\FPS.AI.Powered.Device.Fingerprint.Consumer.Worker\\FPS.AI.Powered.Device.Fingerprint.Consumer.Worker.csproj",
+        "projectName": "FPS.AI.Powered.Device.Fingerprint.Consumer.Worker",
+        "projectPath": "D:\\Code\\NewClone\\fps.ai.powered.device.fingerprint.consumer\\src\\FPS.AI.Powered.Device.Fingerprint.Consumer.Worker\\FPS.AI.Powered.Device.Fingerprint.Consumer.Worker.csproj",
+        "packagesPath": "C:\\Users\\jonathan.doan\\.nuget\\packages\\",
+        "outputPath": "D:\\Code\\NewClone\\fps.ai.powered.device.fingerprint.consumer\\src\\FPS.AI.Powered.Device.Fingerprint.Consumer.Worker\\obj\\",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\jonathan.doan\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "https://api.nuget.org/v3/index.json": {},
+          "https://nuget.nexdev.net/api/v2/": {}
+        },
+        "frameworks": {
+          "net9.0": {
+            "targetAlias": "net9.0",
+            "projectReferences": {
+              "D:\\Code\\NewClone\\fps.ai.powered.device.fingerprint.consumer\\src\\FPS.Device.Fingerprint.Service\\FPS.Device.Fingerprint.Service.csproj": {
+                "projectPath": "D:\\Code\\NewClone\\fps.ai.powered.device.fingerprint.consumer\\src\\FPS.Device.Fingerprint.Service\\FPS.Device.Fingerprint.Service.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net9.0": {
+          "targetAlias": "net9.0",
+          "dependencies": {
+            "Fanex.Data": {
+              "target": "Package",
+              "version": "[4.3.4, )"
+            },
+            "Fanex.Data.MySql": {
+              "target": "Package",
+              "version": "[4.3.4, )"
+            },
+            "Fanex.Data.Repository": {
+              "target": "Package",
+              "version": "[4.3.4, )"
+            },
+            "Fanex.Logging.Extensions.AspNetCore": {
+              "target": "Package",
+              "version": "[1.0.0, )"
+            },
+            "Fanex.Logging.Extensions.Database": {
+              "target": "Package",
+              "version": "[1.0.8, )"
+            },
+            "Fanex.Logging.Sentry": {
+              "target": "Package",
+              "version": "[1.0.6, )"
+            },
+            "MassTransit": {
+              "target": "Package",
+              "version": "[8.0.0, )"
+            },
+            "MassTransit.RabbitMQ": {
+              "target": "Package",
+              "version": "[8.0.0, )"
+            },
+            "Newtonsoft.Json": {
+              "target": "Package",
+              "version": "[13.0.1, )"
+            },
+            "StackExchange.Redis.Extensions.Core": {
+              "target": "Package",
+              "version": "[10.2.0, )"
+            },
+            "StackExchange.Redis.Extensions.MsgPack": {
+              "target": "Package",
+              "version": "[10.2.0, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.304/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "D:\\Code\\NewClone\\fps.ai.powered.device.fingerprint.consumer\\src\\FPS.Device.Fingerprint.Service\\FPS.Device.Fingerprint.Service.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "D:\\Code\\NewClone\\fps.ai.powered.device.fingerprint.consumer\\src\\FPS.Device.Fingerprint.Service\\FPS.Device.Fingerprint.Service.csproj",
+        "projectName": "FPS.Device.Fingerprint.Service",
+        "projectPath": "D:\\Code\\NewClone\\fps.ai.powered.device.fingerprint.consumer\\src\\FPS.Device.Fingerprint.Service\\FPS.Device.Fingerprint.Service.csproj",
+        "packagesPath": "C:\\Users\\jonathan.doan\\.nuget\\packages\\",
+        "outputPath": "D:\\Code\\NewClone\\fps.ai.powered.device.fingerprint.consumer\\src\\FPS.Device.Fingerprint.Service\\obj\\",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\jonathan.doan\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "https://api.nuget.org/v3/index.json": {},
+          "https://nuget.nexdev.net/api/v2/": {}
+        },
+        "frameworks": {
+          "net9.0": {
+            "targetAlias": "net9.0",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net9.0": {
+          "targetAlias": "net9.0",
+          "dependencies": {
+            "FileHelpers": {
+              "target": "Package",
+              "version": "[3.5.2, )"
+            },
+            "Newtonsoft.Json": {
+              "target": "Package",
+              "version": "[13.0.1, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.304/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    }
+  }
+}
