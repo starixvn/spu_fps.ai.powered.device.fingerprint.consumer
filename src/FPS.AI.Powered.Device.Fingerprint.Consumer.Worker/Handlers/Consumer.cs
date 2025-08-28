@@ -13,7 +13,6 @@ namespace Device.FingerPrint.QueueConsumer.Handlers
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using System.Diagnostics;
 
     public class Consumer : IConsumer<Batch<MessageQueue>>
     {
@@ -44,24 +43,20 @@ namespace Device.FingerPrint.QueueConsumer.Handlers
         {
             try
             {
-                var processTimeoutSeconds = appSettings.GetValue<int>("Consumer:Timeouts:ProcessTimeoutSeconds", 60);
-                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(processTimeoutSeconds));
-                
-                var rawTransModels = TransformRawTransactionModelWithTimeout(context.Message, cts.Token);
+                if (!appSettings.GetValue<bool>("Consumer:IsConsume"))
+                {
+                    return Task.CompletedTask;
+                }
+
+                var rawTransModels = TransformRawTransactionModel(context.Message);
 
                 if (rawTransModels != null && rawTransModels.Any())
                 {
-                    ProcessRawTransactionsWithTimeout(rawTransModels, cts.Token);
+                    ProcessRawTransactions(rawTransModels);
                 }
 
                 return Task.CompletedTask;
             }           
-            catch (OperationCanceledException)
-            {
-                var processTimeoutSeconds = appSettings.GetValue<int>("Consumer:Timeouts:ProcessTimeoutSeconds", 60);
-                LogService.Error($"Consumer processing timed out after {processTimeoutSeconds} seconds");
-                throw;
-            }
             catch (Exception ex)
             {
                 _ = QueueConsumer.Utilities.LogErrorAsync(ex);
@@ -69,10 +64,8 @@ namespace Device.FingerPrint.QueueConsumer.Handlers
             }
         }
 
-        private void ProcessRawTransactionsWithTimeout(IEnumerable<RawTransactionModel> rawTransModels, CancellationToken cancellationToken)
+        private void ProcessRawTransactions(IEnumerable<RawTransactionModel> rawTransModels)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            
             rawTransactionService.InsertRawTransactionDetail(rawTransModels, appSettings.IsExtraSub);
 
             try
@@ -85,52 +78,32 @@ namespace Device.FingerPrint.QueueConsumer.Handlers
                 throw;
             }
 
-            _ = AdditionalProcessingNotAwaitWithTimeout(rawTransModels, cancellationToken);
+            _ = AdditionalProcessingNotAwait(rawTransModels);
         }
 
-        private IEnumerable<RawTransactionModel> TransformRawTransactionModelWithTimeout(Batch<MessageQueue> messages, CancellationToken cancellationToken)
+        private IEnumerable<RawTransactionModel> TransformRawTransactionModel(Batch<MessageQueue> messages)
         {
             if (messages.Length <= 0)
             {
                 return new List<RawTransactionModel>();
             }
 
-            var transformTimeoutSeconds = appSettings.GetValue<int>("Consumer:Timeouts:TransformTimeoutSeconds", 30);
-            using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            cts.CancelAfter(TimeSpan.FromSeconds(transformTimeoutSeconds));
-
             var transformedDataBag = new ConcurrentBag<RawTransactionModel>();
             var errorList = new List<MessageQueue>();
 
             var validedMessages = ValidDuplicateTrans(messages);
 
-            var parallelOptions = new ParallelOptions 
-            { 
-                MaxDegreeOfParallelism = 10,
-                CancellationToken = cts.Token
-            };
-
-            try
+            Parallel.ForEach(validedMessages, new ParallelOptions { MaxDegreeOfParallelism = 10 }, message =>
             {
-                Parallel.ForEach(validedMessages, parallelOptions, message =>
+                if (IsValidMessage(message))
                 {
-                    cts.Token.ThrowIfCancellationRequested();
-                    
-                    if (IsValidMessage(message))
-                    {
-                        ProcessMessage(message, transformedDataBag);
-                    }
-                    else
-                    {
-                        errorList.Add(message.Message);
-                    }
-                });
-            }
-            catch (OperationCanceledException)
-            {
-                LogService.Error($"TransformRawTransactionModel timed out after {transformTimeoutSeconds} seconds");
-                throw;
-            }
+                    ProcessMessage(message, transformedDataBag);
+                }
+                else
+                {
+                    errorList.Add(message.Message);
+                }
+            });
 
             if (errorList.Any())
             {
@@ -178,28 +151,18 @@ namespace Device.FingerPrint.QueueConsumer.Handlers
             }
         }
 
-        private async Task AdditionalProcessingNotAwaitWithTimeout(IEnumerable<RawTransactionModel> transactionModels, CancellationToken cancellationToken)
+        private async Task AdditionalProcessingNotAwait(IEnumerable<RawTransactionModel> transactionModels)
         {
             try
             {
-                var additionalProcessingTimeoutSeconds = appSettings.GetValue<int>("Consumer:Timeouts:AdditionalProcessingTimeoutSeconds", 10);
-                using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-                cts.CancelAfter(TimeSpan.FromSeconds(additionalProcessingTimeoutSeconds));
-
                 var everTagging = transactionModels
                                 .Where(x => !string.IsNullOrEmpty(x.FPTagging))
                                 .Select(x => DeviceEncoder.Encrypt(x.FPTagging));
 
                 if (everTagging.Any())
                 {
-                    cts.Token.ThrowIfCancellationRequested();
                     rawTransactionService.InsertOrUpdateEverTagging(hashKeyEverTagging, everTagging, appSettings.EverTaggingExpireSecond);
                 }
-            }
-            catch (OperationCanceledException)
-            {
-                var additionalProcessingTimeoutSeconds = appSettings.GetValue<int>("Consumer:Timeouts:AdditionalProcessingTimeoutSeconds", 10);
-                LogService.Error($"AdditionalProcessing timed out after {additionalProcessingTimeoutSeconds} seconds");
             }
             catch (Exception ex)
             {
