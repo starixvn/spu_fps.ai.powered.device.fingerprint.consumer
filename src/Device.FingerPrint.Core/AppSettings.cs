@@ -35,16 +35,6 @@ namespace Device.FingerPrint.Core
 
         string JWTAudience { get; }
 
-        bool IsEnableLogstash { get; }
-
-        string LogstashTcpHostname { get; }
-
-        int LogstashTcpPort { get; }
-
-        List<string> UnhandledFingerprintAttributeValues { get; }
-
-        List<string> LogstashIgnoreSubscribers { get; }
-
         bool IsExtraSub { get; }
 
         int MaxMonthsGetAssociationByDevice { get; }
@@ -94,16 +84,6 @@ namespace Device.FingerPrint.Core
 
         private readonly string jWT;
 
-        private readonly bool isEnableLogstash;
-
-        private readonly string logstashTcpHostname;
-
-        private readonly int logstashTcpPort;
-
-        private readonly List<string> unhandledFingerprintAttributeValues;
-
-        private readonly List<string> logstashIgnoreSubscribers;
-
         private readonly bool isExtraSub;
         
         private readonly int maxMonthsGetAssociationByDevice;
@@ -127,7 +107,6 @@ namespace Device.FingerPrint.Core
             var (cryptoPasswordVal, cryptoIVVal, cryptoSaltVal) = GetCryptoSettings();
             var (redisDatabaseVal, redisExpiredVal, everTaggingExpireSecondVal, everTaggingDBIndexVal, apiEverTaggingCacheMaxAgeVal) = GetRedisSettings();
             var (jWTPasswordVal, jWTIssueVal, jWTAudienceVal, jWTVal) = GetJWTSettings();
-            var (isEnableLogstashVal, logstashTcpHostnameVal, logstashTcpPortVal, unhandledFingerprintAttributeValuesVal, logstashIgnoreSubscribersVal) = GetLogstashSettings();
             var (isExtraSubVal, maxMonthsGetAssociationByDeviceVal, isDisableJsChallengeVal) = GetConsumerSettings();
             var isVaultEnableVal = GetVaultSettings();
 
@@ -150,11 +129,6 @@ namespace Device.FingerPrint.Core
             jWTIssue = jWTIssueVal;
             jWTAudience = jWTAudienceVal;
             jWT = jWTVal;
-            isEnableLogstash = isEnableLogstashVal;
-            logstashTcpHostname = logstashTcpHostnameVal;
-            logstashTcpPort = logstashTcpPortVal;
-            unhandledFingerprintAttributeValues = unhandledFingerprintAttributeValuesVal;
-            logstashIgnoreSubscribers = logstashIgnoreSubscribersVal;
             isExtraSub = isExtraSubVal;
             maxMonthsGetAssociationByDevice = maxMonthsGetAssociationByDeviceVal;
             isDisableJsChallenge = isDisableJsChallengeVal;
@@ -209,20 +183,6 @@ namespace Device.FingerPrint.Core
             );
         }
 
-        private (bool isEnableLogstash, string logstashTcpHostname, int logstashTcpPort, List<string> unhandledFingerprintAttributeValues, List<string> logstashIgnoreSubscribers) GetLogstashSettings()
-        {
-            var isEnableLogstashValue = GetValue<string>("Logstash:IsEnable");
-            var logstashTcpPortValue = GetValue<string>("Logstash:Tcp:Port");
-
-            return (
-                !string.IsNullOrEmpty(isEnableLogstashValue) && Convert.ToBoolean(isEnableLogstashValue),
-                GetValue<string>("Logstash:Tcp:Hostname") ?? string.Empty,
-                Convert.ToInt32(string.IsNullOrEmpty(logstashTcpPortValue) ? "32705" : logstashTcpPortValue),
-                GetSection<List<string>>("Fingerprint:UnhandledAttributeValues") ?? new List<string>(),
-                GetSection<List<string>>("Logstash:IgnoreSubscribers") ?? new List<string>()
-            );
-        }
-
         private (bool isExtraSub, int maxMonthsGetAssociationByDevice, bool isDisableJsChallenge) GetConsumerSettings()
         {
             var isExtraSubValue = GetValue<string>("Consumer:IsExtraSub");
@@ -267,16 +227,6 @@ namespace Device.FingerPrint.Core
         public string JWTPassword => jWTPassword;
 
         public string JWT => jWT;
-
-        public bool IsEnableLogstash => isEnableLogstash;
-
-        public string LogstashTcpHostname => logstashTcpHostname;
-
-        public int LogstashTcpPort => logstashTcpPort;
-
-        public List<string> UnhandledFingerprintAttributeValues => unhandledFingerprintAttributeValues;
-
-        public List<string> LogstashIgnoreSubscribers => logstashIgnoreSubscribers;
 
         public bool IsExtraSub => isExtraSub;
 

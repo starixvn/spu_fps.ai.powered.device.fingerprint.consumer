@@ -15,7 +15,6 @@ namespace Device.FingerPrint.Core.Tests
         private readonly Mock<IMobileRawTransactionService> _mockMobileRawTransactionService;
         private readonly Mock<ITransactionService> _mockTransactionService;
         private readonly Mock<IAppSettings> _mockAppSettings;
-        private readonly Mock<ILogstashService> _mockLogstashService;
         private readonly Consumer _consumer;
 
         public ConsumerTests()
@@ -25,15 +24,13 @@ namespace Device.FingerPrint.Core.Tests
             _mockMobileRawTransactionService = new Mock<IMobileRawTransactionService>();
             _mockTransactionService = new Mock<ITransactionService>();
             _mockAppSettings = new Mock<IAppSettings>();
-            _mockLogstashService = new Mock<ILogstashService>();
 
             _consumer = new Consumer(
                 _mockRawTransactionService.Object,
                 _mockRawTransactionAttributeService.Object,
                 _mockMobileRawTransactionService.Object,
                 _mockTransactionService.Object,
-                _mockAppSettings.Object,
-                _mockLogstashService.Object
+                _mockAppSettings.Object
             );
         }
 
@@ -72,7 +69,6 @@ namespace Device.FingerPrint.Core.Tests
             _mockAppSettings.Setup(x => x.GetValue<bool>("Consumer:IsConsume")).Returns(true);
             _mockAppSettings.Setup(x => x.IsExtraSub).Returns(false);
             _mockAppSettings.Setup(x => x.EverTaggingExpireSecond).Returns(3600L);
-            _mockAppSettings.Setup(x => x.IsEnableLogstash).Returns(false);
 
             var messages = new List<MessageQueue>
             {
@@ -107,7 +103,6 @@ namespace Device.FingerPrint.Core.Tests
             _mockAppSettings.Setup(x => x.GetValue<bool>("Consumer:IsConsume")).Returns(true);
             _mockAppSettings.Setup(x => x.IsExtraSub).Returns(false);
             _mockAppSettings.Setup(x => x.EverTaggingExpireSecond).Returns(3600L);
-            _mockAppSettings.Setup(x => x.IsEnableLogstash).Returns(false);
 
             var messages = new List<MessageQueue>
             {
@@ -172,7 +167,6 @@ namespace Device.FingerPrint.Core.Tests
             _mockAppSettings.Setup(x => x.GetValue<bool>("Consumer:IsConsume")).Returns(true);
             _mockAppSettings.Setup(x => x.IsExtraSub).Returns(false);
             _mockAppSettings.Setup(x => x.EverTaggingExpireSecond).Returns(3600L);
-            _mockAppSettings.Setup(x => x.IsEnableLogstash).Returns(false);
 
             var messages = new List<MessageQueue>
             {
@@ -200,7 +194,6 @@ namespace Device.FingerPrint.Core.Tests
             _mockAppSettings.Setup(x => x.GetValue<bool>("Consumer:IsConsume")).Returns(true);
             _mockAppSettings.Setup(x => x.IsExtraSub).Returns(false);
             _mockAppSettings.Setup(x => x.EverTaggingExpireSecond).Returns(3600L);
-            _mockAppSettings.Setup(x => x.IsEnableLogstash).Returns(false);
 
             var messages = new List<MessageQueue>
             {
@@ -228,7 +221,6 @@ namespace Device.FingerPrint.Core.Tests
             _mockAppSettings.Setup(x => x.GetValue<bool>("Consumer:IsConsume")).Returns(true);
             _mockAppSettings.Setup(x => x.IsExtraSub).Returns(false);
             _mockAppSettings.Setup(x => x.EverTaggingExpireSecond).Returns(3600L);
-            _mockAppSettings.Setup(x => x.IsEnableLogstash).Returns(false);
 
             var messages = new List<MessageQueue>
             {
@@ -256,7 +248,6 @@ namespace Device.FingerPrint.Core.Tests
             _mockAppSettings.Setup(x => x.GetValue<bool>("Consumer:IsConsume")).Returns(true);
             _mockAppSettings.Setup(x => x.IsExtraSub).Returns(false);
             _mockAppSettings.Setup(x => x.EverTaggingExpireSecond).Returns(3600L);
-            _mockAppSettings.Setup(x => x.IsEnableLogstash).Returns(false);
 
             var messages = new List<MessageQueue>
             {
@@ -284,48 +275,12 @@ namespace Device.FingerPrint.Core.Tests
         }
 
         [Fact]
-        public async Task Consume_WhenLogstashEnabled_ShouldPushLogs()
-        {
-            // Arrange
-            _mockAppSettings.Setup(x => x.GetValue<bool>("Consumer:IsConsume")).Returns(true);
-            _mockAppSettings.Setup(x => x.IsExtraSub).Returns(false);
-            _mockAppSettings.Setup(x => x.EverTaggingExpireSecond).Returns(3600L);
-            _mockAppSettings.Setup(x => x.IsEnableLogstash).Returns(true);
-
-            var messages = new List<MessageQueue>
-            {
-                new MessageQueue
-                {
-                    Account = "testuser",
-                    TransDate = DateTime.Now,
-                    Mobile = null
-                }
-            };
-
-            var context = CreateMockContext(messages);
-            var rawTransactionModel = new RawTransactionModel { FPTagging = "test" };
-
-            _mockRawTransactionService.Setup(x => x.TransformRawTransaction(It.IsAny<MessageQueue>()))
-                .Returns(rawTransactionModel);
-            _mockRawTransactionAttributeService.Setup(x => x.GetTransactionAttribute(It.IsAny<RawTransactionModel>()))
-                .Returns(rawTransactionModel);
-
-            // Act
-            await _consumer.Consume(context);
-
-            // Assert
-            // Note: InsertLogstash is called asynchronously, so we can't easily verify it in unit test
-            // The method is fire-and-forget
-        }
-
-        [Fact]
         public async Task Consume_WhenDuplicateMessages_ShouldFilterDuplicates()
         {
             // Arrange
             _mockAppSettings.Setup(x => x.GetValue<bool>("Consumer:IsConsume")).Returns(true);
             _mockAppSettings.Setup(x => x.IsExtraSub).Returns(false);
             _mockAppSettings.Setup(x => x.EverTaggingExpireSecond).Returns(3600L);
-            _mockAppSettings.Setup(x => x.IsEnableLogstash).Returns(false);
 
             var transDate = DateTime.Now;
             var messages = new List<MessageQueue>

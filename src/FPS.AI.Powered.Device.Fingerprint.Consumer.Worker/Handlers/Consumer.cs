@@ -21,7 +21,6 @@ namespace Device.FingerPrint.QueueConsumer.Handlers
         private readonly IMobileRawTransactionService mobileRawTransactionService;
         private readonly ITransactionService transactionService;
         private readonly IAppSettings appSettings;
-        private readonly ILogstashService logstashService;
 
         private const string hashKeyEverTagging = "EverTagging";
 
@@ -30,8 +29,7 @@ namespace Device.FingerPrint.QueueConsumer.Handlers
                 IRawTransactionAttributeService rawTransactionAttributeService,
                 IMobileRawTransactionService mobileRawTransactionService,
                 ITransactionService transactionService,
-                IAppSettings appSettings,
-                ILogstashService logstashService
+                IAppSettings appSettings
         )
         {
             this.rawTransactionService = rawTransactionService;
@@ -39,7 +37,6 @@ namespace Device.FingerPrint.QueueConsumer.Handlers
             this.mobileRawTransactionService = mobileRawTransactionService;
             this.transactionService = transactionService;
             this.appSettings = appSettings;
-            this.logstashService = logstashService;
         }
 
         public Task Consume(ConsumeContext<Batch<MessageQueue>> context)
@@ -166,27 +163,10 @@ namespace Device.FingerPrint.QueueConsumer.Handlers
                 {
                     rawTransactionService.InsertOrUpdateEverTagging(hashKeyEverTagging, everTagging, appSettings.EverTaggingExpireSecond);
                 }
-
-                await InsertLogstash(transactionModels);
             }
             catch (Exception ex)
             {
                 _ = QueueConsumer.Utilities.LogErrorAsync(ex);
-            }
-        }
-
-        private async Task InsertLogstash(IEnumerable<RawTransactionModel> transactions)
-        {
-            if (appSettings.IsEnableLogstash)
-            {
-                try
-                {
-                    await logstashService.PushLogAsync(transactions);
-                }
-                catch (Exception ex)
-                {
-                    _ = QueueConsumer.Utilities.LogErrorAsync(ex);
-                }
             }
         }
 

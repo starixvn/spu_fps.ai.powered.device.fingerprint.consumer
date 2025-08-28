@@ -3,7 +3,6 @@ using Device.FingerPrint.Features.Monitor.Services;
 using Device.FingerPrint.Features.Transaction.Services;
 using Device.FingerPrint.Queue;
 using Device.FingerPrint.QueueConsumer.Handlers;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Device.FingerPrint.QueueConsumer.Services
 {
@@ -16,7 +15,6 @@ namespace Device.FingerPrint.QueueConsumer.Services
             RegisterMassTransitService(services);
             RegisterBotDetectionService(services);
             RegisterLogInfoService(services);
-            RegisterLogstashService(services);
         }
 
         private static void RegisterTransactionService(this IServiceCollection services)
@@ -48,11 +46,6 @@ namespace Device.FingerPrint.QueueConsumer.Services
         {
             services.AddSingleton<ILogInfoDataAccess, LogInfoDataAccess>();
             services.AddSingleton<ILogInfoServices, LogInfoServices>();
-        }
-
-        private static void RegisterLogstashService(this IServiceCollection services)
-        {
-            services.AddSingleton<ILogstashService, LogstashService>();
         }
     }
 }
