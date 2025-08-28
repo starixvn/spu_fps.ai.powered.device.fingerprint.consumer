@@ -10,12 +10,7 @@ using Fanex.Logging.Extensions.AspNetCore;
 using Fanex.Logging.Extensions.Database;
 using Fanex.Logging.Sentry;
 using MassTransit;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Sentry;
-using System;
-using System.Collections.Generic;
 
 var builder = Host.CreateApplicationBuilder(args);
 
@@ -98,9 +93,31 @@ builder.Services.AddOptions<RabbitMqTransportOptions>()
     options.VHost = appSettings.GetValue<string>("RabbitMQ:VirtualHost");
 });
 
-// Add hosted service - commented out as not needed
-
 LogService.Info($"QueueConsumer {appSettings.Environment} Start with ValueEnable({appSettings.IsVaultEnable})");
 
 var host = builder.Build();
-host.Run();
+
+// Add timeout for host startup
+var hostStartupTimeoutSeconds = appSettings.GetValue<int>("Consumer:Timeouts:HostStartupTimeoutSeconds", 30);
+using var startupCts = new CancellationTokenSource(TimeSpan.FromSeconds(hostStartupTimeoutSeconds));
+
+try
+{
+    await host.StartAsync(startupCts.Token);
+    LogService.Info("Host started successfully");
+    
+    // Run the host with timeout
+    var hostRunTimeoutSeconds = appSettings.GetValue<int>("Consumer:Timeouts:HostRunTimeoutSeconds", 300);
+    using var runCts = new CancellationTokenSource(TimeSpan.FromSeconds(hostRunTimeoutSeconds));
+    
+    await host.WaitForShutdownAsync(runCts.Token);
+}
+catch (OperationCanceledException)
+{
+    LogService.Error($"Host operation timed out");
+    throw;
+}
+finally
+{
+    await host.StopAsync();
+}

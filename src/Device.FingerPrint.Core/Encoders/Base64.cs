@@ -28,7 +28,12 @@
             int enc4;
             int i = 0;
 
-            encodedData = Regex.Replace(encodedData, "[^A-Za-z0-9\\+\\/\\=]", "");
+            encodedData = Regex.Replace(encodedData,
+                                        "[^A-Za-z0-9\\+\\/\\=]",
+                                        "",
+                                        RegexOptions.None,
+                                        TimeSpan.FromSeconds(1)
+                                    );
 
             while (i < encodedData.Length)
             {
@@ -97,12 +102,25 @@
         {
             const string pattern = "^[A-Za-z0-9+/]*={0,2}$";
 
-            Match match = Regex.Match(encodedData, pattern);
+            // Add timeout to prevent ReDoS
+            Match match = Regex.Match(
+                encodedData,
+                pattern,
+                RegexOptions.None,
+                TimeSpan.FromSeconds(1) // Adjust timeout as appropriate
+            );
 
             if (!match.Success)
             {
-                int indexOfFirstInvalidChar = encodedData.IndexOf(encodedData.First(c => !Regex.IsMatch(c.ToString(), "[A-Za-z0-9+/=]")));
-
+                int indexOfFirstInvalidChar = encodedData.IndexOf(encodedData.First(c =>
+                                                                    !Regex.IsMatch(
+                                                                        c.ToString(),
+                                                                        "[A-Za-z0-9+/=]",
+                                                                        RegexOptions.None,
+                                                                        TimeSpan.FromSeconds(1) // set timeout
+                                                                    )
+                                                                )
+                                                            );
                 encodedData = encodedData.Substring(0, indexOfFirstInvalidChar);
             }
 

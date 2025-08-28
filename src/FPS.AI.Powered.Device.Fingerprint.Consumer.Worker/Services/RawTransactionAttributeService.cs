@@ -12,11 +12,7 @@ using DeviceDetectorNET;
 using Fanex.Logging;
 using Newtonsoft.Json;
 using StackExchange.Redis;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace Device.FingerPrint.QueueConsumer.Services
 {
@@ -35,7 +31,8 @@ namespace Device.FingerPrint.QueueConsumer.Services
 
         private const string base64Key = "wFKfVDGZqRbyYCBi6IveMaQAh1ntWcP8ujT/U7r2xXs+J0L=4d3zEHSo5glN9kOpm";
         private const string _realTaggingPrefix = "RealTagging:";
-        private readonly List<string> fieldKeys = new();
+        private readonly List<string> fieldKeys = [];
+        private static readonly TimeSpan RegexTimeout = TimeSpan.FromMilliseconds(500);
 
         public RawTransactionAttributeService(
             ICrypto crypto,
@@ -85,7 +82,7 @@ namespace Device.FingerPrint.QueueConsumer.Services
             ProcessSessionKey(model);
         }
 
-        #pragma warning disable S1541
+#pragma warning disable S1541
         private void ProcessSessionKey(RawTransactionModel model)
         {
             if (string.IsNullOrEmpty(model.SessionKey))
@@ -123,7 +120,7 @@ namespace Device.FingerPrint.QueueConsumer.Services
                 // No action needed when sessionKey is null and already logged
             }
         }
-        #pragma warning restore S1541
+#pragma warning restore S1541
 
         private void ProcessValidSessionKey(RawTransactionModel model, SessionKeyModel sessionKey)
         {
@@ -141,12 +138,12 @@ namespace Device.FingerPrint.QueueConsumer.Services
             HandleTaggingProcess(model, sessionKey.SessionKey);
         }
 
-        #pragma warning disable S1541
+#pragma warning disable S1541
         private void CheckScriptVersion(RawTransactionModel model)
         {
             var curScriptVersion = appSettings.GetSection<string>("Consumer:ScriptVersion");
             var compareScriptVersion = CompareVersionsWithTryParse(model.ScriptVersion, curScriptVersion);
-            
+
             if (compareScriptVersion == 0)
             {
                 _ = LogConsumerErrorAsync(model, LogType.ScriptVersionOld);
@@ -166,7 +163,7 @@ namespace Device.FingerPrint.QueueConsumer.Services
                 // Script version is valid - no action needed
             }
         }
-        #pragma warning restore S1541
+#pragma warning restore S1541
 
         private static int CompareVersionsWithTryParse(string versionA, string versionB)
         {
@@ -306,10 +303,10 @@ namespace Device.FingerPrint.QueueConsumer.Services
         }
 
         private void ProcessFingerprintAttributes(
-            RawTransactionModel rawTransModel, 
-            Dictionary<string, string> attributesDictionary, 
-            HeaderModel headerModel, 
-            string platform, 
+            RawTransactionModel rawTransModel,
+            Dictionary<string, string> attributesDictionary,
+            HeaderModel headerModel,
+            string platform,
             InsertFPFingerprintEntity result)
         {
             UpdateIsIncognitoMode(rawTransModel, attributesDictionary, rawTransModel.UserAgentInfo?.ClientName);
@@ -436,7 +433,7 @@ namespace Device.FingerPrint.QueueConsumer.Services
 
             var deserializedData = JsonConvert.DeserializeObject<Dictionary<string, object>>(attributesJson);
             return deserializedData.ToDictionary(
-                kvp => kvp.Key, 
+                kvp => kvp.Key,
                 kvp => kvp.Value == null ? null : JsonConvert.SerializeObject(kvp.Value));
         }
 
@@ -457,8 +454,8 @@ namespace Device.FingerPrint.QueueConsumer.Services
         }
 
         private static FPOldFingerprintAttributeModel TransformFPOldFingerprintInfo(
-            Dictionary<string, string> attributesDictionary, 
-            FPFingerprintAttributeModel fingerPrintAttribute, 
+            Dictionary<string, string> attributesDictionary,
+            FPFingerprintAttributeModel fingerPrintAttribute,
             UserAgentInfoModel userAgentInfo)
         {
             var oldFingerPrintAttribute = JsonConvert.DeserializeObject<FPOldFingerprintAttributeModel>(JsonConvert.SerializeObject(attributesDictionary));
@@ -502,9 +499,9 @@ namespace Device.FingerPrint.QueueConsumer.Services
         }
 
         private static FPFingerprintAttributeExtraModel TransformFingerprintAttributeExtra(
-            HeaderModel headerModel, 
-            RawTransactionModel rawTransModel, 
-            FPOldFingerprintAttributeModel oldFingerPrintAttribute, 
+            HeaderModel headerModel,
+            RawTransactionModel rawTransModel,
+            FPOldFingerprintAttributeModel oldFingerPrintAttribute,
             string platform)
         {
             var fingerprintAttributeExtra = new FPFingerprintAttributeExtraModel
@@ -618,7 +615,11 @@ namespace Device.FingerPrint.QueueConsumer.Services
 
         private static bool IsHexString(string hex)
         {
-            return System.Text.RegularExpressions.Regex.IsMatch(hex, @"\A\b[0-9a-fA-F]+\b\Z");
+            return Regex.IsMatch(hex,
+                                @"\A\b[0-9a-fA-F]+\b\Z",
+                                RegexOptions.None,
+                                RegexTimeout // set timeout
+                            );
         }
 
         private static bool CheckGuid(string decryptedText)
@@ -640,10 +641,10 @@ namespace Device.FingerPrint.QueueConsumer.Services
 
             var trackingPatterns = new List<Regex>
             {
-                new (@"\s+UUID\/[a-zA-Z0-9-]+", RegexOptions.Compiled),
-                new (@"\s+HTTP_BB_FORWARDED\/[^\s]+", RegexOptions.Compiled),
-                new (@"\s+FalconTag\/[^\s]+", RegexOptions.Compiled),
-                new (@"\s+SessionId\/[a-zA-Z0-9]+", RegexOptions.Compiled)
+                new(@"\s+UUID\/[a-zA-Z0-9-]+", RegexOptions.Compiled, RegexTimeout),
+                new(@"\s+HTTP_BB_FORWARDED\/[^\s]+", RegexOptions.Compiled, RegexTimeout),
+                new(@"\s+FalconTag\/[^\s]+", RegexOptions.Compiled, RegexTimeout),
+                new(@"\s+SessionId\/[a-zA-Z0-9]+", RegexOptions.Compiled, RegexTimeout)
             };
 
             var cleanedUA = userAgent;
@@ -653,9 +654,19 @@ namespace Device.FingerPrint.QueueConsumer.Services
                 cleanedUA = pattern.Replace(cleanedUA, string.Empty);
             }
 
-            cleanedUA = Regex.Replace(cleanedUA, @"\s*\[[^\]]*(?:\]|$)", string.Empty);
+            cleanedUA = Regex.Replace(cleanedUA,
+                                    @"\s*\[[^\]]*(?:\]|$)",
+                                    string.Empty,
+                                    RegexOptions.None,
+                                    TimeSpan.FromSeconds(1) // timeout
+                                );
 
-            return Regex.Replace(cleanedUA, @"\s{2,}", " ").Trim();
+            return Regex.Replace(cleanedUA,
+                                @"\s{2,}",
+                                " ",
+                                RegexOptions.None,
+                                TimeSpan.FromSeconds(1) // timeout
+                            ).Trim();
         }
 
         #region Log Info

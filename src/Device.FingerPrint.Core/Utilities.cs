@@ -165,7 +165,12 @@ namespace Device.FingerPrint.Core
                 return null;
             }
 
-            return Regex.Replace(inputValue, @"[^\u0000-\u007F]", string.Empty);
+            return Regex.Replace(inputValue,
+                                @"[^\u0000-\u007F]",
+                                string.Empty,
+                                RegexOptions.None,
+                                TimeSpan.FromSeconds(1) // 1 second timeout
+                            );
         }
 
         public static string EncodeCapturedData(DeviceInfoModel deviceInfo)

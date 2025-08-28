@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 
 namespace Device.FingerPrint.Core
@@ -38,7 +37,7 @@ namespace Device.FingerPrint.Core
         bool IsExtraSub { get; }
 
         int MaxMonthsGetAssociationByDevice { get; }
-        
+
         long EverTaggingExpireSecond { get; }
 
         int EverTaggingDBIndex { get; }
@@ -85,13 +84,13 @@ namespace Device.FingerPrint.Core
         private readonly string jWT;
 
         private readonly bool isExtraSub;
-        
+
         private readonly int maxMonthsGetAssociationByDevice;
-        
+
         private readonly long everTaggingExpireSecond;
-        
+
         private readonly int everTaggingDBIndex;
-        
+
         private readonly long apiEverTaggingCacheMaxAge;
 
         private readonly bool isDisableJsChallenge;
@@ -231,7 +230,7 @@ namespace Device.FingerPrint.Core
         public bool IsExtraSub => isExtraSub;
 
         public int MaxMonthsGetAssociationByDevice => maxMonthsGetAssociationByDevice;
-        
+
         public long EverTaggingExpireSecond => everTaggingExpireSecond;
 
         public int EverTaggingDBIndex => everTaggingDBIndex;
