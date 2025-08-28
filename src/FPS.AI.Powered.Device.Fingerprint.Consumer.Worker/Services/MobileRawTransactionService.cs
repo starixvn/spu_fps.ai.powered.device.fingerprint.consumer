@@ -25,16 +25,35 @@ namespace Device.FingerPrint.QueueConsumer.Services
         {
             try
             {
-                var transformTimeoutSeconds = appSettings.GetValue<int>("Consumer:Timeouts:MobileTransformTimeoutSeconds", 5);
-                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(transformTimeoutSeconds));
-                
-                return TransformRawTransactionWithTimeout(message, cts.Token);
-            }
-            catch (OperationCanceledException)
-            {
-                var transformTimeoutSeconds = appSettings.GetValue<int>("Consumer:Timeouts:MobileTransformTimeoutSeconds", 5);
-                LogService.Error($"TransformRawTransaction timed out after {transformTimeoutSeconds} seconds");
-                return null;
+                var rawTransModel = new RawTransactionModel
+                {
+                    LoginName = message.Account,
+                    SubscriberName = message.Subscriber,
+                    SubscriberId = message.SubscriberId,
+                    TransTime = Convert.ToDateTime(message.TransDate.ToString("yyyy-MM-dd HH:mm:ss.ffff")),
+                    Action = message.Action,
+                    ActionResult = message.ActionResult,
+                    MBDeviceCodeMediaDRM = message.Mobile.MediaDRMCode,
+                    MBDeviceCodeMachine = message.Mobile.MachineCode,
+                    MBDeviceCodeTagging = message.Mobile.CustomCode,
+                    MBIsMobileApp = message.Mobile.IsMobileAppTrans,
+                    MBIsEmulator = message.Mobile.IsEmulator,
+                    MBModelName = message.Mobile.ModelName,
+                    MBManufacturer = message.Mobile.Manufacturer,
+                    MBBrand = message.Mobile.Brand,
+                    MBOS = message.Mobile.OS,
+                    MBTimezone = message.Mobile.Timezone,
+                    MBLanguage = message.Mobile.SystemLanguage,
+                    MBCountry = message.Mobile.Country,
+                    MBSDKVersion = message.Mobile.SdkVersion,
+                    MBDeviceDetails = message.Mobile.DeviceDetails,
+                };
+
+                rawTransModel.FlaggedCode = GetFlaggedCode(message);
+
+                TransformIP(message, rawTransModel);
+
+                return rawTransModel;
             }
             catch (Exception ex)
             {
@@ -44,42 +63,6 @@ namespace Device.FingerPrint.QueueConsumer.Services
             return null;
         }
 
-        private RawTransactionModel TransformRawTransactionWithTimeout(MessageQueue message, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var rawTransModel = new RawTransactionModel
-            {
-                LoginName = message.Account,
-                SubscriberName = message.Subscriber,
-                SubscriberId = message.SubscriberId,
-                TransTime = Convert.ToDateTime(message.TransDate.ToString("yyyy-MM-dd HH:mm:ss.ffff")),
-                Action = message.Action,
-                ActionResult = message.ActionResult,
-                MBDeviceCodeMediaDRM = message.Mobile.MediaDRMCode,
-                MBDeviceCodeMachine = message.Mobile.MachineCode,
-                MBDeviceCodeTagging = message.Mobile.CustomCode,
-                MBIsMobileApp = message.Mobile.IsMobileAppTrans,
-                MBIsEmulator = message.Mobile.IsEmulator,
-                MBModelName = message.Mobile.ModelName,
-                MBManufacturer = message.Mobile.Manufacturer,
-                MBBrand = message.Mobile.Brand,
-                MBOS = message.Mobile.OS,
-                MBTimezone = message.Mobile.Timezone,
-                MBLanguage = message.Mobile.SystemLanguage,
-                MBCountry = message.Mobile.Country,
-                MBSDKVersion = message.Mobile.SdkVersion,
-                MBDeviceDetails = message.Mobile.DeviceDetails,
-            };
-
-            cancellationToken.ThrowIfCancellationRequested();
-            rawTransModel.FlaggedCode = GetFlaggedCode(message);
-
-            cancellationToken.ThrowIfCancellationRequested();
-            TransformIP(message, rawTransModel);
-
-            return rawTransModel;
-        }
 
         private string GetFlaggedCode(MessageQueue message)
         {
@@ -102,5 +85,6 @@ namespace Device.FingerPrint.QueueConsumer.Services
             model.IPId = ipConverted.IpNumber;
             model.IsIPV6 = ipConverted.IsIpV6;
         }
+
     }
 }
