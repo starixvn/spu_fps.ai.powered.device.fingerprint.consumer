@@ -4,6 +4,6 @@ namespace Device.FingerPrint.QueueConsumer.Models
     {
         public bool Bot { get; set; }
 
-        public string BotKind { get; set; }
+        public string? BotKind { get; set; }
     }
 }
