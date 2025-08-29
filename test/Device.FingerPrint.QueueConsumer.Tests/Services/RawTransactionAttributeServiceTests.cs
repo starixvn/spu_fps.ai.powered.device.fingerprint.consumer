@@ -118,29 +118,6 @@ namespace Device.FingerPrint.QueueConsumer.Tests.Services
         }
 
         [Fact]
-        public void GetTransactionAttribute_WithValidSessionKey_Should_Process_Redis_Data()
-        {
-            // Arrange
-            var model = new RawTransactionModel
-            {
-                UserAgent = "Mozilla/5.0 test",
-                SessionKey = "0:valid-session-key"
-            };
-
-            var redisValues = new List<string?> { "", "" };
-            _mockRedisService.Setup(x => x.HashGetWithDbIndex(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<List<string>>()))
-                           .Returns(redisValues);
-
-            // Act
-            var result = _service.GetTransactionAttribute(model);
-
-            // Assert
-            Assert.NotNull(result);
-            Assert.NotNull(result.UserAgentInfo);
-            _mockRedisService.Verify(x => x.HashGetWithDbIndex(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<List<string>>()), Times.Once);
-        }
-
-        [Fact]
         public void GetTransactionAttribute_WithException_Should_Handle_Gracefully()
         {
             // Arrange

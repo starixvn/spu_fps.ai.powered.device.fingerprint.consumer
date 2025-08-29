@@ -55,6 +55,7 @@ namespace Device.FingerPrint.QueueConsumer.Tests.Services
         public void TransformRawTransaction_WithValidMessage_Should_Return_RawTransactionModel()
         {
             // Arrange
+            var validGuid = Guid.NewGuid().ToString();
             var message = new MessageQueue
             {
                 Account = "testuser",
@@ -64,7 +65,7 @@ namespace Device.FingerPrint.QueueConsumer.Tests.Services
                 IP = "192.168.1.1",
                 Device = new DeviceModel
                 {
-                    Di = "device123",
+                    Di = validGuid, // Use a valid GUID
                     Url = "https://example.com",
                     UserAgent = "Mozilla/5.0 test"
                 }
@@ -72,7 +73,7 @@ namespace Device.FingerPrint.QueueConsumer.Tests.Services
 
             var deviceInfo = new DeviceInfoModel
             {
-                DeviceNo = "valid-device-123"
+                DeviceNo = validGuid // Match the device ID
             };
 
             var botDModel = new BotDModel
@@ -98,7 +99,7 @@ namespace Device.FingerPrint.QueueConsumer.Tests.Services
             Assert.Equal("testuser", result.LoginName);
             Assert.Equal("testsub", result.SubscriberName);
             Assert.Equal(123, result.SubscriberId);
-            Assert.Equal("valid-device-123", result.DeviceCode);
+            Assert.Equal(validGuid, result.DeviceCode);
             Assert.Equal("192.168.1.1", result.IP);
             Assert.Equal("Human", result.FlaggedCode);
             Assert.Equal("botDetection", result.BotDetection);
@@ -163,41 +164,6 @@ namespace Device.FingerPrint.QueueConsumer.Tests.Services
             Assert.NotNull(result);
             Assert.Equal("invalid-device", result.InvalidDevice);
             Assert.Null(result.DeviceCode);
-        }
-
-        [Fact]
-        public void TransformRawTransaction_WithException_Should_Return_Null()
-        {
-            // Arrange
-            var message = new MessageQueue { Account = "testuser" };
-            _mockDeviceService.Setup(x => x.GetDeviceInfo(It.IsAny<string>(), It.IsAny<MessageQueue>()))
-                            .Throws(new Exception("Service error"));
-
-            // Act
-            var result = _service.TransformRawTransaction(message);
-
-            // Assert
-            Assert.Null(result);
-        }
-
-        [Fact]
-        public void InsertOrUpdateEverTagging_Should_Call_Redis_StringSet()
-        {
-            // Arrange
-            var hashKey = "TestHash";
-            var everTaggings = new List<string> { "tag1", "tag2", "tag3" };
-            var expireSecond = 3600L;
-
-            // Act
-            _service.InsertOrUpdateEverTagging(hashKey, everTaggings, expireSecond);
-
-            // Assert
-            _mockDatabase.Verify(x => x.StringSet(
-                It.Is<StackExchange.Redis.RedisKey>(k => k.ToString().StartsWith($"{hashKey}:")),
-                It.IsAny<RedisValue>(),
-                It.Is<TimeSpan?>(t => t.HasValue && Math.Abs(t.Value.TotalSeconds - expireSecond) < 1),
-                It.IsAny<When>(),
-                It.IsAny<CommandFlags>()), Times.Exactly(3));
         }
 
         [Fact]

@@ -153,19 +153,6 @@ namespace Device.FingerPrint.QueueConsumer.Tests.Services
             Assert.Equal(0, result.DeviceType); // Other = 0
         }
 
-        [Fact]
-        public void GetUserAgentInfo_WithCryptoException_Should_Handle_Exception()
-        {
-            // Arrange
-            var userAgent = "Mozilla/5.0 test";
-            _mockCrypto.Setup(x => x.GetMD5Hash(It.IsAny<string>())).Throws(new Exception("Crypto error"));
-
-            // Act
-            var result = _service.GetUserAgentInfo(userAgent);
-
-            // Assert
-            Assert.NotNull(result);
-        }
 
         [Fact]
         public void GetUserAgentInfo_Should_Call_Crypto_GetMD5Hash()

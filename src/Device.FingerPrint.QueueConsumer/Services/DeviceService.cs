@@ -136,6 +136,7 @@
                 },
                 TimeZone = string.Empty,
                 UserAgent = string.Empty,
+                BotD = new BotDModel(),
                 InvalidDeviceId = true
             };
         }

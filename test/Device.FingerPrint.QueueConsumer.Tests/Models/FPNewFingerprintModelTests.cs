@@ -31,11 +31,12 @@ namespace Device.FingerPrint.QueueConsumer.Tests.Models
         {
             var attributeModel = new FPFingerprintAttributeModel();
             var cryptoMock = new Mock<ICrypto>();
-            // Giả lập Utilities.GetMD5HashFromObject trả về giá trị cố định
-            // Sử dụng Moq để mock static method nếu cần, hoặc kiểm tra giá trị trả về là string
+            cryptoMock.Setup(c => c.GetMD5Hash(It.IsAny<string>())).Returns("mocked_hash_value");
+
             var model = new FPNewFingerprintModel(attributeModel, cryptoMock.Object);
             var code = model.Code;
             Assert.IsType<string>(code);
+            Assert.Equal("mocked_hash_value", code);
         }
     }
 }
