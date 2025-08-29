@@ -32,9 +32,8 @@
                     return TransformDeviceInfo(deviceInfo);
                 }
             }
-            catch (Exception ex)
+            catch
             {
-                //LogService.Info("Error GetDeviceInfo: " + ex.Message + "\n" + JsonConvert.SerializeObject(message));
             }
 
             return TransformEmptyDeviceInfo();
@@ -95,7 +94,7 @@
             {
                 AppVersion = deviceInfo.AppVersion,
                 Version = deviceInfo.Version,
-                CapturedDate = (long)(deviceInfo.CapturedDate == null ? DateTime.Now.Ticks : deviceInfo.CapturedDate),
+                CapturedDate = (long)(deviceInfo.CapturedDate ?? DateTimeOffset.Now.Ticks),
                 DeviceFPCode = deviceInfo.DeviceCode,
                 DeviceNo = deviceInfo.DeviceId,
                 HRef = deviceInfo.HRef,

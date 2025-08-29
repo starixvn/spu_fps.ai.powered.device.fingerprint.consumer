@@ -43,29 +43,7 @@
         {
             try
             {
-                if (appSettings.GetValue<bool>("Consumer:IsConsume"))
-                {
-                    var rawTransModels = TransformRawTransactionModel(context.Message);
-
-                    if (rawTransModels != null && rawTransModels.Any())
-                    {
-                        rawTransactionService.InsertRawTransactionDetail(rawTransModels, appSettings.IsExtraSub);
-
-                        try
-                        {
-                            transactionService.InsertRawTransaction(rawTransModels, appSettings.IsExtraSub);
-                        }
-                        catch
-                        {
-                            rawTransactionService.LogTransactions(rawTransModels);
-
-                            throw;
-                        }
-
-                        _ = AdditionalProcessingNotAwait(rawTransModels);
-                    }
-                }
-
+                ProcessMessageBatch(context.Message);
                 return Task.CompletedTask;
             }           
             catch (Exception ex)
@@ -75,74 +53,118 @@
             }
         }
 
-        private IEnumerable<RawTransactionModel> TransformRawTransactionModel(Batch<MessageQueue> messages)
+        private void ProcessMessageBatch(Batch<MessageQueue> messageBatch)
         {
-            if (messages.Length <= 0) return new List<RawTransactionModel>();
-
-            var transformedDataBag = new ConcurrentBag<RawTransactionModel>();
-            var errorList = new List<MessageQueue>();
-
-            var validedMessages = ValidDuplicateTrans(messages);
-
-            Parallel.ForEach(validedMessages, new ParallelOptions { MaxDegreeOfParallelism = 10 }, message =>
+            if (!ShouldProcessMessages())
             {
-                if (message?.Message != null
-                    && !string.IsNullOrEmpty(message.Message.Account)
-                    && !Utilities.ContainsUnicodeCharacter(message.Message.Account)
-                    && message.Message.Account.Length <= 100)
-                {
-                    try
-                    {
-                        if (message.Message.Mobile != null && message.Message.Mobile.IsMobileAppTrans)
-                        {
-                            var rawTransFinalModel = mobileRawTransactionService.TransformRawTransaction(message.Message);
-
-                            if (rawTransFinalModel != null)
-                            {
-                                transformedDataBag.Add(rawTransFinalModel);
-                            }
-                        }
-                        else
-                        {
-                            var rawTransModel = rawTransactionService.TransformRawTransaction(message.Message);
-                            var rawTransFinalModel = rawTransactionAttributeService.GetTransactionAttribute(rawTransModel);
-
-                            if (rawTransFinalModel != null)
-                            {
-                                transformedDataBag.Add(rawTransFinalModel);
-                            }
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        _ = QueueConsumer.Utilities.LogErrorAsync(ex);
-                    }
-                }
-                else
-                {
-                    errorList.Add(message.Message);
-                }
-            });
-
-            if (errorList.Any())
-            {
-                // LogService.Error($"Account ErrorList:\n {JsonConvert.SerializeObject(errorList)}");
+                return;
             }
 
-            return transformedDataBag.ToList();
+            var rawTransModels = TransformRawTransactionModel(messageBatch);
+            
+            if (!HasValidTransactions(rawTransModels))
+            {
+                return;
+            }
+
+            ProcessValidTransactions(rawTransModels);
         }
 
-        private async Task AdditionalProcessingNotAwait(IEnumerable<RawTransactionModel> transactionModels)
+        private bool ShouldProcessMessages()
+        {
+            return appSettings.GetValue<bool>("Consumer:IsConsume");
+        }
+
+        private static bool HasValidTransactions(IEnumerable<RawTransactionModel> rawTransModels)
+        {
+            return rawTransModels?.Any() == true;
+        }
+
+        private void ProcessValidTransactions(IEnumerable<RawTransactionModel> rawTransModels)
+        {
+            rawTransactionService.InsertRawTransactionDetail(rawTransModels, appSettings.IsExtraSub);
+            InsertRawTransactionWithLogging(rawTransModels);
+            _ = AdditionalProcessingNotAwait(rawTransModels);
+        }
+
+        private void InsertRawTransactionWithLogging(IEnumerable<RawTransactionModel> rawTransModels)
         {
             try
             {
-                var everTagging = transactionModels
-                                .Where(x => !string.IsNullOrEmpty(x.FPTagging))
-                                .Select(x => DeviceEncoder.Encrypt(x.FPTagging));
+                transactionService.InsertRawTransaction(rawTransModels, appSettings.IsExtraSub);
+            }
+            catch
+            {
+                rawTransactionService.LogTransactions(rawTransModels);
+                throw;
+            }
+        }
 
-                if (everTagging.Any())
+        private IEnumerable<RawTransactionModel> TransformRawTransactionModel(Batch<MessageQueue> messages)
+        {
+            if (IsEmptyMessageBatch(messages))
+            {
+                return new List<RawTransactionModel>();
+            }
+
+            var transformationContext = CreateTransformationContext();
+            var validatedMessages = ValidDuplicateTrans(messages);
+
+            ProcessMessagesInParallel(validatedMessages, transformationContext);
+            LogErrorsIfAny(transformationContext.ErrorList);
+
+            return transformationContext.TransformedDataBag.ToList();
+        }
+
+        private static bool IsEmptyMessageBatch(Batch<MessageQueue> messages)
+        {
+            return messages.Length <= 0;
+        }
+
+        private static TransformationContext CreateTransformationContext()
+        {
+            return new TransformationContext
+            {
+                TransformedDataBag = new ConcurrentBag<RawTransactionModel>(),
+                ErrorList = new List<MessageQueue>()
+            };
+        }
+
+        private void ProcessMessagesInParallel(IEnumerable<ConsumeContext<MessageQueue>> validatedMessages, TransformationContext context)
+        {
+            var parallelOptions = new ParallelOptions { MaxDegreeOfParallelism = 10 };
+            
+            Parallel.ForEach(validatedMessages, parallelOptions, message =>
+            {
+                ProcessSingleMessage(message, context);
+            });
+        }
+
+        private void ProcessSingleMessage(ConsumeContext<MessageQueue> message, TransformationContext context)
+        {
+            if (!IsValidMessage(message))
+            {
+                AddToErrorList(message, context.ErrorList);
+                return;
+            }
+
+            TryTransformMessage(message, context.TransformedDataBag);
+        }
+
+        private static void AddToErrorList(ConsumeContext<MessageQueue> message, List<MessageQueue> errorList)
+        {
+            errorList.Add(message.Message);
+        }
+
+        private void TryTransformMessage(ConsumeContext<MessageQueue> message, ConcurrentBag<RawTransactionModel> transformedDataBag)
+        {
+            try
+            {
+                var rawTransFinalModel = TransformMessage(message);
+                
+                if (rawTransFinalModel != null)
                 {
-                    rawTransactionService.InsertOrUpdateEverTagging(hashKeyEverTagging, everTagging, appSettings.EverTaggingExpireSecond);
+                    transformedDataBag.Add(rawTransFinalModel);
                 }
             }
             catch (Exception ex)
@@ -151,23 +173,123 @@
             }
         }
 
+        private static bool IsValidMessage(ConsumeContext<MessageQueue> message)
+        {
+            return message?.Message != null &&
+                   !string.IsNullOrEmpty(message.Message.Account) &&
+                   !Utilities.ContainsUnicodeCharacter(message.Message.Account) &&
+                   message.Message.Account.Length <= 100;
+        }
+
+        private RawTransactionModel TransformMessage(ConsumeContext<MessageQueue> message)
+        {
+            if (IsMobileAppTransaction(message))
+            {
+                return mobileRawTransactionService.TransformRawTransaction(message.Message);
+            }
+
+            return TransformStandardMessage(message);
+        }
+
+        private static bool IsMobileAppTransaction(ConsumeContext<MessageQueue> message)
+        {
+            return message.Message.Mobile?.IsMobileAppTrans == true;
+        }
+
+        private RawTransactionModel TransformStandardMessage(ConsumeContext<MessageQueue> message)
+        {
+            var rawTransModel = rawTransactionService.TransformRawTransaction(message.Message);
+            return rawTransactionAttributeService.GetTransactionAttribute(rawTransModel);
+        }
+
+        private static void LogErrorsIfAny(List<MessageQueue> errorList)
+        {
+            if (errorList.Any())
+            {
+                var serializedErrors = JsonConvert.SerializeObject(errorList);
+                LogService.Error($"Account ErrorList:\n {serializedErrors}");
+            }
+        }
+
+        private async Task AdditionalProcessingNotAwait(IEnumerable<RawTransactionModel> transactionModels)
+        {
+            try
+            {
+                ProcessEverTagging(transactionModels);
+            }
+            catch (Exception ex)
+            {
+                _ = QueueConsumer.Utilities.LogErrorAsync(ex);
+            }
+        }
+
+        private void ProcessEverTagging(IEnumerable<RawTransactionModel> transactionModels)
+        {
+            var everTagging = GetEncryptedTaggings(transactionModels);
+
+            if (everTagging.Any())
+            {
+                InsertEverTagging(everTagging);
+            }
+        }
+
+        private static IEnumerable<string> GetEncryptedTaggings(IEnumerable<RawTransactionModel> transactionModels)
+        {
+            return transactionModels
+                .Where(x => !string.IsNullOrEmpty(x.FPTagging))
+                .Select(x => DeviceEncoder.Encrypt(x.FPTagging));
+        }
+
+        private void InsertEverTagging(IEnumerable<string> everTagging)
+        {
+            rawTransactionService.InsertOrUpdateEverTagging(
+                hashKeyEverTagging, 
+                everTagging, 
+                appSettings.EverTaggingExpireSecond);
+        }
+
         private static IEnumerable<ConsumeContext<MessageQueue>> ValidDuplicateTrans(Batch<MessageQueue> listMessage)
         {
-            var groupedMessages = listMessage.GroupBy(x => new { x.Message.Account, x.Message.TransDate });
+            var groupedMessages = GroupMessagesByAccountAndDate(listMessage);
+            var duplicateMessages = GetDuplicateMessages(groupedMessages);
+            
+            LogDuplicateMessages(duplicateMessages);
+            
+            return GetValidMessages(listMessage, duplicateMessages);
+        }
 
-            var dupMessages = groupedMessages
+        private static IEnumerable<IGrouping<object, ConsumeContext<MessageQueue>>> GroupMessagesByAccountAndDate(Batch<MessageQueue> listMessage)
+        {
+            return listMessage.GroupBy(x => new { x.Message.Account, x.Message.TransDate });
+        }
+
+        private static List<ConsumeContext<MessageQueue>> GetDuplicateMessages(IEnumerable<IGrouping<object, ConsumeContext<MessageQueue>>> groupedMessages)
+        {
+            return groupedMessages
                 .Where(g => g.Count() > 1)
                 .SelectMany(g => g.Skip(1))
                 .ToList();
+        }
 
-            if (dupMessages.Count > 0)
+        private static void LogDuplicateMessages(List<ConsumeContext<MessageQueue>> duplicateMessages)
+        {
+            if (duplicateMessages.Count > 0)
             {
-                var duplicateMessagesContent = dupMessages.Select(x => x.Message);
-                LogService.Error($"DuplicateMessages:\n {JsonConvert.SerializeObject(duplicateMessagesContent)}");
+                var duplicateMessagesContent = duplicateMessages.Select(x => x.Message);
+                var serializedDuplicates = JsonConvert.SerializeObject(duplicateMessagesContent);
+                LogService.Error($"DuplicateMessages:\n {serializedDuplicates}");
             }
+        }
 
-            var validedMessages = listMessage.Except(dupMessages);
-            return validedMessages;
+        private static IEnumerable<ConsumeContext<MessageQueue>> GetValidMessages(Batch<MessageQueue> listMessage, List<ConsumeContext<MessageQueue>> duplicateMessages)
+        {
+            return listMessage.Except(duplicateMessages);
+        }
+
+        private class TransformationContext
+        {
+            public ConcurrentBag<RawTransactionModel> TransformedDataBag { get; set; }
+            public List<MessageQueue> ErrorList { get; set; }
         }
     }
 }

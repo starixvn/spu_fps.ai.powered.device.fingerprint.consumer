@@ -86,9 +86,6 @@ namespace Device.FingerPrint.QueueConsumer
 
                 busConfigurator.UsingRabbitMq((context, rgx) =>
                 {
-                    //rgx.ClearSerialization();
-                    //rgx.UseRawJsonSerializer();
-
                     rgx.ConfigureEndpoints(context);
                 });
             });

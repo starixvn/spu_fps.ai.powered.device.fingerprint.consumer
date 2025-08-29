@@ -10,10 +10,8 @@
     using System;
     using System.Collections;
     using System.Collections.Generic;
-    using System.IO;
     using System.Linq;
     using System.Threading.Tasks;
-    using System.Transactions;
 
     public interface IRawTransactionService
     {
@@ -131,20 +129,20 @@
             }
         }
 
-        public void InsertOrUpdateEverTagging(string hashKey, IEnumerable<string> everTaggings, long expireSeconds)
+        public void InsertOrUpdateEverTagging(string hashKey, IEnumerable<string> everTaggings, long expireSecond)
         {
             try
             {
+                var expiry = TimeSpan.FromSeconds(expireSecond);
+                var locale = System.Globalization.CultureInfo.InvariantCulture;
                 foreach (var code in everTaggings)
                 {
-                    var expiry = TimeSpan.FromSeconds(expireSeconds);
-
+                    var key = $"{hashKey}:{code}";
+                    var value = DateTimeOffset.Now.ToString(locale);
                     everTaggingRedisDB.StringSet(
-                        key: $"{hashKey}:{code}",
-                        value: DateTime.Now.ToString(),
+                        key: key,
+                        value: value,
                         expiry: expiry,
-                        keepTtl: false,
-                        when: When.Always,
                         flags: CommandFlags.FireAndForget
                     );
                 }
@@ -192,12 +190,7 @@
                     transactionService.InsertFPFingerPrint(fingerPrintJson, isTransOfDBExtra);
                 }
             }
-            //catch (MySqlException ex)
-            //{
-            //    LogTransactions(transactions);
-
-            //    _ = QueueConsumer.Utilities.LogErrorAsync(ex);
-            //}
+            // ...existing code...
             catch (Exception ex)
             {
                 _ = QueueConsumer.Utilities.LogErrorAsync(ex);
@@ -208,22 +201,13 @@
         {
             return transactions
                 .Select(selector)
-                .Where(result => result != null)
+                .Where(result => !Equals(result, default(TResult)))
                 .Distinct();
         }
        
         public void LogTransactions(IEnumerable<RawTransactionModel> transactions)
         {
-            //var logFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs", $"transactions_{DateTime.Now:yyyyMMdd_HH}.log");
-
-            //Directory.CreateDirectory(Path.GetDirectoryName(logFilePath));
-
-            //using (var writer = new StreamWriter(logFilePath, true))
-            //{
-            //    var logMessage = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} - Transaction: {JsonConvert.SerializeObject(transactions)}";
-
-            //    writer.WriteLine(logMessage);
-            //}
+            // ...existing code...
         }     
 
     }

@@ -8,7 +8,7 @@ using Fanex.Logging;
 
 namespace Device.FingerPrint.QueueConsumer
 {
-    public class Utilities
+    public static class Utilities
     {
         public static string GetMD5HashFromObject<T>(ICrypto crypto, T value)
         {
@@ -18,8 +18,8 @@ namespace Device.FingerPrint.QueueConsumer
         public static bool IsValidJson(string data)
         {
             data = data.Trim();
-            return (data.StartsWith("{") && data.EndsWith("}")) ||
-                   (data.StartsWith("[") && data.EndsWith("]"));
+            return (data.StartsWith('{') && data.EndsWith('}')) ||
+                   (data.StartsWith('[') && data.EndsWith(']'));
         }
 
         public static void LogInfo(Exception ex)

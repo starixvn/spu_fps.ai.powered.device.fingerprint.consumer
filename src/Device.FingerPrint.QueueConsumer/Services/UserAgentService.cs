@@ -35,7 +35,10 @@ namespace Device.FingerPrint.QueueConsumer.Services
 
         public UserAgentInfoModel GetUserAgentInfo(string userAgent)
         {
-            if (string.IsNullOrEmpty(userAgent)) return new UserAgentInfoModel();
+            if (string.IsNullOrEmpty(userAgent))
+            {
+                return new UserAgentInfoModel();
+            }
 
             try
             {
@@ -82,14 +85,20 @@ namespace Device.FingerPrint.QueueConsumer.Services
             
         }
 
-        private DeviceType GetDeviceType(DeviceDetector deviceDetector)
+    private static DeviceType GetDeviceType(DeviceDetector deviceDetector)
         {
-            if (deviceDetector.IsDesktop()) return DeviceType.Desktop;
-
-            if (deviceDetector.IsTablet()) return DeviceType.Tablet;
-
-            if (deviceDetector.IsMobile()) return DeviceType.Mobile;
-
+            if (deviceDetector.IsDesktop())
+            {
+                return DeviceType.Desktop;
+            }
+            if (deviceDetector.IsTablet())
+            {
+                return DeviceType.Tablet;
+            }
+            if (deviceDetector.IsMobile())
+            {
+                return DeviceType.Mobile;
+            }
             return DeviceType.Other;
         }
     }

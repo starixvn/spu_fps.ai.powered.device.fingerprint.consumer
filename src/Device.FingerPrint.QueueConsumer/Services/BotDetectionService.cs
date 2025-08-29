@@ -1,5 +1,4 @@
-﻿
-namespace Device.FingerPrint.QueueConsumer.Services
+﻿namespace Device.FingerPrint.QueueConsumer.Services
 {
     using Device.FingerPrint.Core.Encoders;
     using Device.FingerPrint.Model;
@@ -8,6 +7,7 @@ namespace Device.FingerPrint.QueueConsumer.Services
     using Newtonsoft.Json.Linq;
     using System;
     using System.Collections.Generic;
+    using System.Globalization;
     using System.Linq;
 
     public interface IBotDetectionService
@@ -108,7 +108,7 @@ namespace Device.FingerPrint.QueueConsumer.Services
 
         private static bool IsHeadless(string userAgent)
         {
-            return userAgent.ToLower().Contains("headless");
+            return userAgent.ToLower(CultureInfo.InvariantCulture).Contains("headless");
         }
     }
 }

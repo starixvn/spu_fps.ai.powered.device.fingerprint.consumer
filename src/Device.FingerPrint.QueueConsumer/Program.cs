@@ -1,11 +1,10 @@
-
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 
 namespace Device.FingerPrint.QueueConsumer
 {
-    public class Program
+    public static class Program
     {
         public static void Main(string[] args)
         {            
