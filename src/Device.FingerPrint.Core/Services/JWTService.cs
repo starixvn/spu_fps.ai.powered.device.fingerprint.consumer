@@ -36,7 +36,18 @@ namespace Device.FingerPrint.Core.Services
         public string GenerateJWT(DateTime expiredTime, string audience)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(appSettings.JWTPassword + "@" + audience));
+
+            // Ensure the key is always at least 32 bytes (256 bits)
+            var baseKey = appSettings.JWTPassword + "@" + audience;
+            var keyBytes = Encoding.UTF8.GetBytes(baseKey);
+
+            if (keyBytes.Length < 32)
+            {
+                // Pad the key with zeros to reach 32 bytes
+                Array.Resize(ref keyBytes, 32);
+            }
+
+            var key = new SymmetricSecurityKey(keyBytes);
             var tokenDescriptor = new SecurityTokenDescriptor
             {                
                 Expires = expiredTime,               
