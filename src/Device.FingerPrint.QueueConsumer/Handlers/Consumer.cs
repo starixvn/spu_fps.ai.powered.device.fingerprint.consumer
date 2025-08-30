@@ -286,7 +286,7 @@
             return listMessage.Except(duplicateMessages);
         }
 
-        private class TransformationContext
+        private sealed class TransformationContext
         {
             public ConcurrentBag<RawTransactionModel> TransformedDataBag { get; set; }
             public List<MessageQueue> ErrorList { get; set; }

@@ -99,14 +99,28 @@
                     LoginName = message.Account,
                     SubscriberName = message.Subscriber,
                     SubscriberId = message.SubscriberId,
-                    TransTime = Convert.ToDateTime(message.TransDate.ToString("yyyy-MM-dd HH:mm:ss.ffff")),
+                    TransTime = Convert.ToDateTime(
+                        message.TransDate.ToString("yyyy-MM-dd HH:mm:ss.ffff")
+                    ),
                     PluginID = 0,
-                    URL = string.IsNullOrWhiteSpace(url) ? Utilities.ConvertNA2Empty(Utilities.SubStringUrl(deviceInfo.HRef)) : Utilities.SubStringUrl(url),
+                    URL = string.IsNullOrWhiteSpace(url)
+                        ? Utilities.ConvertNA2Empty(
+                            Utilities.SubStringUrl(deviceInfo.HRef)
+                        )
+                        : Utilities.SubStringUrl(url),
                     Action = message.Action,
                     ActionResult = message.ActionResult,
-                    UserAgent = string.IsNullOrWhiteSpace(userAgent) ? Utilities.ConvertNA2Empty(Utilities.StripUnicodeCharactersFromString(deviceInfo.UserAgent)) : Utilities.StripUnicodeCharactersFromString(userAgent),
-                    FingerprintCode = deviceInfo.DeviceFPCode != "N/A" ? deviceInfo.DeviceFPCode : null,
-                    FingerprintMoreInfo = deviceInfo.DeviceFPCode != "N/A" ? Utilities.EncodeCapturedData(deviceInfo) : null,
+                    UserAgent = string.IsNullOrWhiteSpace(userAgent)
+                        ? Utilities.ConvertNA2Empty(
+                            Utilities.StripUnicodeCharactersFromString(deviceInfo.UserAgent)
+                        )
+                        : Utilities.StripUnicodeCharactersFromString(userAgent),
+                    FingerprintCode = deviceInfo.DeviceFPCode != "N/A"
+                        ? deviceInfo.DeviceFPCode
+                        : null,
+                    FingerprintMoreInfo = deviceInfo.DeviceFPCode != "N/A"
+                        ? Utilities.EncodeCapturedData(deviceInfo)
+                        : null,
                     SessionKey = message.SessionKey,
                     FlaggedCode = flaggedCode,
                     BotDetection = botDetection,
@@ -190,7 +204,6 @@
                     transactionService.InsertFPFingerPrint(fingerPrintJson, isTransOfDBExtra);
                 }
             }
-            // ...existing code...
             catch (Exception ex)
             {
                 _ = QueueConsumer.Utilities.LogErrorAsync(ex);
