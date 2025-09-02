@@ -357,6 +357,11 @@ namespace Device.FingerPrint.QueueConsumer.Services
 
         private static bool IgnoreDetectPrivateMode(string browserName)
         {
+            if (string.IsNullOrEmpty(browserName))
+            {
+                return false;
+            }
+
             const string _UCBROWSER = "uc browser";
             const string _MIBROWSER = "miui browser";
 
@@ -528,15 +533,38 @@ namespace Device.FingerPrint.QueueConsumer.Services
 
         private static bool HasData<T>(T model)
         {
+            if (model == null)
+            {
+                return false;
+            }
+
             var properties = model.GetType().GetProperties();
 
             foreach (var property in properties)
             {
                 var value = property.GetValue(model);
 
-                if (value != null && !(value is string str && string.IsNullOrEmpty(str)))
+                if (value != null)
                 {
-                    return true;
+                    // Handle string types
+                    if (value is string str && !string.IsNullOrEmpty(str))
+                    {
+                        return true;
+                    }
+                    // Handle value types (int, bool, etc.) - check if not default value
+                    else if (value.GetType().IsValueType)
+                    {
+                        var defaultValue = Activator.CreateInstance(value.GetType());
+                        if (!value.Equals(defaultValue))
+                        {
+                            return true;
+                        }
+                    }
+                    // Handle reference types (excluding strings which are handled above)
+                    else if (!(value is string))
+                    {
+                        return true;
+                    }
                 }
             }
 
@@ -619,6 +647,11 @@ namespace Device.FingerPrint.QueueConsumer.Services
 
         private static bool IsHexString(string hex)
         {
+            if (string.IsNullOrEmpty(hex))
+            {
+                return false;
+            }
+
             return Regex.IsMatch(hex,
                                 @"\A\b[0-9a-fA-F]+\b\Z",
                                 RegexOptions.None,
@@ -628,7 +661,7 @@ namespace Device.FingerPrint.QueueConsumer.Services
 
         private static bool CheckGuid(string decryptedText)
         {
-            if (decryptedText.Length != 32)
+            if (decryptedText == null || decryptedText.Length != 32)
             {
                 return false;
             }
