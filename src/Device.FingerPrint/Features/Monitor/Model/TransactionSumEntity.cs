@@ -2,7 +2,7 @@
 {
     public class TransactionSumEntity
     {
-        public string mdyDate { get; set; }
+        public string? mdyDate { get; set; }
 
         public int SubscriberId { get; set; }
 

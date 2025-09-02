@@ -391,7 +391,14 @@ namespace Device.FingerPrint.QueueConsumer.Services
             {
                 return new UserAgentInfoModel();
             }
+            else
+            {
+                return ProcessUserAgentDetection(userAgent);
+            }
+        }
 
+        private UserAgentInfoModel ProcessUserAgentDetection(string userAgent)
+        {
             var deviceDetector = new DeviceDetector(userAgent);
             deviceDetector.SkipBotDetection();
             deviceDetector.Parse();
@@ -417,6 +424,10 @@ namespace Device.FingerPrint.QueueConsumer.Services
                 userAgentInfo.ClientName = clientInfo.Match.Name;
                 userAgentInfo.ClientVersion = clientInfo.Match.Version;
             }
+            else
+            {
+                // Client detection failed - properties remain null/default
+            }
         }
 
         private static void ProcessOSInfo(DeviceDetector deviceDetector, UserAgentInfoModel userAgentInfo)
@@ -429,6 +440,10 @@ namespace Device.FingerPrint.QueueConsumer.Services
                 userAgentInfo.OSShortName = osInfo.Match.ShortName;
                 userAgentInfo.OSVersion = osInfo.Match.Version;
                 userAgentInfo.OSPlatform = osInfo.Match.Platform;
+            }
+            else
+            {
+                // OS detection failed - properties remain null/default
             }
         }
 
@@ -446,11 +461,13 @@ namespace Device.FingerPrint.QueueConsumer.Services
             {
                 return new Dictionary<string, string>();
             }
-
-            var deserializedData = JsonConvert.DeserializeObject<Dictionary<string, object>>(attributesJson);
-            return deserializedData.ToDictionary(
-                kvp => kvp.Key,
-                kvp => kvp.Value == null ? null : JsonConvert.SerializeObject(kvp.Value));
+            else
+            {
+                var deserializedData = JsonConvert.DeserializeObject<Dictionary<string, object>>(attributesJson);
+                return deserializedData.ToDictionary(
+                    kvp => kvp.Key,
+                    kvp => kvp.Value == null ? null : JsonConvert.SerializeObject(kvp.Value));
+            }
         }
 
 

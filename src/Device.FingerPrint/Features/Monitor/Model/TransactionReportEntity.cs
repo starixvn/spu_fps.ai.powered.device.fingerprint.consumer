@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Device.FingerPrint.Features.Monitor.Model
+﻿namespace Device.FingerPrint.Features.Monitor.Model
 {
     public class TransactionReportEntity
     {
@@ -8,7 +6,7 @@ namespace Device.FingerPrint.Features.Monitor.Model
 
         public int SubscriberId { get; set; }
 
-        public string SubscriberName { get; set; }
+        public string? SubscriberName { get; set; }
 
         public int TotalTrans { get; set; }
 

@@ -1,6 +1,5 @@
 ﻿using Device.FingerPrint.Features.LogInfo.Criterias;
 using Fanex.Data.Repository;
-using System.Threading.Tasks;
 
 namespace Device.FingerPrint.Features.LogInfo.Services
 {

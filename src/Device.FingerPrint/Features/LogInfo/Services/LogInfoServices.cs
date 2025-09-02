@@ -1,6 +1,5 @@
 ﻿using Device.FingerPrint.Features.LogInfo.Model;
 using Newtonsoft.Json;
-using System.Threading.Tasks;
 
 namespace Device.FingerPrint.Features.LogInfo.Services
 {
@@ -9,14 +8,9 @@ namespace Device.FingerPrint.Features.LogInfo.Services
         Task InsertDCSConsumerLogAsync(LogInfoModel logInfo);
     }
 
-    public class LogInfoServices : ILogInfoServices
+    public class LogInfoServices(ILogInfoDataAccess logInfoDataAccess) : ILogInfoServices
     {
-        private readonly ILogInfoDataAccess logInfoDataAccess;
-
-        public LogInfoServices(ILogInfoDataAccess logInfoDataAccess)
-        {
-            this.logInfoDataAccess = logInfoDataAccess;
-        }
+        private readonly ILogInfoDataAccess logInfoDataAccess = logInfoDataAccess;
 
         public async Task InsertDCSConsumerLogAsync(LogInfoModel logInfo)
         {
