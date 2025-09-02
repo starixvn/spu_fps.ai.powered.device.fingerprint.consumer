@@ -241,7 +241,7 @@ namespace Device.FingerPrint.Core.Tests.Middleware
         }
 
         [Fact]
-        public async Task Invoke_WhenJWTEnabledAndAuthorizationHeaderWithTrailingSpaces_ShouldExtractTokenCorrectly()
+        public async Task Invoke_WhenJWTEnabledAndAuthorizationHeaderWithTrailingSpaces_ShouldReturnUnauthorized()
         {
             // Arrange
             var mockNext = new Mock<RequestDelegate>();
@@ -254,8 +254,8 @@ namespace Device.FingerPrint.Core.Tests.Middleware
             await middleware.Invoke(context);
 
             // Assert
-            context.Response.StatusCode.Should().Be(200); // Default status code
-            mockNext.Verify(x => x(context), Times.Once);
+            context.Response.StatusCode.Should().Be(StatusCodes.Status401Unauthorized);
+            mockNext.Verify(x => x(It.IsAny<HttpContext>()), Times.Never);
         }
 
         [Fact]

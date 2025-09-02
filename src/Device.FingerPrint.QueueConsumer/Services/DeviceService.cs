@@ -8,10 +8,6 @@
     using Newtonsoft.Json;
     using System;
 
-    public interface IDeviceService
-    {
-        DeviceInfoModel GetDeviceInfo(string deviceCode, MessageQueue message);
-    }
 
     public interface IDeviceService
     {
