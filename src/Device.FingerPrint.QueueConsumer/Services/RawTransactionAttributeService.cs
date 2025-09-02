@@ -341,8 +341,8 @@ namespace Device.FingerPrint.QueueConsumer.Services
 
         private static void UpdateIsIncognitoMode(RawTransactionModel rawTransModel, Dictionary<string, string> attributesDictionary, string browserName)
         {
-            if (!string.IsNullOrEmpty(browserName) && 
-                attributesDictionary.TryGetValue("isIncognitoMode", out var value) && 
+            if (!string.IsNullOrEmpty(browserName) &&
+                attributesDictionary.TryGetValue("isIncognitoMode", out var value) &&
                 bool.TryParse(value, out var result))
             {
                 rawTransModel.IsIncognitoMode = result;
@@ -387,14 +387,9 @@ namespace Device.FingerPrint.QueueConsumer.Services
 
         private UserAgentInfoModel GetUserAgentInfo(string userAgent)
         {
-            if (string.IsNullOrEmpty(userAgent))
-            {
-                return new UserAgentInfoModel();
-            }
-            else
-            {
-                return ProcessUserAgentDetection(userAgent);
-            }
+            return string.IsNullOrEmpty(userAgent)
+                ? new UserAgentInfoModel()
+                : ProcessUserAgentDetection(userAgent);
         }
 
         private UserAgentInfoModel ProcessUserAgentDetection(string userAgent)
@@ -663,14 +658,9 @@ namespace Device.FingerPrint.QueueConsumer.Services
                 try
                 {
                     var decryptedStr = DeviceEncoder.Decrypt(value);
-                    if (CheckGuid(decryptedStr))
-                    {
-                        return decryptedStr;
-                    }
-                    else
-                    {
-                        return string.Empty; // Decrypted but not a valid GUID
-                    }
+                    return CheckGuid(decryptedStr)
+                        ? decryptedStr
+                        : string.Empty;
                 }
                 catch
                 {
@@ -682,42 +672,28 @@ namespace Device.FingerPrint.QueueConsumer.Services
 
         private static bool IsHexString(string hex)
         {
-            if (string.IsNullOrEmpty(hex))
-            {
-                return false;
-            }
-            else
-            {
-                return Regex.IsMatch(hex,
-                                    @"\A\b[0-9a-fA-F]+\b\Z",
-                                    RegexOptions.None,
-                                    RegexTimeout // set timeout
-                                );
-            }
+            return !string.IsNullOrEmpty(hex) && Regex.IsMatch(hex,
+                                @"\A\b[0-9a-fA-F]+\b\Z",
+                                RegexOptions.None,
+                                RegexTimeout // set timeout
+                            );
         }
 
         private static bool CheckGuid(string decryptedText)
         {
-            if (decryptedText == null || decryptedText.Length != 32)
-            {
-                return false;
-            }
-            else
-            {
-                return Guid.TryParse(decryptedText, out _);
-            }
+            return decryptedText != null && decryptedText.Length == 32 && Guid.TryParse(decryptedText, out _);
         }
 
         private static string CleanUserAgentFuzzy(string userAgent)
         {
-            if (string.IsNullOrEmpty(userAgent))
+            if (userAgent == null)
             {
-                return userAgent;
+                return null;
             }
-            else
-            {
-                return ProcessUserAgentCleaning(userAgent);
-            }
+
+            return userAgent.Length == 0
+                ? string.Empty
+                : ProcessUserAgentCleaning(userAgent);
         }
 
         private static string ProcessUserAgentCleaning(string userAgent)
