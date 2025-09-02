@@ -1,14 +1,12 @@
-using System;
-using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
 using Device.FingerPrint.Core.Middleware;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Primitives;
 using Microsoft.IdentityModel.Tokens;
 using Moq;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 using Xunit;
 
 namespace Device.FingerPrint.Core.Tests.Middleware
@@ -57,7 +55,7 @@ namespace Device.FingerPrint.Core.Tests.Middleware
             var middleware = new CustomJWTMiddleware(mockNext.Object, JWTEnable: true, ValidJwtPassword);
             var context = CreateMockHttpContext();
             var invalidToken = "invalid.token.here";
-            context.Request.Headers["Authorization"] = $"Bearer {invalidToken}";
+            SetupAuthorizationHeader(context, $"Bearer {invalidToken}");
 
             // Act
             await middleware.Invoke(context);
@@ -75,7 +73,7 @@ namespace Device.FingerPrint.Core.Tests.Middleware
             var middleware = new CustomJWTMiddleware(mockNext.Object, JWTEnable: true, ValidJwtPassword);
             var context = CreateMockHttpContext();
             var validToken = GenerateValidJwtToken(ValidJwtPassword);
-            context.Request.Headers["Authorization"] = $"Bearer {validToken}";
+            SetupAuthorizationHeader(context, $"Bearer {validToken}");
 
             // Act
             await middleware.Invoke(context);
@@ -109,7 +107,7 @@ namespace Device.FingerPrint.Core.Tests.Middleware
             var middleware = new CustomJWTMiddleware(mockNext.Object, JWTEnable: false, ValidJwtPassword);
             var context = CreateMockHttpContext();
             var validToken = GenerateValidJwtToken(ValidJwtPassword);
-            context.Request.Headers["Authorization"] = $"Bearer {validToken}";
+            SetupAuthorizationHeader(context, $"Bearer {validToken}");
 
             // Act
             await middleware.Invoke(context);
@@ -127,7 +125,7 @@ namespace Device.FingerPrint.Core.Tests.Middleware
             var middleware = new CustomJWTMiddleware(mockNext.Object, JWTEnable: false, ValidJwtPassword);
             var context = CreateMockHttpContext();
             var invalidToken = "invalid.token.here";
-            context.Request.Headers["Authorization"] = $"Bearer {invalidToken}";
+            SetupAuthorizationHeader(context, $"Bearer {invalidToken}");
 
             // Act
             await middleware.Invoke(context);
@@ -145,7 +143,7 @@ namespace Device.FingerPrint.Core.Tests.Middleware
             var middleware = new CustomJWTMiddleware(mockNext.Object, JWTEnable: true, ValidJwtPassword);
             var context = CreateMockHttpContext();
             var tokenWithDifferentSecret = GenerateValidJwtToken(InvalidJwtPassword);
-            context.Request.Headers["Authorization"] = $"Bearer {tokenWithDifferentSecret}";
+            SetupAuthorizationHeader(context, $"Bearer {tokenWithDifferentSecret}");
 
             // Act
             await middleware.Invoke(context);
@@ -162,7 +160,7 @@ namespace Device.FingerPrint.Core.Tests.Middleware
             var mockNext = new Mock<RequestDelegate>();
             var middleware = new CustomJWTMiddleware(mockNext.Object, JWTEnable: true, ValidJwtPassword);
             var context = CreateMockHttpContext();
-            context.Request.Headers["Authorization"] = "InvalidFormat";
+            SetupAuthorizationHeader(context, "InvalidFormat");
 
             // Act
             await middleware.Invoke(context);
@@ -179,7 +177,7 @@ namespace Device.FingerPrint.Core.Tests.Middleware
             var mockNext = new Mock<RequestDelegate>();
             var middleware = new CustomJWTMiddleware(mockNext.Object, JWTEnable: true, ValidJwtPassword);
             var context = CreateMockHttpContext();
-            context.Request.Headers["Authorization"] = "";
+            SetupAuthorizationHeader(context, "");
 
             // Act
             await middleware.Invoke(context);
@@ -196,7 +194,7 @@ namespace Device.FingerPrint.Core.Tests.Middleware
             var mockNext = new Mock<RequestDelegate>();
             var middleware = new CustomJWTMiddleware(mockNext.Object, JWTEnable: true, ValidJwtPassword);
             var context = CreateMockHttpContext();
-            context.Request.Headers["Authorization"] = "   ";
+            SetupAuthorizationHeader(context, "   ");
 
             // Act
             await middleware.Invoke(context);
@@ -214,7 +212,7 @@ namespace Device.FingerPrint.Core.Tests.Middleware
             var middleware = new CustomJWTMiddleware(mockNext.Object, JWTEnable: true, ValidJwtPassword);
             var context = CreateMockHttpContext();
             var validToken = GenerateValidJwtToken(ValidJwtPassword);
-            context.Request.Headers["Authorization"] = validToken; // No "Bearer " prefix
+            SetupAuthorizationHeader(context, validToken); // No "Bearer " prefix
 
             // Act
             await middleware.Invoke(context);
@@ -232,7 +230,7 @@ namespace Device.FingerPrint.Core.Tests.Middleware
             var middleware = new CustomJWTMiddleware(mockNext.Object, JWTEnable: true, ValidJwtPassword);
             var context = CreateMockHttpContext();
             var validToken = GenerateValidJwtToken(ValidJwtPassword);
-            context.Request.Headers["Authorization"] = $"Bearer    {validToken}"; // Multiple spaces
+            SetupAuthorizationHeader(context, $"Bearer    {validToken}"); // Multiple spaces
 
             // Act
             await middleware.Invoke(context);
@@ -250,7 +248,7 @@ namespace Device.FingerPrint.Core.Tests.Middleware
             var middleware = new CustomJWTMiddleware(mockNext.Object, JWTEnable: true, ValidJwtPassword);
             var context = CreateMockHttpContext();
             var validToken = GenerateValidJwtToken(ValidJwtPassword);
-            context.Request.Headers["Authorization"] = $"Bearer {validToken}   "; // Trailing spaces
+            SetupAuthorizationHeader(context, $"Bearer {validToken}   "); // Trailing spaces
 
             // Act
             await middleware.Invoke(context);
@@ -268,7 +266,7 @@ namespace Device.FingerPrint.Core.Tests.Middleware
             var middleware = new CustomJWTMiddleware(mockNext.Object, JWTEnable: true, ValidJwtPassword);
             var context = CreateMockHttpContext();
             var validToken = GenerateValidJwtToken(ValidJwtPassword);
-            context.Request.Headers["Authorization"] = $"Bearer {validToken}";
+            SetupAuthorizationHeader(context, $"Bearer {validToken}");
 
             // Act
             await middleware.Invoke(context);
@@ -286,7 +284,9 @@ namespace Device.FingerPrint.Core.Tests.Middleware
             var middleware = new CustomJWTMiddleware(mockNext.Object, JWTEnable: true, ValidJwtPassword);
             var context = CreateMockHttpContext();
             var validToken = GenerateValidJwtTokenWithClaims(ValidJwtPassword);
-            context.Request.Headers["Authorization"] = $"Bearer {validToken}";
+
+            // Setup headers with authorization
+            SetupAuthorizationHeader(context, $"Bearer {validToken}");
 
             // Act
             await middleware.Invoke(context);
@@ -300,9 +300,24 @@ namespace Device.FingerPrint.Core.Tests.Middleware
 
         private static HttpContext CreateMockHttpContext()
         {
-            var context = new DefaultHttpContext();
-            context.Response.StatusCode = 200; // Default status code
-            return context;
+            var context = new Mock<HttpContext>();
+            var response = new Mock<HttpResponse>();
+            var request = new Mock<HttpRequest>();
+            var headers = new Dictionary<string, StringValues>();
+            // Setup response
+            response.SetupProperty(x => x.StatusCode, 200);
+            context.Setup(x => x.Response).Returns(response.Object);
+
+            // Setup request
+            request.Setup(x => x.Headers).Returns(new HeaderDictionary(headers));
+            context.Setup(x => x.Request).Returns(request.Object);
+
+            return context.Object;
+        }
+
+        private static void SetupAuthorizationHeader(HttpContext context, string authorizationValue)
+        {
+            context.Request.Headers["Authorization"] = authorizationValue;
         }
 
         private static string GenerateValidJwtToken(string secretKey)

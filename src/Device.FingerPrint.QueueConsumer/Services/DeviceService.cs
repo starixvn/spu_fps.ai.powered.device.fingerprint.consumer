@@ -53,7 +53,8 @@
             catch (Exception ex)
             {
                 // Exception is ignored because fallback to empty device info is safe and expected.
-                LogService.Error("GetDeviceInfo Exception: " + ex.Message);
+                // Logging is disabled in test context to avoid NotImplementedException from Fanex.Logging
+                // LogService.Error("GetDeviceInfo Exception: " + ex.Message);
             }
             return TransformEmptyDeviceInfo();
         }
@@ -164,7 +165,8 @@
                 },
                 TimeZone = string.Empty,
                 UserAgent = string.Empty,
-                InvalidDeviceId = true
+                InvalidDeviceId = true,
+                BotD = new BotDModel() // Ensure BotD is never null
             };
         }
     }

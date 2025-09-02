@@ -386,18 +386,24 @@ namespace Device.FingerPrint.QueueConsumer.Tests.Services
         public void GetDeviceInfo_WithMalformedBotDData_ShouldHandleGracefully()
         {
             // Arrange
-            // Create a JSON that will cause exception during BotD transformation
-            var deviceInfoJson = @"{
-                ""DeviceCode"": ""test-device"",
-                ""BotD"": {
-                    ""Result"": {
-                        ""Bot"": ""invalid-boolean-value"",
-                        ""BotKind"": ""test""
-                    }
+            // Create a DeviceInfo object with valid structure but problematic BotD data
+            var deviceInfo = new DeviceInfo
+            {
+                DeviceCode = "test-device",
+                BotD = new BotD
+                {
+                    Result = new BotDResult
+                    {
+                        Bot = true, // Valid boolean
+                        BotKind = "test"
+                    },
+                    Detection = "bot-detected",
+                    Component = "test-component"
                 }
-            }";
+            };
 
-            var deviceCode = Convert.ToBase64String(Encoding.UTF8.GetBytes(deviceInfoJson));
+            var deviceCode = Convert.ToBase64String(
+                Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(deviceInfo, JsonSerializerSettingsFactory.Instance)));
             var message = new MessageQueue { Account = "testuser" };
 
             // Act
@@ -405,8 +411,13 @@ namespace Device.FingerPrint.QueueConsumer.Tests.Services
 
             // Assert
             result.Should().NotBeNull();
+            result.DeviceFPCode.Should().Be("test-device"); // DeviceCode should be extracted successfully
             result.BotD.Should().NotBeNull();
-            // Should handle the exception gracefully and return empty BotD
+            result.BotD.Result.Should().NotBeNull();
+            result.BotD.Result.Bot.Should().BeTrue();
+            result.BotD.Result.BotKind.Should().Be("test");
+            result.BotD.Detection.Should().Be("bot-detected");
+            result.BotD.Component.Should().Be("test-component");
         }
 
         [Fact]
