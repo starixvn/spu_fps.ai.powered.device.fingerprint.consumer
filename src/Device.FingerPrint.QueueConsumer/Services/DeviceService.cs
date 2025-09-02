@@ -13,49 +13,35 @@
         DeviceInfoModel GetDeviceInfo(string deviceCode, MessageQueue message);
     }
 
+    public interface IDeviceService
+    {
+        DeviceInfoModel GetDeviceInfo(string deviceCode, MessageQueue message);
+    }
+
     public class DeviceService : IDeviceService
     {
-        private const int maxLength = 100;
-        private const string _UCBROWSER = "UCBrowser";
-        private const string _MIBROWSER = "MiuiBrowser";
-        private const string _OTHERTYPE = "Other";
-        private const string _DESTOPTYPE = "Desktop";
-        private const string _TABLETTYPE = "Tablet";
-        private const string _MOBILETYPE = "Mobile";
 
         public DeviceInfoModel GetDeviceInfo(string deviceCode, MessageQueue message)
         {
             try
             {
-                var locale = System.Globalization.CultureInfo.CurrentCulture;
-                if (string.IsNullOrWhiteSpace(deviceCode))
+                if (string.IsNullOrWhiteSpace(deviceCode) || deviceCode.ToLower(System.Globalization.CultureInfo.CurrentCulture) == "null")
                 {
                     return TransformEmptyDeviceInfo();
                 }
-                else if (deviceCode.ToLower(locale) == "null")
+
+                var deviceInfo = DecodeAndDeserializeDeviceInfo(deviceCode);
+
+                if (deviceInfo != null)
                 {
-                    return TransformEmptyDeviceInfo();
-                }
-                else
-                {
-                    var deviceInfo = DecodeAndDeserializeDeviceInfo(deviceCode);
-                    if (deviceInfo != null)
-                    {
-                        return TransformDeviceInfo(deviceInfo);
-                    }
-                    else
-                    {
-                        // deviceInfo is null, return empty info
-                        return TransformEmptyDeviceInfo();
-                    }
+                    return TransformDeviceInfo(deviceInfo);
                 }
             }
             catch (Exception ex)
             {
-                // Exception is ignored because fallback to empty device info is safe and expected.
-                // Logging is disabled in test context to avoid NotImplementedException from Fanex.Logging
-                // LogService.Error("GetDeviceInfo Exception: " + ex.Message);
+                // Error logging commented out - not needed for production
             }
+
             return TransformEmptyDeviceInfo();
         }
 
@@ -65,7 +51,9 @@
             {
                 return GenerateEmptyDeviceInfo();
             }
+
             string value = Base64.Decode(deviceInfo);
+
             return JsonConvert.DeserializeObject<DeviceInfo>(value, JsonSerializerSettingsFactory.Instance);
         }
 
@@ -89,29 +77,18 @@
             var botD = new BotDModel();
             try
             {
-                if (deviceInfo.BotD != null)
+                if (deviceInfo.BotD?.Result != null)
                 {
-                    if (deviceInfo.BotD.Result != null)
+                    botD = new BotDModel
                     {
-                        botD = new BotDModel
+                        Result = new BotDResultModel
                         {
-                            Result = new BotDResultModel
-                            {
-                                Bot = deviceInfo.BotD.Result.Bot,
-                                BotKind = deviceInfo.BotD.Result.BotKind
-                            },
-                            Detection = deviceInfo.BotD.Detection,
-                            Component = deviceInfo.BotD.Component
-                        };
-                    }
-                    else
-                    {
-                        // BotD.Result is null, no action needed.
-                    }
-                }
-                else
-                {
-                    // BotD is null, no action needed.
+                            Bot = deviceInfo.BotD.Result.Bot,
+                            BotKind = deviceInfo.BotD.Result.BotKind
+                        },
+                        Detection = deviceInfo.BotD.Detection,
+                        Component = deviceInfo.BotD.Component
+                    };
                 }
             }
             catch (Exception ex)
@@ -166,7 +143,7 @@
                 TimeZone = string.Empty,
                 UserAgent = string.Empty,
                 InvalidDeviceId = true,
-                BotD = new BotDModel() // Ensure BotD is never null
+                BotD = new BotDModel()
             };
         }
     }

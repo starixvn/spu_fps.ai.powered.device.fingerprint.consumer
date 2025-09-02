@@ -24,13 +24,8 @@
         public async Task Invoke(HttpContext context)
         {
             var authHeader = context.Request.Headers["Authorization"].FirstOrDefault();
-            // Trim the header and split by spaces, then find the token part
-            var token = authHeader?
-                .Trim()
-                .Split(' ', (char)StringSplitOptions.RemoveEmptyEntries)
-                .Length > 1
-                ? authHeader.Trim().Split(' ', (char)StringSplitOptions.RemoveEmptyEntries).Last()
-                : null;
+            
+            var token = authHeader?.Split(' ').Length > 1 ? authHeader.Split(' ')[authHeader.Split(' ').Length - 1] : null;
 
             if (JWTEnable && (token == null || !ValidateToken(token)))
             {
