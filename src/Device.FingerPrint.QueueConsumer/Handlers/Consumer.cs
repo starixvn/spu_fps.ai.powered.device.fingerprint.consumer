@@ -20,7 +20,7 @@
         private readonly IRawTransactionAttributeService rawTransactionAttributeService;
         private readonly IMobileRawTransactionService mobileRawTransactionService;
         private readonly ITransactionService transactionService;
-        private readonly IAppSettings appSettings;
+        private readonly IAppSettings appSettings; 
 
         private const string hashKeyEverTagging = "EverTagging";
 
