@@ -341,12 +341,18 @@ namespace Device.FingerPrint.QueueConsumer.Services
 
         private static void UpdateIsIncognitoMode(RawTransactionModel rawTransModel, Dictionary<string, string> attributesDictionary, string browserName)
         {
-            if (!string.IsNullOrEmpty(browserName) && attributesDictionary.TryGetValue("isIncognitoMode", out var value) && bool.TryParse(value, out var result))
+            if (!string.IsNullOrEmpty(browserName) && 
+                attributesDictionary.TryGetValue("isIncognitoMode", out var value) && 
+                bool.TryParse(value, out var result))
             {
                 rawTransModel.IsIncognitoMode = result;
                 if (IgnoreDetectPrivateMode(browserName))
                 {
                     rawTransModel.IsIncognitoMode = false;
+                }
+                else
+                {
+                    // Keep the detected incognito mode value
                 }
             }
             else
@@ -364,13 +370,14 @@ namespace Device.FingerPrint.QueueConsumer.Services
 
             const string _UCBROWSER = "uc browser";
             const string _MIBROWSER = "miui browser";
+            var lowerBrowserName = browserName.ToLowerInvariant();
 
-            if (browserName.ToLowerInvariant().Contains(_UCBROWSER))
+            if (lowerBrowserName.Contains(_UCBROWSER))
             {
                 return true;  //no need to detect incognito mode
             }
 
-            if (browserName.ToLowerInvariant().Contains(_MIBROWSER))
+            if (lowerBrowserName.Contains(_MIBROWSER))
             {
                 return true;  //skip to detect incognito mode
             }
@@ -531,7 +538,7 @@ namespace Device.FingerPrint.QueueConsumer.Services
             return fingerprintAttributeExtra;
         }
 
-        private static bool HasData<T>(T model)
+        private static bool HasData<T>(T model) where T : class
         {
             if (model == null)
             {
@@ -544,31 +551,37 @@ namespace Device.FingerPrint.QueueConsumer.Services
             {
                 var value = property.GetValue(model);
 
-                if (value != null)
+                if (HasMeaningfulValue(value))
                 {
-                    // Handle string types
-                    if (value is string str && !string.IsNullOrEmpty(str))
-                    {
-                        return true;
-                    }
-                    // Handle value types (int, bool, etc.) - check if not default value
-                    else if (value.GetType().IsValueType)
-                    {
-                        var defaultValue = Activator.CreateInstance(value.GetType());
-                        if (!value.Equals(defaultValue))
-                        {
-                            return true;
-                        }
-                    }
-                    // Handle reference types (excluding strings which are handled above)
-                    else if (!(value is string))
-                    {
-                        return true;
-                    }
+                    return true;
                 }
             }
 
             return false;
+        }
+
+        private static bool HasMeaningfulValue(object value)
+        {
+            if (value == null)
+            {
+                return false;
+            }
+
+            // Handle string types
+            if (value is string str)
+            {
+                return !string.IsNullOrEmpty(str);
+            }
+
+            // Handle value types - check if not default value
+            if (value.GetType().IsValueType)
+            {
+                var defaultValue = Activator.CreateInstance(value.GetType());
+                return !value.Equals(defaultValue);
+            }
+
+            // Handle reference types (non-null reference type found)
+            return true;
         }
 
         private static int GetDeviceType(DeviceDetector deviceDetector)
@@ -610,39 +623,44 @@ namespace Device.FingerPrint.QueueConsumer.Services
 
         private static string GetTaggingValue(string realTagging, string sessionKey)
         {
-            if (!string.IsNullOrEmpty(realTagging) && IsHexString(realTagging))
+            var taggingResult = TryDecryptTagging(realTagging);
+            if (!string.IsNullOrEmpty(taggingResult))
+            {
+                return taggingResult;
+            }
+            else
+            {
+                var sessionResult = TryDecryptTagging(sessionKey);
+                return sessionResult ?? string.Empty;
+            }
+        }
+
+        private static string TryDecryptTagging(string value)
+        {
+            if (string.IsNullOrEmpty(value) || !IsHexString(value))
+            {
+                return string.Empty;
+            }
+            else
             {
                 try
                 {
-                    var decryptedStr = DeviceEncoder.Decrypt(realTagging);
+                    var decryptedStr = DeviceEncoder.Decrypt(value);
                     if (CheckGuid(decryptedStr))
                     {
                         return decryptedStr;
                     }
-                }
-                catch
-                {
-                    // Exception intentionally ignored - decryption failed
-                }
-            }
-
-            if (!string.IsNullOrEmpty(sessionKey) && IsHexString(sessionKey))
-            {
-                try
-                {
-                    var decryptedStr1 = DeviceEncoder.Decrypt(sessionKey);
-                    if (CheckGuid(decryptedStr1))
+                    else
                     {
-                        return decryptedStr1;
+                        return string.Empty; // Decrypted but not a valid GUID
                     }
                 }
                 catch
                 {
                     // Exception intentionally ignored - decryption failed
+                    return string.Empty;
                 }
             }
-
-            return string.Empty;
         }
 
         private static bool IsHexString(string hex)
@@ -651,12 +669,14 @@ namespace Device.FingerPrint.QueueConsumer.Services
             {
                 return false;
             }
-
-            return Regex.IsMatch(hex,
-                                @"\A\b[0-9a-fA-F]+\b\Z",
-                                RegexOptions.None,
-                                RegexTimeout // set timeout
-                            );
+            else
+            {
+                return Regex.IsMatch(hex,
+                                    @"\A\b[0-9a-fA-F]+\b\Z",
+                                    RegexOptions.None,
+                                    RegexTimeout // set timeout
+                                );
+            }
         }
 
         private static bool CheckGuid(string decryptedText)
@@ -665,8 +685,10 @@ namespace Device.FingerPrint.QueueConsumer.Services
             {
                 return false;
             }
-
-            return Guid.TryParse(decryptedText, out _);
+            else
+            {
+                return Guid.TryParse(decryptedText, out _);
+            }
         }
 
         private static string CleanUserAgentFuzzy(string userAgent)
@@ -675,7 +697,14 @@ namespace Device.FingerPrint.QueueConsumer.Services
             {
                 return userAgent;
             }
+            else
+            {
+                return ProcessUserAgentCleaning(userAgent);
+            }
+        }
 
+        private static string ProcessUserAgentCleaning(string userAgent)
+        {
             var trackingPatterns = new List<Regex>
             {
                 new(@"\s+UUID\/[a-zA-Z0-9-]+", RegexOptions.Compiled, RegexTimeout),
@@ -716,10 +745,14 @@ namespace Device.FingerPrint.QueueConsumer.Services
                     var logInfoModel = TransformToLogInfoModel(model, (int)logType);
                     await logInfoServices.InsertDCSConsumerLogAsync(logInfoModel);
                 }
+                else
+                {
+                    // LogInfo is disabled - no action needed
+                }
             }
             catch (Exception ex)
             {
-                Utilities.LogInfo(ex);
+                _ = Utilities.LogInfoAsync(ex);
             }
         }
 

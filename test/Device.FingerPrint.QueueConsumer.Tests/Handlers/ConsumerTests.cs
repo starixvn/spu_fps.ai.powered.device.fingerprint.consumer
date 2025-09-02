@@ -82,7 +82,7 @@ namespace Device.FingerPrint.QueueConsumer.Tests.Handlers
             await _consumer.Consume(context.Object);
 
             _mockRawTransactionService.Verify(x => x.TransformRawTransaction(It.IsAny<MessageQueue>()), Times.Never);
-            _mockTransactionService.Verify(x => x.InsertRawTransaction(It.IsAny<IEnumerable<RawTransactionModel>>(), It.IsAny<bool>()), Times.Never);
+            _mockTransactionService.Verify(x => x.InsertRawTransaction(It.IsAny<IEnumerable<RawTransactionModel>>()), Times.Never);
         }
 
 

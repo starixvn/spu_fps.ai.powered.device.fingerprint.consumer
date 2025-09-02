@@ -19,7 +19,7 @@
 
         void InsertOrUpdateEverTagging(string hashKey, IEnumerable<string> everTaggings, long expireSecond);
 
-        void InsertRawTransactionDetail(IEnumerable<RawTransactionModel> transactions, bool isTransOfDBExtra);
+        void InsertRawTransactionDetail(IEnumerable<RawTransactionModel> transactions);
 
         void LogTransactions(IEnumerable<RawTransactionModel> transactions);
 
@@ -194,15 +194,15 @@
             }
         }
 
-        public void InsertRawTransactionDetail(IEnumerable<RawTransactionModel> transactions, bool isTransOfDBExtra)
+        public void InsertRawTransactionDetail(IEnumerable<RawTransactionModel> transactions)
         {
             Parallel.Invoke(
-                () => InsertFPFingerPrint(transactions, isTransOfDBExtra),
-                () => InsertFPUserAgent(transactions, isTransOfDBExtra)
+                () => InsertFPFingerPrint(transactions),
+                () => InsertFPUserAgent(transactions)
             );
         }
 
-        private void InsertFPUserAgent(IEnumerable<RawTransactionModel> transactions, bool isTransOfDBExtra)
+        private void InsertFPUserAgent(IEnumerable<RawTransactionModel> transactions)
         {
             try
             {
@@ -210,7 +210,7 @@
                 if (userAgentInfos != null && userAgentInfos.Any())
                 {
                     var userAgentJson = JsonConvert.SerializeObject(userAgentInfos);
-                    transactionService.InsertFPUserAgent(userAgentJson, isTransOfDBExtra);
+                    transactionService.InsertFPUserAgent(userAgentJson);
                 }
             }
             catch (Exception ex)
@@ -220,7 +220,7 @@
         }
         
 
-        private void InsertFPFingerPrint(IEnumerable<RawTransactionModel> transactions, bool isTransOfDBExtra)
+        private void InsertFPFingerPrint(IEnumerable<RawTransactionModel> transactions)
         {
             try
             {
@@ -228,7 +228,7 @@
                 if (fingerprintAttribute != null && fingerprintAttribute.Any())
                 {
                     var fingerPrintJson = JsonConvert.SerializeObject(fingerprintAttribute);
-                    transactionService.InsertFPFingerPrint(fingerPrintJson, isTransOfDBExtra);
+                    transactionService.InsertFPFingerPrint(fingerPrintJson);
                 }
             }
             catch (Exception ex)

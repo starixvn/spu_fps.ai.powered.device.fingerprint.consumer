@@ -6,90 +6,33 @@ namespace Device.FingerPrint.Features.Transaction.Services
 {
     public interface ITransactionService
     {
-        void InsertRawTransaction(IEnumerable<RawTransactionModel> transactions, bool isTransOfDBExtra);
+        void InsertRawTransaction(IEnumerable<RawTransactionModel> transactions);
 
-        void InsertFPTagging(string taggings, bool isTransOfDBExtra);
+        void InsertFPUserAgent(string userAgentJson);
 
-        void InsertFPUserAgent(string userAgentJson, bool isTransOfDBExtra);
-
-        void InsertJSChallengeInfo(string jsChallengeInfoJson, bool isTransOfDBExtra);
-
-        void InsertFPFingerPrint(string fingerPrintJson, bool isTransOfDBExtra);
-
-        void InsertTransaction(IEnumerable<TransactionEntity> transactions);
-
-        void DeviceIdentify(string transJson, int groupType);
-
-        void DeviceIdentifyNoFingerprint(string rawTransIds);
-
-        (IEnumerable<DeviceIdentifyEntity>, IEnumerable<DeviceIdentifyEntity>, IEnumerable<ulong>) GetDeviceIdentify(int batchSize, int numberOfBatch);
-
-        void MergeTransaction(string transJson);
-
-        IEnumerable<MergeTransEntity> GetMergeTransaction(int batchSize, int retry);
-
-        IEnumerable<MergeTransEntity> GetForceMergeTransaction(int batchSize, int retry);
-
-        void ForceMergeTransaction(string transJson);
-
-        IEnumerable<TransactionEvolutionEntity> GetTransactionEvolution(int batchSize);
-
-        IEnumerable<TransactionEvolutionAttributesEntity> GetTransactionEvolutionAttributes(string fingerPrintIds, string BrowserFamilyCode);
-
-        void EvolutionNewDevice(string transJson);
-
-        void EvolutionRecoverDevice(string transJson);
-
-        IEnumerable<TransactionHistoryEntity> GetTransactionHistoryByTransIdSubscriber(int subscriberId, long transId, int limit);
-
-        (IEnumerable<AssociationDeviceEntity>, IEnumerable<AssociationAccountEntity>) GetAssociationByAccountSubscriber(int subscriberId, string account);
-
-        IEnumerable<AssociationAccountUsageEntity> GetAssociationBySubscriberDevice(int subscriberId, string deviceCode, DateTime fromDate, DateTime toDate);
-
-        IEnumerable<TransactionInfoEntity> GetTransactionInfo(ulong lastTransID, int batchSize);
-
-        TransactionResultModel GetTransactionHistory(TransactionParamModel param);
-
-        LatestTransactionResultModel GetLastestTransactionBySubscriber(LatestTransactionParamModel param);
-
-        TransactionHistoryByDeviceResultModel GetTransactionHistoryByDevice(TransactionHistoryByDeviceParamModel param);
+        void InsertFPFingerPrint(string fingerPrintJson);
     }
 
-    public class TransactionService : ITransactionService
+    public class TransactionService(ITransactionDataAccess transactionDataAccess) : ITransactionService
     {
-        private readonly ITransactionDataAccess transactionDataAccess;
+        private readonly ITransactionDataAccess transactionDataAccess = transactionDataAccess;
 
-        public TransactionService(ITransactionDataAccess transactionDataAccess)
-        {
-            this.transactionDataAccess = transactionDataAccess;
-        }
-
-        public void InsertRawTransaction(IEnumerable<RawTransactionModel> transactions, bool isTransOfDBExtra)
+        public void InsertRawTransaction(IEnumerable<RawTransactionModel> transactions)
         {
             var transJson = JsonConvert.SerializeObject(TransformInsertRawTransaction(transactions));
 
-            transactionDataAccess.InsertRawTransaction(transJson, isTransOfDBExtra);
+            transactionDataAccess.InsertRawTransaction(transJson);
 
         }
 
-        public void InsertFPTagging(string taggings, bool isTransOfDBExtra)
+        public void InsertFPUserAgent(string userAgentJson)
         {
-            transactionDataAccess.InsertFPTagging(taggings, isTransOfDBExtra);
+            transactionDataAccess.InsertFPUserAgent(userAgentJson);
         }
 
-        public void InsertFPUserAgent(string userAgentJson, bool isTransOfDBExtra)
+        public void InsertFPFingerPrint(string fingerPrintJson)
         {
-            transactionDataAccess.InsertFPUserAgent(userAgentJson, isTransOfDBExtra);
-        }
-
-        public void InsertJSChallengeInfo(string jsChallengeInfoJson, bool isTransOfDBExtra)
-        {
-            transactionDataAccess.InsertJSChallengeInfo(jsChallengeInfoJson, isTransOfDBExtra);
-        }
-
-        public void InsertFPFingerPrint(string fingerPrintJson, bool isTransOfDBExtra)
-        {
-            transactionDataAccess.InsertFPFingerPrint(fingerPrintJson, isTransOfDBExtra);
+            transactionDataAccess.InsertFPFingerPrint(fingerPrintJson);
         }
 
         private static IEnumerable<InsertRawTransactionEntity> TransformInsertRawTransaction(IEnumerable<RawTransactionModel> transactions)
@@ -140,108 +83,6 @@ namespace Device.FingerPrint.Features.Transaction.Services
                 MBCountry = transaction.MBCountry,
                 MBDeviceDetails = transaction.MBDeviceDetails
             });
-        }
-
-        public void InsertTransaction(IEnumerable<TransactionEntity> transactions)
-        {
-            var transJson = JsonConvert.SerializeObject(transactions);
-            transactionDataAccess.InsertTransaction(transJson);
-        }
-
-        public void DeviceIdentify(string transJson, int groupType)
-        {
-            transactionDataAccess.DeviceIdentify(transJson, groupType);
-        }
-
-        public void DeviceIdentifyNoFingerprint(string rawTransIds)
-        {
-            transactionDataAccess.DeviceIdentifyNoFingerprint(rawTransIds);
-        }
-
-        public void ForceMergeTransaction(string transJson)
-        {
-            transactionDataAccess.UpdateForceMergeTransaction(transJson);
-        }
-
-        public (IEnumerable<DeviceIdentifyEntity>, IEnumerable<DeviceIdentifyEntity>, IEnumerable<ulong>) GetDeviceIdentify(int batchSize, int numberOfBatch)
-        {
-            return transactionDataAccess.GetDeviceIdentify(batchSize, numberOfBatch);
-        }
-
-        public IEnumerable<TransactionEvolutionAttributesEntity> GetTransactionEvolutionAttributes(string fingerPrintIds, string BrowserFamilyCode)
-        {
-            return transactionDataAccess.GetTransactionEvolutionAttributes(fingerPrintIds, BrowserFamilyCode);
-        }
-
-        public IEnumerable<TransactionEvolutionEntity> GetTransactionEvolution(int batchSize)
-        {
-            return transactionDataAccess.GetTransactionEvolution(batchSize);
-        }
-
-        public IEnumerable<MergeTransEntity> GetForceMergeTransaction(int batchSize, int retry)
-        {
-            return transactionDataAccess.GetForceMergeTransaction(batchSize, retry);
-        }
-
-        public IEnumerable<MergeTransEntity> GetMergeTransaction(int batchSize, int retry)
-        {
-            return transactionDataAccess.GetMergeTransaction(batchSize, retry);
-        }
-
-        public void MergeTransaction(string transJson)
-        {
-            transactionDataAccess.UpdateMergeTransaction(transJson);
-        }
-
-        public void EvolutionNewDevice(string transJson)
-        {
-            transactionDataAccess.EvolutionNewDevice(transJson);
-        }
-
-        public void EvolutionRecoverDevice(string transJson)
-        {
-            transactionDataAccess.EvolutionRecoverDevice(transJson);
-        }
-
-        public IEnumerable<TransactionHistoryEntity> GetTransactionHistoryByTransIdSubscriber(int subscriberId, long transId, int limit)
-        {
-            return transactionDataAccess.GetTransactionHistoryByTransIdSubscriber(subscriberId, transId, limit);
-        }
-
-        public (IEnumerable<AssociationDeviceEntity>, IEnumerable<AssociationAccountEntity>) GetAssociationByAccountSubscriber(int subscriberId, string account)
-        {
-            return transactionDataAccess.GetAssociationByAccountSubscriber(subscriberId, account);
-        }
-
-        public IEnumerable<AssociationAccountUsageEntity> GetAssociationBySubscriberDevice(int subscriberId, string deviceCode, DateTime fromDate, DateTime toDate)
-        {
-            return transactionDataAccess.GetAssociationBySubscriberDevice(subscriberId, deviceCode, fromDate, toDate);
-        }
-
-
-        public IEnumerable<TransactionInfoEntity> GetTransactionInfo(ulong lastTransID, int batchSize)
-        {
-            return transactionDataAccess.GetTransactionInfo(lastTransID, batchSize);
-        }
-
-        public TransactionResultModel GetTransactionHistory(TransactionParamModel param)
-        {
-            if (param.CTSCustID != null && param.CTSCustID > 0)
-            {
-                return transactionDataAccess.GetTransactionByCustSubscriber(param);
-            }
-
-            return transactionDataAccess.GetTransactionBySubscriber(param);
-        }
-
-        public LatestTransactionResultModel GetLastestTransactionBySubscriber(LatestTransactionParamModel param)
-        {
-            return transactionDataAccess.GetLastestTransactionBySubscriber(param);
-        }
-
-        public TransactionHistoryByDeviceResultModel GetTransactionHistoryByDevice(TransactionHistoryByDeviceParamModel param)
-        {
-            return transactionDataAccess.GetTransactionHistoryByDevice(param);
         }
     }
 }

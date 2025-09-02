@@ -193,7 +193,7 @@ namespace Device.FingerPrint.QueueConsumer.Tests.Services
             };
 
             // Act
-            _service.InsertRawTransactionDetail(transactions, false);
+            _service.InsertRawTransactionDetail(transactions);
 
             // Assert - Verify parallel execution calls (may need adjustment based on actual implementation)
             Assert.True(true); // Basic assertion since parallel execution is hard to test directly

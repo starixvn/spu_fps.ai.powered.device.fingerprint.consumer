@@ -82,7 +82,7 @@
 
         private void ProcessValidTransactions(IEnumerable<RawTransactionModel> rawTransModels)
         {
-            rawTransactionService.InsertRawTransactionDetail(rawTransModels, appSettings.IsExtraSub);
+            rawTransactionService.InsertRawTransactionDetail(rawTransModels);
             InsertRawTransactionWithLogging(rawTransModels);
             _ = AdditionalProcessingNotAwait(rawTransModels);
         }
@@ -91,7 +91,7 @@
         {
             try
             {
-                transactionService.InsertRawTransaction(rawTransModels, appSettings.IsExtraSub);
+                transactionService.InsertRawTransaction(rawTransModels);
             }
             catch
             {
