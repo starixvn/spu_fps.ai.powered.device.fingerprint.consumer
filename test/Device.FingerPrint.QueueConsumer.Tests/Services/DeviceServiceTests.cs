@@ -10,6 +10,7 @@ using Device.FingerPrint.QueueConsumer.Models;
 using Device.FingerPrint.Model;
 using Device.FingerPrint.Core;
 using Newtonsoft.Json;
+using Device.FingerPrint.TransactionAPI.Model;
 
 namespace Device.FingerPrint.QueueConsumer.Tests.Services
 {

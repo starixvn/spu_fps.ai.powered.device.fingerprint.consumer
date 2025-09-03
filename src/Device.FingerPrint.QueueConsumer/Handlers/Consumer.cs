@@ -5,6 +5,7 @@
     using Device.FingerPrint.Features.Transaction.Services;
     using Device.FingerPrint.Model;
     using Device.FingerPrint.QueueConsumer.Services;
+    using Device.FingerPrint.TransactionAPI.Model;
     using Fanex.Logging;
     using MassTransit;
     using Newtonsoft.Json;
@@ -20,7 +21,7 @@
         private readonly IRawTransactionAttributeService rawTransactionAttributeService;
         private readonly IMobileRawTransactionService mobileRawTransactionService;
         private readonly ITransactionService transactionService;
-        private readonly IAppSettings appSettings; 
+        private readonly IAppSettings appSettings;
 
         private const string hashKeyEverTagging = "EverTagging";
 
@@ -45,7 +46,7 @@
             {
                 ProcessMessageBatch(context.Message);
                 return Task.CompletedTask;
-            }           
+            }
             catch (Exception ex)
             {
                 _ = QueueConsumer.Utilities.LogErrorAsync(ex);
@@ -61,7 +62,7 @@
             }
 
             var rawTransModels = TransformRawTransactionModel(messageBatch);
-            
+
             if (!HasValidTransactions(rawTransModels))
             {
                 return;
@@ -133,7 +134,7 @@
         private void ProcessMessagesInParallel(IEnumerable<ConsumeContext<MessageQueue>> validatedMessages, TransformationContext context)
         {
             var parallelOptions = new ParallelOptions { MaxDegreeOfParallelism = 10 };
-            
+
             Parallel.ForEach(validatedMessages, parallelOptions, message =>
             {
                 ProcessSingleMessage(message, context);
@@ -161,7 +162,7 @@
             try
             {
                 var rawTransFinalModel = TransformMessage(message);
-                
+
                 if (rawTransFinalModel != null)
                 {
                     transformedDataBag.Add(rawTransFinalModel);
@@ -243,8 +244,8 @@
         private void InsertEverTagging(IEnumerable<string> everTagging)
         {
             rawTransactionService.InsertOrUpdateEverTagging(
-                hashKeyEverTagging, 
-                everTagging, 
+                hashKeyEverTagging,
+                everTagging,
                 appSettings.EverTaggingExpireSecond);
         }
 
@@ -252,9 +253,9 @@
         {
             var groupedMessages = GroupMessagesByAccountAndDate(listMessage);
             var duplicateMessages = GetDuplicateMessages(groupedMessages);
-            
+
             LogDuplicateMessages(duplicateMessages);
-            
+
             return GetValidMessages(listMessage, duplicateMessages);
         }
 

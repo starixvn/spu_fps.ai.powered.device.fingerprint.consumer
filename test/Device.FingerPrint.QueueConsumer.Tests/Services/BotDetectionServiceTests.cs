@@ -2,6 +2,7 @@
 using Device.FingerPrint.QueueConsumer.Services;
 using Device.FingerPrint.Model;
 using Device.FingerPrint.QueueConsumer.Models;
+using Device.FingerPrint.TransactionAPI.Model;
 
 namespace Device.FingerPrint.QueueConsumer.Tests.Services
 {

@@ -3,8 +3,8 @@
     using Device.FingerPrint.Core;
     using Device.FingerPrint.Features.Transaction.Services;
     using Device.FingerPrint.Model;
-    using Device.FingerPrint.QueueConsumer.Models;
     using Device.FingerPrint.Redis;
+    using Device.FingerPrint.TransactionAPI.Model;
     using Fanex.Logging;
     using Newtonsoft.Json;
     using StackExchange.Redis;
@@ -130,16 +130,16 @@
 
 #pragma warning disable S107
         private RawTransactionModel CreateRawTransactionModel(
-            MessageQueue message, 
-            DeviceInfoModel deviceInfo, 
-            string url, 
-            string userAgent, 
-            string invalidDevice, 
-            BitArray transBit, 
-            BotDModel botDModel, 
-            string flaggedCode, 
-            string botDetection, 
-            string realIP, 
+            MessageQueue message,
+            DeviceInfoModel deviceInfo,
+            string url,
+            string userAgent,
+            string invalidDevice,
+            BitArray transBit,
+            BotDModel botDModel,
+            string flaggedCode,
+            string botDetection,
+            string realIP,
             IpModel ipConverted)
         {
             return new RawTransactionModel
@@ -155,8 +155,8 @@
                 URL = string.IsNullOrWhiteSpace(url) ? Utilities.ConvertNA2Empty(Utilities.SubStringUrl(deviceInfo.HRef)) : Utilities.SubStringUrl(url),
                 Action = message.Action,
                 ActionResult = message.ActionResult,
-                UserAgent = string.IsNullOrWhiteSpace(userAgent) 
-                    ? Utilities.ConvertNA2Empty(Utilities.StripUnicodeCharactersFromString(deviceInfo.UserAgent)) 
+                UserAgent = string.IsNullOrWhiteSpace(userAgent)
+                    ? Utilities.ConvertNA2Empty(Utilities.StripUnicodeCharactersFromString(deviceInfo.UserAgent))
                     : Utilities.StripUnicodeCharactersFromString(userAgent),
                 FingerprintCode = deviceInfo.DeviceFPCode != "N/A" ? deviceInfo.DeviceFPCode : null,
                 FingerprintMoreInfo = deviceInfo.DeviceFPCode != "N/A" ? Utilities.EncodeCapturedData(deviceInfo) : null,
@@ -219,7 +219,7 @@
                 _ = QueueConsumer.Utilities.LogErrorAsync(ex);
             }
         }
-        
+
 
         private void InsertFPFingerPrint(IEnumerable<RawTransactionModel> transactions)
         {
@@ -245,11 +245,11 @@
                 .Where(result => !EqualityComparer<TResult>.Default.Equals(result, default(TResult)))
                 .Distinct();
         }
-       
+
         public void LogTransactions(IEnumerable<RawTransactionModel> transactions)
         {
             // Method intentionally left empty - logging functionality removed
-        }     
+        }
 
     }
 }
