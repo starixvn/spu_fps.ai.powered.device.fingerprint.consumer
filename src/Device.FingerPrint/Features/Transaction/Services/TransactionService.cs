@@ -7,10 +7,6 @@ namespace Device.FingerPrint.Features.Transaction.Services
     public interface ITransactionService
     {
         void InsertRawTransaction(IEnumerable<RawTransactionModel> transactions);
-
-        void InsertFPUserAgent(string userAgentJson);
-
-        void InsertFPFingerPrint(string fingerPrintJson);
     }
 
     public class TransactionService(ITransactionDataAccess transactionDataAccess) : ITransactionService
@@ -25,16 +21,6 @@ namespace Device.FingerPrint.Features.Transaction.Services
 
         }
 
-        public void InsertFPUserAgent(string userAgentJson)
-        {
-            transactionDataAccess.InsertFPUserAgent(userAgentJson);
-        }
-
-        public void InsertFPFingerPrint(string fingerPrintJson)
-        {
-            transactionDataAccess.InsertFPFingerPrint(fingerPrintJson);
-        }
-
         private static IEnumerable<InsertRawTransactionEntity> TransformInsertRawTransaction(IEnumerable<RawTransactionModel> transactions)
         {
             return transactions.Select(transaction => new InsertRawTransactionEntity
@@ -43,13 +29,9 @@ namespace Device.FingerPrint.Features.Transaction.Services
                 ActionResult = transaction.ActionResult,
                 BotComponent = transaction.BotComponent,
                 BotDetection = transaction.BotDetection,
-                ChallengeCode = transaction.ChallengeCode,
-                FPTagging = transaction.FPTagging,
                 CreatedDate = transaction.CreatedDate,
                 DeviceCode = transaction.DeviceCode,
                 FakeIP = transaction.FakeIP,
-                FingerprintCode = transaction.FingerprintCode,
-                FingerprintMoreInfo = transaction.FingerprintMoreInfo,
                 FlaggedCode = transaction.FlaggedCode,
                 InvalidDevice = transaction.InvalidDevice,
                 IP = transaction.IP,
@@ -57,10 +39,6 @@ namespace Device.FingerPrint.Features.Transaction.Services
                 IsIPV6 = transaction.IsIPV6,
                 LoginName = transaction.LoginName,
                 PluginID = transaction.PluginID,
-                FPFingerPrintCode = transaction.FPFingerPrintCode,
-                FPFingerPrintExtraCode = transaction.FPFingerPrintExtraCode,
-                FPFingerPrintOldCode = transaction.FPFingerPrintOldCode,
-                FPUserAgentCode = transaction.FPUserAgentCode,
                 SubscriberName = transaction.SubscriberName,
                 TransStatus = transaction.TransStatus,
                 TransTime = transaction.TransTime,

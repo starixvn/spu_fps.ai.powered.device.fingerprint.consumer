@@ -1,7 +1,6 @@
 ﻿namespace Device.FingerPrint.QueueConsumer.Handlers
 {
     using Device.FingerPrint.Core;
-    using Device.FingerPrint.Core.Encoders;
     using Device.FingerPrint.Features.Transaction.Services;
     using Device.FingerPrint.Model;
     using Device.FingerPrint.QueueConsumer.Services;
@@ -15,30 +14,17 @@
     using System.Linq;
     using System.Threading.Tasks;
 
-    public class Consumer : IConsumer<Batch<MessageQueue>>
+    public class Consumer(
+            IRawTransactionService rawTransactionService,
+            IMobileRawTransactionService mobileRawTransactionService,
+            ITransactionService transactionService,
+            IAppSettings appSettings
+        ) : IConsumer<Batch<MessageQueue>>
     {
-        private readonly IRawTransactionService rawTransactionService;
-        private readonly IRawTransactionAttributeService rawTransactionAttributeService;
-        private readonly IMobileRawTransactionService mobileRawTransactionService;
-        private readonly ITransactionService transactionService;
-        private readonly IAppSettings appSettings;
-
-        private const string hashKeyEverTagging = "EverTagging";
-
-        public Consumer(
-                IRawTransactionService rawTransactionService,
-                IRawTransactionAttributeService rawTransactionAttributeService,
-                IMobileRawTransactionService mobileRawTransactionService,
-                ITransactionService transactionService,
-                IAppSettings appSettings
-        )
-        {
-            this.rawTransactionService = rawTransactionService;
-            this.rawTransactionAttributeService = rawTransactionAttributeService;
-            this.mobileRawTransactionService = mobileRawTransactionService;
-            this.transactionService = transactionService;
-            this.appSettings = appSettings;
-        }
+        private readonly IRawTransactionService rawTransactionService = rawTransactionService;
+        private readonly IMobileRawTransactionService mobileRawTransactionService = mobileRawTransactionService;
+        private readonly ITransactionService transactionService = transactionService;
+        private readonly IAppSettings appSettings = appSettings;
 
         public Task Consume(ConsumeContext<Batch<MessageQueue>> context)
         {
@@ -68,7 +54,7 @@
                 return;
             }
 
-            ProcessValidTransactions(rawTransModels);
+            transactionService.InsertRawTransaction(rawTransModels);
         }
 
         private bool ShouldProcessMessages()
@@ -81,31 +67,11 @@
             return rawTransModels?.Any() == true;
         }
 
-        private void ProcessValidTransactions(IEnumerable<RawTransactionModel> rawTransModels)
-        {
-            rawTransactionService.InsertRawTransactionDetail(rawTransModels);
-            InsertRawTransactionWithLogging(rawTransModels);
-            _ = AdditionalProcessingNotAwait(rawTransModels);
-        }
-
-        private void InsertRawTransactionWithLogging(IEnumerable<RawTransactionModel> rawTransModels)
-        {
-            try
-            {
-                transactionService.InsertRawTransaction(rawTransModels);
-            }
-            catch
-            {
-                rawTransactionService.LogTransactions(rawTransModels);
-                throw;
-            }
-        }
-
         private IEnumerable<RawTransactionModel> TransformRawTransactionModel(Batch<MessageQueue> messages)
         {
             if (IsEmptyMessageBatch(messages))
             {
-                return new List<RawTransactionModel>();
+                return [];
             }
 
             var transformationContext = CreateTransformationContext();
@@ -114,7 +80,7 @@
             ProcessMessagesInParallel(validatedMessages, transformationContext);
             LogErrorsIfAny(transformationContext.ErrorList);
 
-            return transformationContext.TransformedDataBag.ToList();
+            return [.. transformationContext.TransformedDataBag];
         }
 
         private static bool IsEmptyMessageBatch(Batch<MessageQueue> messages)
@@ -126,8 +92,8 @@
         {
             return new TransformationContext
             {
-                TransformedDataBag = new ConcurrentBag<RawTransactionModel>(),
-                ErrorList = new List<MessageQueue>()
+                TransformedDataBag = [],
+                ErrorList = []
             };
         }
 
@@ -189,7 +155,7 @@
                 return mobileRawTransactionService.TransformRawTransaction(message.Message);
             }
 
-            return TransformStandardMessage(message);
+            return rawTransactionService.TransformRawTransaction(message.Message);
         }
 
         private static bool IsMobileAppTransaction(ConsumeContext<MessageQueue> message)
@@ -197,56 +163,13 @@
             return message.Message.Mobile?.IsMobileAppTrans == true;
         }
 
-        private RawTransactionModel TransformStandardMessage(ConsumeContext<MessageQueue> message)
-        {
-            var rawTransModel = rawTransactionService.TransformRawTransaction(message.Message);
-            return rawTransactionAttributeService.GetTransactionAttribute(rawTransModel);
-        }
-
         private static void LogErrorsIfAny(List<MessageQueue> errorList)
         {
-            if (errorList.Any())
+            if (errorList.Count != 0)
             {
                 var serializedErrors = JsonConvert.SerializeObject(errorList);
                 LogService.Error($"Account ErrorList:\n {serializedErrors}");
             }
-        }
-
-        private async Task AdditionalProcessingNotAwait(IEnumerable<RawTransactionModel> transactionModels)
-        {
-            try
-            {
-                ProcessEverTagging(transactionModels);
-            }
-            catch (Exception ex)
-            {
-                _ = QueueConsumer.Utilities.LogErrorAsync(ex);
-            }
-        }
-
-        private void ProcessEverTagging(IEnumerable<RawTransactionModel> transactionModels)
-        {
-            var everTagging = GetEncryptedTaggings(transactionModels);
-
-            if (everTagging.Any())
-            {
-                InsertEverTagging(everTagging);
-            }
-        }
-
-        private static IEnumerable<string> GetEncryptedTaggings(IEnumerable<RawTransactionModel> transactionModels)
-        {
-            return transactionModels
-                .Where(x => !string.IsNullOrEmpty(x.FPTagging))
-                .Select(x => DeviceEncoder.Encrypt(x.FPTagging));
-        }
-
-        private void InsertEverTagging(IEnumerable<string> everTagging)
-        {
-            rawTransactionService.InsertOrUpdateEverTagging(
-                hashKeyEverTagging,
-                everTagging,
-                appSettings.EverTaggingExpireSecond);
         }
 
         private static IEnumerable<ConsumeContext<MessageQueue>> ValidDuplicateTrans(Batch<MessageQueue> listMessage)
@@ -266,10 +189,9 @@
 
         private static List<ConsumeContext<MessageQueue>> GetDuplicateMessages(IEnumerable<IGrouping<object, ConsumeContext<MessageQueue>>> groupedMessages)
         {
-            return groupedMessages
+            return [.. groupedMessages
                 .Where(g => g.Count() > 1)
-                .SelectMany(g => g.Skip(1))
-                .ToList();
+                .SelectMany(g => g.Skip(1))];
         }
 
         private static void LogDuplicateMessages(List<ConsumeContext<MessageQueue>> duplicateMessages)

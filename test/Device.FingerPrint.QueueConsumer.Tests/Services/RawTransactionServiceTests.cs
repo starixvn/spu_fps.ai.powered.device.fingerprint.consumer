@@ -1,17 +1,12 @@
-﻿using Xunit;
-using Moq;
-using Device.FingerPrint.QueueConsumer.Services;
-using Device.FingerPrint.Model;
-using Device.FingerPrint.Core;
+﻿using Device.FingerPrint.Core;
 using Device.FingerPrint.Features.Transaction.Services;
-using Device.FingerPrint.Redis;
-using StackExchange.Redis;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Globalization;
+using Device.FingerPrint.Model;
 using Device.FingerPrint.QueueConsumer.Models;
+using Device.FingerPrint.QueueConsumer.Services;
+using Device.FingerPrint.Redis;
 using Device.FingerPrint.TransactionAPI.Model;
+using Moq;
+using StackExchange.Redis;
 
 namespace Device.FingerPrint.QueueConsumer.Tests.Services
 {
@@ -181,37 +176,6 @@ namespace Device.FingerPrint.QueueConsumer.Tests.Services
 
             // Act & Assert - Should not throw
             var exception = Record.Exception(() => _service.InsertOrUpdateEverTagging(hashKey, everTaggings, expireSecond));
-            Assert.Null(exception);
-        }
-
-        [Fact]
-        public void InsertRawTransactionDetail_Should_Call_Both_Insert_Methods()
-        {
-            // Arrange
-            var transactions = new List<RawTransactionModel>
-            {
-                new RawTransactionModel { LoginName = "user1" },
-                new RawTransactionModel { LoginName = "user2" }
-            };
-
-            // Act
-            _service.InsertRawTransactionDetail(transactions);
-
-            // Assert - Verify parallel execution calls (may need adjustment based on actual implementation)
-            Assert.True(true); // Basic assertion since parallel execution is hard to test directly
-        }
-
-        [Fact]
-        public void LogTransactions_Should_Not_Throw()
-        {
-            // Arrange
-            var transactions = new List<RawTransactionModel>
-            {
-                new RawTransactionModel { LoginName = "user1" }
-            };
-
-            // Act & Assert - Should not throw
-            var exception = Record.Exception(() => _service.LogTransactions(transactions));
             Assert.Null(exception);
         }
 

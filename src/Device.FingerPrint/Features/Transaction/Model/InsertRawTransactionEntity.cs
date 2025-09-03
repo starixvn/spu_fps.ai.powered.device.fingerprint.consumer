@@ -18,10 +18,6 @@ namespace Device.FingerPrint.Features.Transaction.Model
 
         public string? DeviceCode { get; set; }
 
-        public string? FingerprintCode { get; set; }
-
-        public string? FingerprintMoreInfo { get; set; }
-
         public string? UserAgent { get; set; }
 
         public string? IP { get; set; }
@@ -51,18 +47,6 @@ namespace Device.FingerPrint.Features.Transaction.Model
         public string? BotDetection { get; set; }
 
         public string? BotComponent { get; set; }
-
-        public string? FPTagging { get; set; }
-
-        public string? FPFingerPrintCode { get; set; }
-
-        public string? FPFingerPrintExtraCode { get; set; }
-
-        public string? FPFingerPrintOldCode { get; set; }
-
-        public string? ChallengeCode { get; set; }
-
-        public string? FPUserAgentCode { get; set; }
 
         public bool? IsIncognitoMode { get; set; }
 

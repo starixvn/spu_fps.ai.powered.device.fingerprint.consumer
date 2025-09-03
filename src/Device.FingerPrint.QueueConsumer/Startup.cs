@@ -22,13 +22,9 @@ namespace Device.FingerPrint.QueueConsumer
     using System;
     using System.Collections.Generic;
 
-    public class Startup
+    public class Startup(IConfiguration configuration)
     {
-        public IConfiguration Configuration { get; }
-        public Startup(IConfiguration configuration)
-        {
-            Configuration = configuration;
-        }
+        public IConfiguration Configuration { get; } = configuration;
 
         // This method gets called by the runtime. Use this method to add services to the container.
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
@@ -121,7 +117,7 @@ namespace Device.FingerPrint.QueueConsumer
             app.UseRouting();
         }
 
-        private void RegisterRedis(IServiceCollection services)
+        private static void RegisterRedis(IServiceCollection services)
         {
             services.AddSingleton<IRedisMultiplexDbService, RedisMultiplexDbService>();
         }
@@ -129,7 +125,6 @@ namespace Device.FingerPrint.QueueConsumer
         private void InitService(IServiceCollection services)
         {
             services.AddSingleton<IRawTransactionService, RawTransactionService>();
-            services.AddSingleton<IRawTransactionAttributeService, RawTransactionAttributeService>();
             services.AddSingleton<ICrypto, Crypto>();
             services.AddSingleton<IUserAgentService, UserAgentService>();
             services.AddSingleton<IMobileRawTransactionService, MobileRawTransactionService>();

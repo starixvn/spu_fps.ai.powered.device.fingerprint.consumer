@@ -1,18 +1,15 @@
 ﻿namespace Device.FingerPrint.QueueConsumer.Services
 {
     using Device.FingerPrint.Core;
-    using Device.FingerPrint.Features.Transaction.Services;
     using Device.FingerPrint.Model;
     using Device.FingerPrint.Redis;
     using Device.FingerPrint.TransactionAPI.Model;
     using Fanex.Logging;
-    using Newtonsoft.Json;
     using StackExchange.Redis;
     using System;
     using System.Collections;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Threading.Tasks;
 
     public interface IRawTransactionService
     {
@@ -20,17 +17,12 @@
 
         void InsertOrUpdateEverTagging(string hashKey, IEnumerable<string> everTaggings, long expireSecond);
 
-        void InsertRawTransactionDetail(IEnumerable<RawTransactionModel> transactions);
-
-        void LogTransactions(IEnumerable<RawTransactionModel> transactions);
-
     }
 
     public class RawTransactionService : IRawTransactionService
     {
         private readonly IDeviceService deviceService;
         private readonly IBotDetectionService botDetectionService;
-        private readonly ITransactionService transactionService;
         private readonly IAppSettings appSettings;
         private readonly IDatabase everTaggingRedisDB;
 
@@ -38,13 +30,11 @@
             IRedisMultiplexDbService redisMultiplexService,
             IDeviceService deviceService,
             IBotDetectionService botDetectionService,
-            ITransactionService transactionService,
             IAppSettings appSettings
         )
         {
             this.deviceService = deviceService;
             this.botDetectionService = botDetectionService;
-            this.transactionService = transactionService;
             this.appSettings = appSettings;
 
             this.everTaggingRedisDB = redisMultiplexService.GetDatabase(appSettings.EverTaggingDBIndex);
@@ -158,8 +148,6 @@
                 UserAgent = string.IsNullOrWhiteSpace(userAgent)
                     ? Utilities.ConvertNA2Empty(Utilities.StripUnicodeCharactersFromString(deviceInfo.UserAgent))
                     : Utilities.StripUnicodeCharactersFromString(userAgent),
-                FingerprintCode = deviceInfo.DeviceFPCode != "N/A" ? deviceInfo.DeviceFPCode : null,
-                FingerprintMoreInfo = deviceInfo.DeviceFPCode != "N/A" ? Utilities.EncodeCapturedData(deviceInfo) : null,
                 SessionKey = message.SessionKey,
                 FlaggedCode = flaggedCode,
                 BotDetection = botDetection,
@@ -194,62 +182,5 @@
                 _ = QueueConsumer.Utilities.LogErrorAsync(ex);
             }
         }
-
-        public void InsertRawTransactionDetail(IEnumerable<RawTransactionModel> transactions)
-        {
-            Parallel.Invoke(
-                () => InsertFPFingerPrint(transactions),
-                () => InsertFPUserAgent(transactions)
-            );
-        }
-
-        private void InsertFPUserAgent(IEnumerable<RawTransactionModel> transactions)
-        {
-            try
-            {
-                var userAgentInfos = GetValidInfo(transactions, t => t.UserAgentInfo);
-                if (userAgentInfos != null && userAgentInfos.Any())
-                {
-                    var userAgentJson = JsonConvert.SerializeObject(userAgentInfos);
-                    transactionService.InsertFPUserAgent(userAgentJson);
-                }
-            }
-            catch (Exception ex)
-            {
-                _ = QueueConsumer.Utilities.LogErrorAsync(ex);
-            }
-        }
-
-
-        private void InsertFPFingerPrint(IEnumerable<RawTransactionModel> transactions)
-        {
-            try
-            {
-                var fingerprintAttribute = GetValidInfo(transactions, t => t.FingerprintAttribute);
-                if (fingerprintAttribute != null && fingerprintAttribute.Any())
-                {
-                    var fingerPrintJson = JsonConvert.SerializeObject(fingerprintAttribute);
-                    transactionService.InsertFPFingerPrint(fingerPrintJson);
-                }
-            }
-            catch (Exception ex)
-            {
-                _ = QueueConsumer.Utilities.LogErrorAsync(ex);
-            }
-        }
-
-        private static IEnumerable<TResult> GetValidInfo<TResult>(IEnumerable<RawTransactionModel> transactions, Func<RawTransactionModel, TResult> selector)
-        {
-            return transactions
-                .Select(selector)
-                .Where(result => !EqualityComparer<TResult>.Default.Equals(result, default(TResult)))
-                .Distinct();
-        }
-
-        public void LogTransactions(IEnumerable<RawTransactionModel> transactions)
-        {
-            // Method intentionally left empty - logging functionality removed
-        }
-
     }
 }

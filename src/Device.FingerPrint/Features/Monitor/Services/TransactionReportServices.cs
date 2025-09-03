@@ -1,5 +1,4 @@
 ﻿using Device.FingerPrint.Features.Monitor.Model;
-using System;
 
 namespace Device.FingerPrint.Features.Monitor.Services
 {
@@ -9,15 +8,10 @@ namespace Device.FingerPrint.Features.Monitor.Services
         IEnumerable<TransactionReportEntity> GetTransactionSumList(DateTime fromDate, DateTime toDate);
     }
 
-    public class TransactionReportServices : ITransactionReportServices
+    public class TransactionReportServices(ITransactionReportDataAccess dataAccess) : ITransactionReportServices
     {
 
-        private readonly ITransactionReportDataAccess dataAccess;
-
-        public TransactionReportServices(ITransactionReportDataAccess dataAccess)
-        {
-            this.dataAccess = dataAccess;
-        }
+        private readonly ITransactionReportDataAccess dataAccess = dataAccess;
 
         public IEnumerable<TransactionReportEntity> GetTransactionSumList(DateTime fromDate, DateTime toDate)
         {

@@ -1,8 +1,6 @@
 ﻿using Device.FingerPrint.Features.Monitor.Criterias;
 using Device.FingerPrint.Features.Monitor.Model;
 using Fanex.Data.Repository;
-using System;
-using System.Collections.Generic;
 
 namespace Device.FingerPrint.Features.Monitor.Services
 {

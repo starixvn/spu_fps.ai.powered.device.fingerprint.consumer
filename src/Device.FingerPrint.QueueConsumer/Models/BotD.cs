@@ -1,5 +1,4 @@
-﻿
-namespace Device.FingerPrint.QueueConsumer.Models
+﻿namespace Device.FingerPrint.QueueConsumer.Models
 {
     public class BotD
     {
