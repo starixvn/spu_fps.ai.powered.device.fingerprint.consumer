@@ -2,38 +2,38 @@
 {
     public class DeviceInfoModel
     {
-        public string OSName { get; set; }
+        public string? OSName { get; set; }
 
-        public string DeviceFPCode { get; set; }
+        public string? DeviceFPCode { get; set; }
 
-        public string DeviceNo { get; set; }
+        public string? DeviceNo { get; set; }
 
-        public string NA { get; set; }
+        public string? NA { get; set; }
 
-        public string AppVersion { get; set; }
+        public string? AppVersion { get; set; }
 
-        public string TimeZone { get; set; }
+        public string? TimeZone { get; set; }
 
-        public string UserAgent { get; set; }
+        public string? UserAgent { get; set; }
 
-        public ScreenInfoModel Screen { get; set; }
+        public ScreenInfoModel? Screen { get; set; }
 
-        public string HRef { get; set; }
+        public string? HRef { get; set; }
 
         public long CapturedDate { get; set; }
 
-        public string Battery { get; set; }
+        public string? Battery { get; set; }
 
-        public string Ip { get; set; }
+        public string? Ip { get; set; }
 
-        public string LocalIps { get; set; }
+        public string? LocalIps { get; set; }
 
         public bool IsNonManilaCSD { get; set; }
 
         public bool InvalidDeviceId { get; set; }
 
-        public string Version { get; set; }
+        public string? Version { get; set; }
 
-        public BotDModel BotD { get; set; }
+        public BotDModel? BotD { get; set; }
     }
 }

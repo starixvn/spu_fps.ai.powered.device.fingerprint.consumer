@@ -1,5 +1,6 @@
 ﻿using Device.FingerPrint.Core;
 using Device.FingerPrint.Model;
+using Device.FingerPrint.QueueConsumer.Models;
 using Fanex.Logging;
 using System;
 

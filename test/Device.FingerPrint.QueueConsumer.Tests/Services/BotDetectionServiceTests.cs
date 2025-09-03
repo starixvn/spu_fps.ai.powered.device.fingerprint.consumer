@@ -1,6 +1,7 @@
 ﻿using Xunit;
 using Device.FingerPrint.QueueConsumer.Services;
 using Device.FingerPrint.Model;
+using Device.FingerPrint.QueueConsumer.Models;
 
 namespace Device.FingerPrint.QueueConsumer.Tests.Services
 {

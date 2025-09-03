@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Device.FingerPrint.QueueConsumer.Models;
 
 namespace Device.FingerPrint.QueueConsumer.Tests.Handlers
 {

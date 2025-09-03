@@ -51,7 +51,6 @@ namespace Device.FingerPrint.Features.Transaction.Services
                 FingerprintCode = transaction.FingerprintCode,
                 FingerprintMoreInfo = transaction.FingerprintMoreInfo,
                 FlaggedCode = transaction.FlaggedCode,
-                FPSTransId = transaction.FPSTransId,
                 InvalidDevice = transaction.InvalidDevice,
                 IP = transaction.IP,
                 IPId = transaction.IPId,

@@ -1,10 +1,8 @@
-﻿using Xunit;
-using Moq;
+﻿using Device.FingerPrint.Core;
+using Device.FingerPrint.QueueConsumer.Models;
 using Device.FingerPrint.QueueConsumer.Services;
-using Device.FingerPrint.Model;
-using Device.FingerPrint.Core;
 using Fanex.Logging;
-using System;
+using Moq;
 
 namespace Device.FingerPrint.QueueConsumer.Tests.Services
 {

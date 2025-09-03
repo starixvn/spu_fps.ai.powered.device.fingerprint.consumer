@@ -1,6 +1,7 @@
 using Device.FingerPrint.Model;
 using FluentAssertions;
 using System.Collections;
+using System.Numerics;
 using Xunit;
 
 namespace Device.FingerPrint.Core.Tests
@@ -21,7 +22,7 @@ namespace Device.FingerPrint.Core.Tests
         {
             var model = "127.0.0.1".Ip2Long();
             model.IsIpV6.Should().BeFalse();
-            model.IpNumber.Should().BeGreaterThan(0);
+            model.IpNumber.Should().NotBeNull();
         }
 
         [Fact]

@@ -2,7 +2,7 @@
 {
     public class SessionKeyModel
     {
-        public string SessionKey { get; set; }
+        public string? SessionKey { get; set; }
 
         public int RedisDbIndex { get; set; }
     }

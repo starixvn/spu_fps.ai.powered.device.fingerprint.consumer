@@ -3,6 +3,7 @@
     using Device.FingerPrint.Core;
     using Device.FingerPrint.Features.Transaction.Services;
     using Device.FingerPrint.Model;
+    using Device.FingerPrint.QueueConsumer.Models;
     using Device.FingerPrint.Redis;
     using Fanex.Logging;
     using Newtonsoft.Json;

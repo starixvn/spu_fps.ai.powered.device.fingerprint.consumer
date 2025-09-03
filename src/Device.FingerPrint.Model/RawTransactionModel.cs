@@ -8,9 +8,9 @@ namespace Device.FingerPrint.Model
     [DelimitedRecord("|")]
     public class RawTransactionModel
     {
-        public string LoginName { get; set; }
+        public string? LoginName { get; set; }
 
-        public string SubscriberName { get; set; }
+        public string? SubscriberName { get; set; }
 
         public int SubscriberId { get; set; }
 
@@ -20,33 +20,33 @@ namespace Device.FingerPrint.Model
         [FieldConverter(ConverterKind.Date, "yyyy-MM-dd HH:mm:ss.ffff")]
         public DateTime CreatedDate { get; set; }
 
-        public string DeviceCode { get; set; }
+        public string? DeviceCode { get; set; }
 
-        public string FingerprintCode { get; set; }
+        public string? FingerprintCode { get; set; }
 
-        public string FingerprintMoreInfo { get; set; }
+        public string? FingerprintMoreInfo { get; set; }
 
-        public string UserAgent { get; set; }
+        public string? UserAgent { get; set; }
 
-        public string IP { get; set; }
+        public string? IP { get; set; }
 
-        public string FakeIP { get; set; }
+        public string? FakeIP { get; set; }
 
         [FieldConverter(typeof(ConvertBigInteger))]
-        public BigInteger IPId { get; set; }
+        public BigInteger? IPId { get; set; }
 
         [FieldHidden]
         public bool IsIPV6 { get; set; }
 
         public int PluginID { get; set; }
 
-        public string URL { get; set; }
+        public string? URL { get; set; }
 
-        public string Action { get; set; }
+        public string? Action { get; set; }
 
-        public string ActionResult { get; set; }
+        public string? ActionResult { get; set; }
 
-        public string InvalidDevice { get; set; }
+        public string? InvalidDevice { get; set; }
 
         public int TransStatus { get; set; }
 
@@ -54,84 +54,82 @@ namespace Device.FingerPrint.Model
         public int TransId { get; set; }
 
         [FieldConverter(typeof(ConvertBigInteger))]
-        public BigInteger FPSTransId { get; set; }
+        public BigInteger? FPSTransId { get; set; }
 
-        public string SessionKey { get; set; }
+        public string? SessionKey { get; set; }
 
-        public string FlaggedCode { get; set; }
+        public string? FlaggedCode { get; set; }
 
-        public string BotDetection { get; set; }
+        public string? BotDetection { get; set; }
 
-        public string BotComponent { get; set; }
+        public string? BotComponent { get; set; }
 
-        public string Country { get; set; }
+        public string? Country { get; set; }
 
-        public string CountryCode { get; set; }
+        public string? CountryCode { get; set; }
 
-        public string Region { get; set; }
+        public string? Region { get; set; }
 
-        public string City { get; set; }
+        public string? City { get; set; }
 
-        public string ISP { get; set; }
+        public string? ISP { get; set; }
 
         public long IPInfoCode { get; set; }
 
-        public string FPTagging { get; set; }
+        public string? FPTagging { get; set; }
 
-        public string FPFingerPrintCode { get; set; }
+        public string? FPFingerPrintCode { get; set; }
 
-        public string FPFingerPrintExtraCode { get; set; }
+        public string? FPFingerPrintExtraCode { get; set; }
 
-        public string FPFingerPrintOldCode { get; set; }
+        public string? FPFingerPrintOldCode { get; set; }
 
-        public string FPUserAgentCode { get; set; }
+        public string? FPUserAgentCode { get; set; }
 
-        public InsertFPFingerprintEntity FingerprintAttribute { get; set; }
+        public InsertFPFingerprintEntity? FingerprintAttribute { get; set; }
 
-        public string ChallengeCode { get; set; }
+        public string? ChallengeCode { get; set; }
 
-        public string RawUserAgent { get; set; }
+        public string? RawUserAgent { get; set; }
 
-        public UserAgentInfoModel UserAgentInfo { get; set; }
-
-        public JSChallengeInfo RawJsChallengeInfo { get; set; }
+        public UserAgentInfoModel? UserAgentInfo { get; set; }
 
         public bool? IsIncognitoMode { get; set; }
 
-        public string ScriptVersion { get; set; }
+        public string? ScriptVersion { get; set; }
 
-        public string MBDeviceCodeMediaDRM { get; set; }
+        public string? MBDeviceCodeMediaDRM { get; set; }
 
-        public string MBDeviceCodeMachine { get; set; }
+        public string? MBDeviceCodeMachine { get; set; }
 
-        public string MBDeviceCodeTagging { get; set; }
+        public string? MBDeviceCodeTagging { get; set; }
 
         public bool MBIsMobileApp { get; set; }
 
         public bool MBIsEmulator { get; set; }
 
-        public string MBModelName { get; set; }
+        public string? MBModelName { get; set; }
 
-        public string MBManufacturer { get; set; }
+        public string? MBManufacturer { get; set; }
 
-        public string MBBrand { get; set; }
+        public string? MBBrand { get; set; }
 
-        public string MBSDKVersion { get; set; }
+        public string? MBSDKVersion { get; set; }
 
-        public string MBOS { get; set; }
+        public string? MBOS { get; set; }
 
-        public string MBTimezone { get; set; }
+        public string? MBTimezone { get; set; }
 
-        public string MBLanguage { get; set; }
+        public string? MBLanguage { get; set; }
 
-        public string MBCountry { get; set; }
+        public string? MBCountry { get; set; }
 
-        public string MBDeviceDetails { get; set; }
+        public string? MBDeviceDetails { get; set; }
     }
 
     public class ConvertBigInteger : ConverterBase
     {
-        public override object StringToField(string from)
+        public override object StringToField(string? from)
         {
             return from;
         }
