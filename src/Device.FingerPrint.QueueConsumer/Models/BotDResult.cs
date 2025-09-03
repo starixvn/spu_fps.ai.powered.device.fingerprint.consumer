@@ -4,6 +4,6 @@
     {
         public bool Bot { get; set; }
 
-        public string BotKind { get; set; }
+        public string? BotKind { get; set; }
     }
 }

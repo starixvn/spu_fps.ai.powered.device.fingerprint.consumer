@@ -33,7 +33,7 @@
                     return TransformDeviceInfo(deviceInfo);
                 }
             }
-            catch (Exception ex)
+            catch
             {
                 // Error logging commented out - not needed for production
             }
