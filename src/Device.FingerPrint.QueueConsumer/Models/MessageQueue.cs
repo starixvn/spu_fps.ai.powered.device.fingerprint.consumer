@@ -35,5 +35,9 @@
         public string? BotD { get; set; }
 
         public MobileModel? Mobile { get; set; }
+
+        public string? WebRTCIP { get; set; }
+
+        public APFingerprintModel? FingerPrint { get; set; }
     }
 }

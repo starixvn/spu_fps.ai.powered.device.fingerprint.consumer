@@ -86,6 +86,12 @@ namespace Device.FingerPrint.Model
         public string? MBCountry { get; set; }
 
         public string? MBDeviceDetails { get; set; }
+
+        public string? WebRTCIP { get; set; }
+
+        public string? FPPatternCode01 { get; set; }
+
+        public string? FPPatternCode02 { get; set; }
     }
 
     public class ConvertBigInteger : ConverterBase

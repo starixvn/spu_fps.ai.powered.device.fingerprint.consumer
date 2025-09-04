@@ -164,22 +164,6 @@ namespace Device.FingerPrint.QueueConsumer.Tests.Services
         }
 
         [Fact]
-        public void InsertOrUpdateEverTagging_WithException_Should_Handle_Gracefully()
-        {
-            // Arrange
-            var hashKey = "TestHash";
-            var everTaggings = new List<string> { "tag1" };
-            var expireSecond = 3600L;
-
-            _mockDatabase.Setup(x => x.StringSet(It.IsAny<StackExchange.Redis.RedisKey>(), It.IsAny<RedisValue>(), It.IsAny<TimeSpan?>(), It.IsAny<When>(), It.IsAny<CommandFlags>()))
-                        .Throws(new Exception("Redis error"));
-
-            // Act & Assert - Should not throw
-            var exception = Record.Exception(() => _service.InsertOrUpdateEverTagging(hashKey, everTaggings, expireSecond));
-            Assert.Null(exception);
-        }
-
-        [Fact]
         public void TransformRawTransaction_WithVer3BotDetection_Should_Use_Detection_Property()
         {
             // Arrange

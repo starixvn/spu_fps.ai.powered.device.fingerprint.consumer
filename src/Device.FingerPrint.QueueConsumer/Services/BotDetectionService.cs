@@ -45,7 +45,7 @@
 
                     if (!string.IsNullOrEmpty(botD) && Utilities.IsValidJson(botD))
                     {
-                        return JsonConvert.DeserializeObject<BotDModel>(botD);
+                        return JsonConvert.DeserializeObject<BotDModel>(botD) ?? new BotDModel();
                     }
                 }
                 catch (Exception ex)

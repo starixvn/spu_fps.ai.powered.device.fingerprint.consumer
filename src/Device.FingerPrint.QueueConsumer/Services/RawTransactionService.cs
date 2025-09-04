@@ -2,185 +2,224 @@
 {
     using Device.FingerPrint.Core;
     using Device.FingerPrint.Model;
-    using Device.FingerPrint.Redis;
+    using Device.FingerPrint.QueueConsumer.Models;
     using Device.FingerPrint.TransactionAPI.Model;
     using Fanex.Logging;
-    using StackExchange.Redis;
     using System;
     using System.Collections;
-    using System.Collections.Generic;
-    using System.Linq;
 
     public interface IRawTransactionService
     {
         RawTransactionModel TransformRawTransaction(MessageQueue message);
-
-        void InsertOrUpdateEverTagging(string hashKey, IEnumerable<string> everTaggings, long expireSecond);
-
     }
 
     public class RawTransactionService : IRawTransactionService
     {
+        private const int TRANS_BIT_ARRAY_SIZE = 16;
+        private const int DEFAULT_PLUGIN_ID = 0;
+        private const string DEVICE_NOT_AVAILABLE = "N/A";
+        private const string DATETIME_FORMAT = "yyyy-MM-dd HH:mm:ss.ffff";
+
         private readonly IDeviceService deviceService;
         private readonly IBotDetectionService botDetectionService;
         private readonly IAppSettings appSettings;
-        private readonly IDatabase everTaggingRedisDB;
 
         public RawTransactionService(
-            IRedisMultiplexDbService redisMultiplexService,
             IDeviceService deviceService,
             IBotDetectionService botDetectionService,
-            IAppSettings appSettings
-        )
+            IAppSettings appSettings)
         {
-            this.deviceService = deviceService;
-            this.botDetectionService = botDetectionService;
-            this.appSettings = appSettings;
-
-            this.everTaggingRedisDB = redisMultiplexService.GetDatabase(appSettings.EverTaggingDBIndex);
+            this.deviceService = deviceService ?? throw new ArgumentNullException(nameof(deviceService));
+            this.botDetectionService = botDetectionService ?? throw new ArgumentNullException(nameof(botDetectionService));
+            this.appSettings = appSettings ?? throw new ArgumentNullException(nameof(appSettings));
         }
 
         public RawTransactionModel TransformRawTransaction(MessageQueue message)
         {
+            if (message == null)
+            {
+                LogError("Message cannot be null");
+                return null;
+            }
+
             try
             {
-                var (deviceInfo, url, userAgent, invalidDevice) = ProcessDeviceInfo(message);
-                var transBit = ProcessDeviceValidation(deviceInfo);
-                var (botDModel, flaggedCode, botDetection) = ProcessBotDetection(message, deviceInfo, userAgent);
-                var (realIP, ipConverted) = ProcessIPInfo(message);
+                var deviceProcessingResult = ProcessDeviceInfo(message);
+                var deviceValidationResult = ProcessDeviceValidation(deviceProcessingResult.DeviceInfo);
+                var botDetectionResult = ProcessBotDetection(message, deviceProcessingResult.DeviceInfo, deviceProcessingResult.UserAgent);
+                var ipProcessingResult = ProcessIPInfo(message);
 
-                return CreateRawTransactionModel(message, deviceInfo, url, userAgent, invalidDevice, transBit, botDModel, flaggedCode, botDetection, realIP, ipConverted);
+                return CreateRawTransactionModel(
+                    message,
+                    deviceProcessingResult,
+                    deviceValidationResult,
+                    botDetectionResult,
+                    ipProcessingResult);
             }
             catch (Exception ex)
             {
-                _ = LogService.ErrorAsync($"{appSettings.Environment} - TransformRawTransaction has error:\n {ex.Message}");
+                LogError($"TransformRawTransaction failed: {ex.Message}", ex);
                 return null;
             }
         }
 
-        private (DeviceInfoModel deviceInfo, string url, string userAgent, string invalidDevice) ProcessDeviceInfo(MessageQueue message)
+        private DeviceProcessingResult ProcessDeviceInfo(MessageQueue message)
         {
             var deviceInfo = new DeviceInfoModel();
             var url = string.Empty;
             var userAgent = string.Empty;
-            var invalidDevice = string.Empty;
+            var originalDeviceCode = string.Empty;
 
             if (message.Device != null)
             {
-                var deviceCode = message.Device.Di;
-                deviceInfo = deviceService.GetDeviceInfo(deviceCode, message);
-                url = message.Device.Url;
-                userAgent = message.Device.UserAgent;
-                invalidDevice = deviceCode; // Store the original device code for potential use
+                originalDeviceCode = message.Device.Di ?? string.Empty;
+                deviceInfo = deviceService.GetDeviceInfo(originalDeviceCode, message);
+                url = message.Device.Url ?? string.Empty;
+                userAgent = message.Device.UserAgent ?? string.Empty;
             }
 
-            return (deviceInfo, url, userAgent, invalidDevice);
+            return new DeviceProcessingResult(deviceInfo, url, userAgent, originalDeviceCode);
         }
 
-        private BitArray ProcessDeviceValidation(DeviceInfoModel deviceInfo)
+        private static BitArray ProcessDeviceValidation(DeviceInfoModel deviceInfo)
         {
-            var transBit = new BitArray(16);
+            var transBit = new BitArray(TRANS_BIT_ARRAY_SIZE);
 
-            if (string.IsNullOrWhiteSpace(deviceInfo.DeviceNo) || deviceInfo.DeviceNo == "N/A")
+            if (IsDeviceCodeEmpty(deviceInfo.DeviceNo))
             {
                 deviceInfo.DeviceNo = null;
                 transBit.Set((int)TransStatus.DeviceCodeIsEmpty, true);
             }
-            else if (!Utilities.IsGuidDeviceId(deviceInfo.DeviceNo) || deviceInfo.InvalidDeviceId)
+            else if (IsDeviceCodeInvalid(deviceInfo))
             {
-                // Keep the original device code (invalidDevice) as is, don't overwrite it
                 deviceInfo.DeviceNo = null;
                 transBit.Set((int)TransStatus.InvalidDI, true);
-            }
-            else
-            {
-                // Device validation passed - no action needed
             }
 
             return transBit;
         }
 
-        private (BotDModel botDModel, string flaggedCode, string botDetection) ProcessBotDetection(MessageQueue message, DeviceInfoModel deviceInfo, string userAgent)
+        private BotDetectionResult ProcessBotDetection(MessageQueue message, DeviceInfoModel deviceInfo, string userAgent)
         {
             var botDModel = botDetectionService.TransformBotdModel(message);
-            var flaggedCode = botDetectionService.GetFlaggedCode(botDModel, deviceInfo.DeviceNo, userAgent);
-            var botDetection = botDModel?.IsVer3 == true ? botDModel?.Detection : botDetectionService.GetBotDetectionTrue(botDModel);
+            var flaggedCode = botDetectionService.GetFlaggedCode(botDModel, deviceInfo.DeviceNo ?? string.Empty, userAgent ?? string.Empty);
+            var botDetection = DetermineBotDetection(botDModel);
 
-            return (botDModel, flaggedCode, botDetection);
+            return new BotDetectionResult(botDModel, flaggedCode, botDetection);
         }
 
-        private (string realIP, IpModel ipConverted) ProcessIPInfo(MessageQueue message)
+        private static IpProcessingResult ProcessIPInfo(MessageQueue message)
         {
             var realIP = message.IP?.Trim();
-            var ipConverted = realIP.Ip2Long();
+            var ipConverted = realIP?.Ip2Long();
 
-            return (realIP, ipConverted);
+            return new IpProcessingResult(realIP, ipConverted);
         }
 
-
-#pragma warning disable S107
-        private RawTransactionModel CreateRawTransactionModel(
+        private static RawTransactionModel CreateRawTransactionModel(
             MessageQueue message,
-            DeviceInfoModel deviceInfo,
-            string url,
-            string userAgent,
-            string invalidDevice,
+            DeviceProcessingResult deviceResult,
             BitArray transBit,
-            BotDModel botDModel,
-            string flaggedCode,
-            string botDetection,
-            string realIP,
-            IpModel ipConverted)
+            BotDetectionResult botResult,
+            IpProcessingResult ipResult)
         {
+            var fingerPrint = GenerateFingerPrintSample();
+            fingerPrint?.GenerateAllPatternCodes();
+
             return new RawTransactionModel
             {
-                DeviceCode = deviceInfo.DeviceNo,
-                InvalidDevice = string.IsNullOrWhiteSpace(invalidDevice) ? null : invalidDevice,
+                DeviceCode = deviceResult.DeviceInfo.DeviceNo,
+                InvalidDevice = GetInvalidDeviceCode(deviceResult.OriginalDeviceCode),
                 TransStatus = Core.Utilities.ConvertBitArray2Int(transBit),
                 LoginName = message.Account,
                 SubscriberName = message.Subscriber,
                 SubscriberId = message.SubscriberId,
-                TransTime = Convert.ToDateTime(message.TransDate.ToString("yyyy-MM-dd HH:mm:ss.ffff", System.Globalization.CultureInfo.InvariantCulture)),
-                PluginID = 0,
-                URL = string.IsNullOrWhiteSpace(url) ? Utilities.ConvertNA2Empty(Utilities.SubStringUrl(deviceInfo.HRef)) : Utilities.SubStringUrl(url),
+                TransTime = ParseTransactionTime(message.TransDate),
+                PluginID = DEFAULT_PLUGIN_ID,
+                URL = GetProcessedUrl(deviceResult),
                 Action = message.Action,
                 ActionResult = message.ActionResult,
-                UserAgent = string.IsNullOrWhiteSpace(userAgent)
-                    ? Utilities.ConvertNA2Empty(Utilities.StripUnicodeCharactersFromString(deviceInfo.UserAgent))
-                    : Utilities.StripUnicodeCharactersFromString(userAgent),
+                UserAgent = GetProcessedUserAgent(deviceResult),
                 SessionKey = message.SessionKey,
-                FlaggedCode = flaggedCode,
-                BotDetection = botDetection,
-                BotComponent = botDModel?.Component ?? string.Empty,
-                IP = realIP,
-                IPId = ipConverted.IpNumber,
+                FlaggedCode = botResult.FlaggedCode,
+                BotDetection = botResult.BotDetection,
+                BotComponent = botResult.BotDModel?.Component ?? string.Empty,
+                IP = ipResult.RealIP,
+                IPId = ipResult.IpConverted?.IpNumber ?? 0,
                 FakeIP = message.FakeIP?.Trim(),
-                IsIPV6 = ipConverted.IsIpV6,
-                ScriptVersion = deviceInfo.Version
+                IsIPV6 = ipResult.IpConverted?.IsIpV6 ?? false,
+                ScriptVersion = deviceResult.DeviceInfo.Version,
+                WebRTCIP = message.WebRTCIP?.Trim(),
+                FPPatternCode01 = fingerPrint?.FPPatternCode01,
+                FPPatternCode02 = fingerPrint?.FPPatternCode02
             };
         }
-#pragma warning restore S107
 
-        public void InsertOrUpdateEverTagging(string hashKey, IEnumerable<string> everTaggings, long expireSecond)
+        private static APFingerprintModel GenerateFingerPrintSample()
         {
-            try
+            return new APFingerprintModel
             {
-                foreach (var code in everTaggings)
-                {
-                    var expiry = TimeSpan.FromSeconds(expireSecond);
-
-                    everTaggingRedisDB.StringSet(
-                        key: $"{hashKey}:{code}",
-                        value: DateTimeOffset.Now.ToString(),
-                        expiry: expiry,
-                        flags: CommandFlags.FireAndForget
-                    );
-                }
-            }
-            catch (Exception ex)
-            {
-                _ = QueueConsumer.Utilities.LogErrorAsync(ex);
-            }
+                Audio = "{\"sampleRate\":44100,\"channelCount\":2,\"fingerprint\":\"audiofp123456\"}",
+                Browser = "{\"userAgent\":\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/115.0.0.0 Safari/537.36\",\"language\":\"en-US\",\"languages\":[\"en-US\",\"en\"],\"doNotTrack\":\"1\",\"cookieEnabled\":true,\"javaEnabled\":false,\"timezone\":\"Asia/Ho_Chi_Minh\"}",
+                Hardware = "{\"platform\":\"Win32\",\"architecture\":\"x64\",\"oscpu\":\"Windows NT 10.0; Win64; x64\",\"cpuClass\":\"x86\",\"hardwareConcurrency\":8,\"deviceMemory\":16}",
+                Preferences = "{\"darkMode\":true,\"saveData\":false,\"reducedMotion\":false}",
+                Graphics = "{\"canvas\":{\"fingerprint\":\"ab12cd34ef56\",\"status\":\"success\",\"width\":300,\"height\":150},\"webglBasics\":{\"vendor\":\"Google Inc.\",\"renderer\":\"ANGLE (NVIDIA GeForce GTX 1650 Direct3D11 vs_5_0 ps_5_0)\",\"version\":\"WebGL 1.0\",\"shadingLanguageVersion\":\"WebGL GLSL ES 1.0\"},\"fonts\":{\"installed\":[\"Arial\",\"Verdana\",\"Times New Roman\"]},\"screenResolution\":{\"width\":1920,\"height\":1080},\"colorDepth\":{\"value\":24}}"
+            };
         }
+
+        // Helper methods
+        private static bool IsDeviceCodeEmpty(string deviceNo) =>
+            string.IsNullOrWhiteSpace(deviceNo) || deviceNo == DEVICE_NOT_AVAILABLE;
+
+        private static bool IsDeviceCodeInvalid(DeviceInfoModel deviceInfo)
+        {
+            return !Utilities.IsGuidDeviceId(deviceInfo.DeviceNo ?? string.Empty) || deviceInfo.InvalidDeviceId;
+        }
+
+        private string? DetermineBotDetection(BotDModel botDModel)
+        {
+            return botDModel?.IsVer3 == true
+                ? botDModel?.Detection
+                : botDetectionService.GetBotDetectionTrue(botDModel);
+        }
+
+        private static string? GetInvalidDeviceCode(string originalDeviceCode)
+        {
+            return string.IsNullOrWhiteSpace(originalDeviceCode) ? null : originalDeviceCode;
+        }
+
+        private static DateTime ParseTransactionTime(DateTime transDate)
+        {
+            return Convert.ToDateTime(transDate.ToString(DATETIME_FORMAT, System.Globalization.CultureInfo.InvariantCulture));
+        }
+
+        private static string GetProcessedUrl(DeviceProcessingResult deviceResult)
+        {
+            return string.IsNullOrWhiteSpace(deviceResult.Url)
+                ? Utilities.ConvertNA2Empty(Utilities.SubStringUrl(deviceResult.DeviceInfo.HRef))
+                : Utilities.SubStringUrl(deviceResult.Url);
+        }
+
+        private static string GetProcessedUserAgent(DeviceProcessingResult deviceResult)
+        {
+            return string.IsNullOrWhiteSpace(deviceResult.UserAgent)
+                ? Utilities.ConvertNA2Empty(Utilities.StripUnicodeCharactersFromString(deviceResult.DeviceInfo.UserAgent))
+                : Utilities.StripUnicodeCharactersFromString(deviceResult.UserAgent);
+        }
+
+        private void LogError(string message, Exception? exception = null)
+        {
+            var fullMessage = $"{appSettings.Environment} - {message}";
+            if (exception != null)
+            {
+                fullMessage += $"\n{exception}";
+            }
+            _ = LogService.ErrorAsync(fullMessage);
+        }
+
+        // Result records
+        private sealed record DeviceProcessingResult(DeviceInfoModel DeviceInfo, string Url, string UserAgent, string OriginalDeviceCode);
+        private sealed record BotDetectionResult(BotDModel? BotDModel, string? FlaggedCode, string? BotDetection);
+        private sealed record IpProcessingResult(string? RealIP, IpModel? IpConverted);
     }
 }

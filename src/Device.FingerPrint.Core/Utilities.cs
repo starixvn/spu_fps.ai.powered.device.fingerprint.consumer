@@ -12,89 +12,66 @@ namespace Device.FingerPrint.Core
 {
     public static class Utilities
     {
-        private const int _TotalRedisDB = 16;
+        private const int TOTAL_REDIS_DB = 16;
+        private const int MAX_ANSI_CODE = 255;
+        private const int IPV4_BYTE_LENGTH = 4;
+        private const int IPV6_BYTE_LENGTH = 16;
+        private const int BASE64_MODULO = 4;
+        private const int BIT_ARRAY_PADDING_LENGTH = 8;
+        private const int UNICODE_REGEX_TIMEOUT_SECONDS = 1;
+        private const int MIN_SEGMENTS_FOR_CASINO_COLLAPSE = 4;
+        
+        private const string NOT_AVAILABLE = "N/A";
+        private const string CASINO_PATH = "casino";
+        private const string COLLAPSED_CASINO_PATH_FORMAT = "/casino/.../casino/{0}";
+        private const string ENCODED_DATA_FORMAT = "{0}#{1}#{2}#{3}#{4}";
+        
+        private static readonly Regex UnicodeRegex = new Regex(
+            @"[^\u0000-\u007F]", 
+            RegexOptions.Compiled, 
+            TimeSpan.FromSeconds(UNICODE_REGEX_TIMEOUT_SECONDS));
 
         public static bool IsGuidDeviceId(string deviceCode)
         {
-            Guid newGuid;
-
-            return Guid.TryParse(deviceCode, out newGuid);
+            return Guid.TryParse(deviceCode, out _);
         }
 
         public static IpModel Ip2Long(this string ipAddress)
         {
-            var isValid = IPAddress.TryParse(ipAddress, out IPAddress ipAd);
-
-            if (!isValid)
+            if (!IPAddress.TryParse(ipAddress, out IPAddress ipAddress2))
             {
-                return new IpModel
-                {
-                    IpNumber = -1,
-                    IsIpV6 = false
-                };
+                return CreateInvalidIpModel();
             }
 
-            BigInteger ipnum = 0;
-
-            byte[] addrBytes = ipAd.GetAddressBytes();
-
-            if (BitConverter.IsLittleEndian)
-            {
-                var byteList = new List<byte>(addrBytes);
-                byteList.Reverse();
-                addrBytes = byteList.ToArray();
-            }
-
-            if (addrBytes.Length > 8)
-            {
-                //IPv6
-                ipnum = BitConverter.ToUInt64(addrBytes, 8);
-                ipnum <<= 64;
-                ipnum += BitConverter.ToUInt64(addrBytes, 0);
-
-                return new IpModel
-                {
-                    IpNumber = ipnum,
-                    IsIpV6 = true
-                };
-            }
-            else
-            {
-                //IPv4
-                ipnum = BitConverter.ToUInt32(addrBytes, 0);
-
-                return new IpModel
-                {
-                    IpNumber = ipnum,
-                    IsIpV6 = false
-                };
-            }
+            return ConvertToIpModel(ipAddress2);
         }
 
         public static int ConvertBitArray2Int(BitArray bitArray)
         {
-            var binString = ToBitString(bitArray);
+            if (bitArray == null)
+                throw new ArgumentNullException(nameof(bitArray));
 
+            var binString = ToBitString(bitArray);
             return Convert.ToInt32(binString, 2);
         }
 
         public static int[] ConvertInt2BitArray(int input)
         {
-            string s = Convert.ToString(input, 2);
-
-            return s.PadLeft(8, '0')
-                         .Select(c => int.Parse(c.ToString()))
-                         .ToArray();
+            string binaryString = Convert.ToString(input, 2);
+            return binaryString.PadLeft(BIT_ARRAY_PADDING_LENGTH, '0')
+                              .Select(c => int.Parse(c.ToString()))
+                              .ToArray();
         }
 
         public static string ToBitString(BitArray bits)
         {
-            var sb = new StringBuilder();
+            if (bits == null)
+                return string.Empty;
 
+            var sb = new StringBuilder(bits.Count);
             for (var i = 0; i < bits.Count; i++)
             {
-                char c = bits[i] ? '1' : '0';
-                sb.Append(c);
+                sb.Append(bits[i] ? '1' : '0');
             }
 
             return sb.ToString();
@@ -102,129 +79,69 @@ namespace Device.FingerPrint.Core
 
         public static bool ContainsUnicodeCharacter(string input)
         {
-            const int MaxAnsiCode = 255;
-
-            return input.Any(c => c > MaxAnsiCode);
+            return !string.IsNullOrEmpty(input) && input.Any(c => c > MAX_ANSI_CODE);
         }
 
         public static string ConvertNA2Empty(string data)
         {
-            return data != "N/A" ? data : null;
+            return data == NOT_AVAILABLE ? null : data;
         }
 
-
-#pragma warning disable S3995
         public static string SubStringUrl(string url)
         {
             if (string.IsNullOrEmpty(url))
-            {
                 return null;
-            }
 
-            int cutIndex = url.IndexOfAny(new[] { '?', '#' });
-            var cleanUrl = cutIndex != -1 ? url.Substring(0, cutIndex) : url;
-
+            var cleanUrl = RemoveQueryAndFragment(url);
             return CollapseCasinoPaths(cleanUrl)?.ToString();
-        }
-#pragma warning restore S3995
-
-        private static Uri CollapseCasinoPaths(string rawUrl)
-        {
-            var uri = new Uri(rawUrl);
-            var segments = uri.AbsolutePath.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
-
-            if (segments.Length < 4)
-            {
-                return uri;
-            }
-
-            var first = segments[0];
-            var last = segments[segments.Length - 1];
-
-            for (var i = 1; i < segments.Length - 1; i++)
-            {
-                if (!segments[i].Equals("casino", StringComparison.OrdinalIgnoreCase))
-                {
-                    return uri;
-                }
-            }
-
-            if (first == "casino" && last != "casino")
-            {
-                string shortPath = $"/casino/.../casino/{last}";
-                return new Uri($"{uri.Scheme}://{uri.Host}:{uri.Port}{shortPath}");
-            }
-
-            return uri;
         }
 
         public static string StripUnicodeCharactersFromString(string inputValue)
         {
             if (string.IsNullOrEmpty(inputValue))
-            {
                 return null;
-            }
 
-            return Regex.Replace(inputValue,
-                                @"[^\u0000-\u007F]",
-                                string.Empty,
-                                RegexOptions.None,
-                                TimeSpan.FromSeconds(1) // 1 second timeout
-                            );
+            try
+            {
+                return UnicodeRegex.Replace(inputValue, string.Empty);
+            }
+            catch (RegexMatchTimeoutException)
+            {
+                return inputValue; // Return original if timeout occurs
+            }
         }
 
         public static string EncodeCapturedData(DeviceInfoModel deviceInfo)
         {
-            return Cipher.Encrypt(string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0}#{1}#{2}#{3}#{4}",
+            if (deviceInfo == null)
+                throw new ArgumentNullException(nameof(deviceInfo));
+
+            var dataToEncode = string.Format(
+                System.Globalization.CultureInfo.InvariantCulture,
+                ENCODED_DATA_FORMAT,
                 deviceInfo.Battery,
                 deviceInfo.CapturedDate,
                 deviceInfo.OSName,
                 deviceInfo.TimeZone,
-                deviceInfo.LocalIps));
+                deviceInfo.LocalIps);
+
+            return Cipher.Encrypt(dataToEncode);
         }
 
         public static SessionKeyModel ParseSessionKey(string sessionKey, int defaultRedisDatabase)
         {
-            if (sessionKey == null)
-            {
+            if (string.IsNullOrEmpty(sessionKey))
                 return null;
-            }
 
-            var parts = sessionKey.Split(':');
-            var sessionKeyModel = new SessionKeyModel { RedisDbIndex = defaultRedisDatabase };
-
-            if (parts.Length > 0)
-            {
-                sessionKeyModel.SessionKey = parts[0];
-                if (parts.Length > 1 && int.TryParse(parts[1], out var parsedIndex))
-                {
-                    sessionKeyModel.RedisDbIndex = parsedIndex < _TotalRedisDB ? parsedIndex : defaultRedisDatabase;
-                }
-            }
-            else
-            {
-                sessionKeyModel.SessionKey = sessionKey;
-            }
-
-            if (IsBase64(sessionKeyModel.SessionKey))
-            {
-                return sessionKeyModel;
-            }
-
-            return null;
+            var sessionKeyModel = CreateSessionKeyModel(sessionKey, defaultRedisDatabase);
+            
+            return IsBase64(sessionKeyModel.SessionKey) ? sessionKeyModel : null;
         }
 
         public static bool IsBase64(string base64String)
         {
-            if (string.IsNullOrEmpty(base64String))
-            {
+            if (string.IsNullOrEmpty(base64String) || base64String.Length % BASE64_MODULO != 0)
                 return false;
-            }
-
-            if (base64String.Length % 4 != 0)
-            {
-                return false;
-            }
 
             try
             {
@@ -240,18 +157,147 @@ namespace Device.FingerPrint.Core
         public static string RemoveRedisPrefix(string input, string prefix)
         {
             if (string.IsNullOrEmpty(input))
-            {
                 return string.Empty;
-            }
 
-            #pragma warning disable S1449
-            if (input.StartsWith(prefix))
+            if (string.IsNullOrEmpty(prefix))
+                return input;
+
+            return input.StartsWith(prefix, StringComparison.Ordinal) 
+                ? input.Substring(prefix.Length) 
+                : input;
+        }
+
+        private static IpModel CreateInvalidIpModel()
+        {
+            return new IpModel
             {
-                return input.Replace(prefix, string.Empty);
-            }
-            #pragma warning restore S1449
+                IpNumber = -1,
+                IsIpV6 = false
+            };
+        }
 
-            return input;
+        private static IpModel ConvertToIpModel(IPAddress ipAddress)
+        {
+            byte[] addressBytes = ipAddress.GetAddressBytes();
+            
+            if (BitConverter.IsLittleEndian)
+            {
+                addressBytes = ReverseByteArray(addressBytes);
+            }
+
+            return addressBytes.Length > IPV6_BYTE_LENGTH / 2 
+                ? CreateIPv6Model(addressBytes) 
+                : CreateIPv4Model(addressBytes);
+        }
+
+        private static byte[] ReverseByteArray(byte[] originalBytes)
+        {
+            var byteList = new List<byte>(originalBytes);
+            byteList.Reverse();
+            return byteList.ToArray();
+        }
+
+        private static IpModel CreateIPv6Model(byte[] addressBytes)
+        {
+            BigInteger ipNumber = BitConverter.ToUInt64(addressBytes, 8);
+            ipNumber <<= 64;
+            ipNumber += BitConverter.ToUInt64(addressBytes, 0);
+
+            return new IpModel
+            {
+                IpNumber = ipNumber,
+                IsIpV6 = true
+            };
+        }
+
+        private static IpModel CreateIPv4Model(byte[] addressBytes)
+        {
+            BigInteger ipNumber = BitConverter.ToUInt32(addressBytes, 0);
+
+            return new IpModel
+            {
+                IpNumber = ipNumber,
+                IsIpV6 = false
+            };
+        }
+
+        private static string RemoveQueryAndFragment(string url)
+        {
+            int cutIndex = url.IndexOfAny(new[] { '?', '#' });
+            return cutIndex != -1 ? url.Substring(0, cutIndex) : url;
+        }
+
+        private static Uri CollapseCasinoPaths(string rawUrl)
+        {
+            if (!Uri.TryCreate(rawUrl, UriKind.Absolute, out Uri uri))
+                return null;
+
+            var segments = GetPathSegments(uri);
+            
+            if (!ShouldCollapseCasinoPaths(segments))
+                return uri;
+
+            return CreateCollapsedCasinoUri(uri, segments);
+        }
+
+        private static string[] GetPathSegments(Uri uri)
+        {
+            return uri.AbsolutePath.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
+        }
+
+        private static bool ShouldCollapseCasinoPaths(string[] segments)
+        {
+            if (segments.Length < MIN_SEGMENTS_FOR_CASINO_COLLAPSE)
+                return false;
+
+            var firstSegment = segments[0];
+            var lastSegment = segments[^1];
+
+            // Check if first is casino and last is not casino
+            if (!string.Equals(firstSegment, CASINO_PATH, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(lastSegment, CASINO_PATH, StringComparison.OrdinalIgnoreCase))
+                return false;
+
+            // Check if middle segments are all "casino"
+            for (var i = 1; i < segments.Length - 1; i++)
+            {
+                if (!string.Equals(segments[i], CASINO_PATH, StringComparison.OrdinalIgnoreCase))
+                    return false;
+            }
+
+            return true;
+        }
+
+        private static Uri CreateCollapsedCasinoUri(Uri originalUri, string[] segments)
+        {
+            var lastSegment = segments[^1];
+            var shortPath = string.Format(COLLAPSED_CASINO_PATH_FORMAT, lastSegment);
+            
+            return new Uri($"{originalUri.Scheme}://{originalUri.Host}:{originalUri.Port}{shortPath}");
+        }
+
+        private static SessionKeyModel CreateSessionKeyModel(string sessionKey, int defaultRedisDatabase)
+        {
+            var parts = sessionKey.Split(':');
+            var sessionKeyModel = new SessionKeyModel { RedisDbIndex = defaultRedisDatabase };
+
+            if (parts.Length > 0)
+            {
+                sessionKeyModel.SessionKey = parts[0];
+                
+                if (parts.Length > 1 && 
+                    int.TryParse(parts[1], out var parsedIndex) && 
+                    parsedIndex < TOTAL_REDIS_DB)
+                {
+                    sessionKeyModel.RedisDbIndex = parsedIndex;
+                }
+            }
+            else
+            {
+                sessionKeyModel.SessionKey = sessionKey;
+            }
+
+            return sessionKeyModel;
         }
     }
 }

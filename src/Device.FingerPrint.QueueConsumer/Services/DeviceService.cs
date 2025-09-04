@@ -17,59 +17,45 @@
 
     public class DeviceService : IDeviceService
     {
-
         public DeviceInfoModel GetDeviceInfo(string deviceCode, MessageQueue message)
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(deviceCode) || deviceCode.ToLower(System.Globalization.CultureInfo.CurrentCulture) == "null")
+                if (string.IsNullOrWhiteSpace(deviceCode) || string.Equals(deviceCode, "null", StringComparison.OrdinalIgnoreCase))
                 {
                     return TransformEmptyDeviceInfo();
                 }
 
                 var deviceInfo = DecodeAndDeserializeDeviceInfo(deviceCode);
 
-                if (deviceInfo != null)
-                {
-                    return TransformDeviceInfo(deviceInfo);
-                }
+                return deviceInfo != null ? TransformDeviceInfo(deviceInfo) : TransformEmptyDeviceInfo();
             }
             catch
             {
                 // Error logging commented out - not needed for production
+                return TransformEmptyDeviceInfo();
             }
-
-            return TransformEmptyDeviceInfo();
         }
 
-        private DeviceInfo DecodeAndDeserializeDeviceInfo(string deviceInfo)
+        private static DeviceInfo? DecodeAndDeserializeDeviceInfo(string deviceInfo)
         {
             if (string.IsNullOrEmpty(deviceInfo))
             {
-                return GenerateEmptyDeviceInfo();
+                return null;
             }
 
-            string value = Base64.Decode(deviceInfo);
-
-            return JsonConvert.DeserializeObject<DeviceInfo>(value, JsonSerializerSettingsFactory.Instance);
-        }
-
-        private static DeviceInfo GenerateEmptyDeviceInfo()
-        {
-            return new DeviceInfo
+            try
             {
-                DeviceCode = string.Empty,
-                AppVersion = string.Empty,
-                TimeZone = string.Empty,
-                UserAgent = string.Empty,
-                DeviceId = "N/A",
-                Screen = new DeviceScreen(),
-                HRef = string.Empty,
-                BotD = new BotD()
-            };
+                string value = Base64.Decode(deviceInfo);
+                return JsonConvert.DeserializeObject<DeviceInfo>(value, JsonSerializerSettingsFactory.Instance);
+            }
+            catch
+            {
+                return null;
+            }
         }
 
-        private DeviceInfoModel TransformDeviceInfo(DeviceInfo deviceInfo)
+        private static DeviceInfoModel TransformDeviceInfo(DeviceInfo deviceInfo)
         {
             var botD = new BotDModel();
             try
@@ -95,33 +81,29 @@
 
             return new DeviceInfoModel
             {
-                AppVersion = deviceInfo.AppVersion,
-                Version = deviceInfo.Version,
+                AppVersion = deviceInfo.AppVersion ?? string.Empty,
+                Version = deviceInfo.Version ?? string.Empty,
                 CapturedDate = deviceInfo.CapturedDate ?? DateTimeOffset.Now.Ticks,
-                DeviceFPCode = deviceInfo.DeviceCode,
-                DeviceNo = deviceInfo.DeviceId,
-                HRef = deviceInfo.HRef,
-                NA = deviceInfo.NA,
-                TimeZone = deviceInfo.TimeZone,
-                UserAgent = deviceInfo.UserAgent,
+                DeviceFPCode = deviceInfo.DeviceCode ?? string.Empty,
+                DeviceNo = deviceInfo.DeviceId ?? string.Empty,
+                HRef = deviceInfo.HRef ?? string.Empty,
+                NA = deviceInfo.NA ?? string.Empty,
+                TimeZone = deviceInfo.TimeZone ?? string.Empty,
+                UserAgent = deviceInfo.UserAgent ?? string.Empty,
                 Screen = deviceInfo.Screen == null
-                    ? new ScreenInfoModel
-                    {
-                        ColorDepth = 0,
-                        Height = 0,
-                        Width = 0
-                    }
+                    ? new ScreenInfoModel { ColorDepth = 0, Height = 0, Width = 0 }
                     : new ScreenInfoModel
                     {
                         ColorDepth = deviceInfo.Screen.ColorDepth,
                         Height = deviceInfo.Screen.Height,
                         Width = deviceInfo.Screen.Width
                     },
-                BotD = botD
+                BotD = botD,
+                InvalidDeviceId = false
             };
         }
 
-        private DeviceInfoModel TransformEmptyDeviceInfo()
+        private static DeviceInfoModel TransformEmptyDeviceInfo()
         {
             return new DeviceInfoModel
             {
@@ -131,16 +113,12 @@
                 DeviceNo = string.Empty,
                 HRef = string.Empty,
                 NA = string.Empty,
-                Screen = new ScreenInfoModel
-                {
-                    ColorDepth = 0,
-                    Height = 0,
-                    Width = 0
-                },
+                Screen = new ScreenInfoModel { ColorDepth = 0, Height = 0, Width = 0 },
                 TimeZone = string.Empty,
                 UserAgent = string.Empty,
                 InvalidDeviceId = true,
-                BotD = new BotDModel()
+                BotD = new BotDModel(),
+                Version = string.Empty
             };
         }
     }
