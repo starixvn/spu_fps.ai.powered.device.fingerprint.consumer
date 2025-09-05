@@ -29,7 +29,9 @@ namespace Device.FingerPrint.Model
         private static string? GenerateHashCode(string? input)
         {
             if (string.IsNullOrEmpty(input))
-                return null;
+            {
+                return null;   
+            }
 
             using var md5 = MD5.Create();
             byte[] hashBytes = md5.ComputeHash(Encoding.UTF8.GetBytes(input));

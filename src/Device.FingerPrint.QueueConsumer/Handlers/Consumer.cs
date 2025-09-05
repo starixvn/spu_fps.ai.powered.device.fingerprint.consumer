@@ -31,7 +31,9 @@
             try
             {
                 if (ShouldSkipProcessing(context))
-                    return Task.CompletedTask;
+                {
+                    return Task.CompletedTask;   
+                }
 
                 var rawTransModels = TransformMessages(context.Message);
                 if (rawTransModels.Any())
@@ -89,7 +91,9 @@
             {
                 var transformed = TransformMessage(message.Message);
                 if (transformed != null)
-                    transformedData.Add(transformed);
+                {
+                    transformedData.Add(transformed);   
+                }
             }
             catch (Exception ex)
             {

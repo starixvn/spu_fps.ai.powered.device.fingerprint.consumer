@@ -6,14 +6,12 @@ using System.Linq;
 using System.Net;
 using System.Numerics;
 using System.Text;
-using System.Text.Json;
 using System.Text.RegularExpressions;
 
 namespace Device.FingerPrint.Core
 {
     public static class Utilities
     {
-        private const int TOTAL_REDIS_DB = 16;
         private const int MAX_ANSI_CODE = 255;
         private const int IPV6_BYTE_LENGTH = 16;
         private const int BASE64_MODULO = 4;
@@ -24,7 +22,6 @@ namespace Device.FingerPrint.Core
         private const string NOT_AVAILABLE = "N/A";
         private const string CASINO_PATH = "casino";
         private const string COLLAPSED_CASINO_PATH_FORMAT = "/casino/.../casino/{0}";
-        private const string ENCODED_DATA_FORMAT = "{0}#{1}#{2}#{3}#{4}";
 
         private static readonly Regex UnicodeRegex = new Regex(
             @"[^\u0000-\u007F]",
@@ -49,7 +46,9 @@ namespace Device.FingerPrint.Core
         public static int ConvertBitArray2Int(BitArray bitArray)
         {
             if (bitArray == null)
+            {
                 throw new ArgumentNullException(nameof(bitArray));
+            }
 
             var binString = ToBitString(bitArray);
             return Convert.ToInt32(binString, 2);
@@ -66,7 +65,9 @@ namespace Device.FingerPrint.Core
         public static string ToBitString(BitArray bits)
         {
             if (bits == null)
+            {
                 return string.Empty;
+            }
 
             var sb = new StringBuilder(bits.Count);
             for (var i = 0; i < bits.Count; i++)
@@ -87,19 +88,23 @@ namespace Device.FingerPrint.Core
             return data == NOT_AVAILABLE ? null : data;
         }
 
-        public static string SubStringUrl(string url)
+        public static Uri? SubStringUrl(string url)
         {
             if (string.IsNullOrEmpty(url))
+            {
                 return null;
+            }
 
             var cleanUrl = RemoveQueryAndFragment(url);
-            return CollapseCasinoPaths(cleanUrl)?.ToString();
+            return CollapseCasinoPaths(cleanUrl);
         }
 
         public static string StripUnicodeCharactersFromString(string? inputValue)
         {
             if (string.IsNullOrEmpty(inputValue))
+            {
                 return string.Empty;
+            }
 
             try
             {
@@ -114,7 +119,9 @@ namespace Device.FingerPrint.Core
         public static bool IsBase64(string base64String)
         {
             if (string.IsNullOrEmpty(base64String) || base64String.Length % BASE64_MODULO != 0)
+            {
                 return false;
+            }
 
             try
             {
@@ -200,7 +207,7 @@ namespace Device.FingerPrint.Core
             return cutIndex != -1 ? url.Substring(0, cutIndex) : url;
         }
 
-        private static Uri CollapseCasinoPaths(string rawUrl)
+        private static Uri? CollapseCasinoPaths(string rawUrl)
         {
             if (!Uri.TryCreate(rawUrl, UriKind.Absolute, out Uri uri))
                 return null;
@@ -221,7 +228,9 @@ namespace Device.FingerPrint.Core
         private static bool ShouldCollapseCasinoPaths(string[] segments)
         {
             if (segments.Length < MIN_SEGMENTS_FOR_CASINO_COLLAPSE)
+            {
                 return false;
+            }
 
             var firstSegment = segments[0];
             var lastSegment = segments[^1];

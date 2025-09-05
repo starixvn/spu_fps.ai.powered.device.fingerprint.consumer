@@ -10,7 +10,7 @@
 
     public interface IRawTransactionService
     {
-        RawTransactionModel TransformRawTransaction(MessageQueue message);
+        RawTransactionModel? TransformRawTransaction(MessageQueue message);
     }
 
     public class RawTransactionService(
@@ -28,7 +28,7 @@
         private readonly IBotDetectionService botDetectionService = botDetectionService ?? throw new ArgumentNullException(nameof(botDetectionService));
         private readonly IAppSettings appSettings = appSettings ?? throw new ArgumentNullException(nameof(appSettings));
 
-        public RawTransactionModel TransformRawTransaction(MessageQueue message)
+        public RawTransactionModel? TransformRawTransaction(MessageQueue message)
         {
             if (message == null)
             {
@@ -38,9 +38,6 @@
 
             try
             {
-                message.Device ??= new DeviceModel();
-                message.Device.Di = GenDISample();
-
                 return CreateRawTransactionModel(message);
             }
             catch (Exception ex)
@@ -48,11 +45,6 @@
                 LogError($"TransformRawTransaction failed: {ex.Message}", ex);
                 return null;
             }
-        }
-
-        private static string GenDISample()
-        {
-            return "{\"sk\":\"84e39e4a71ad4aa1acb52c28e29de7aa\",\"v\":\"2.0.1\",\"f4\":\"47665965da83948245218f2098aa76a9\",\"tag\":\"328c9c5f6ead4e2a81f1240b80220ec9\",\"f5\":\"bf360f336c67e06421dbd9d8b356a353\",\"rtc\":\"119.82.130.208\"}";
         }
 
         private static BitArray ValidateDevice(DeviceInfoModel deviceInfo)
@@ -68,6 +60,11 @@
             {
                 deviceInfo.Tagging = null;
                 transBit.Set((int)TransStatus.InvalidDI, true);
+            }
+            else
+            {
+                // Device tagging is valid (GUID format) - no action needed
+                // transBit remains with all flags set to false indicating valid device
             }
 
             return transBit;
@@ -92,23 +89,44 @@
         {
             var deviceInfo = deviceService.GetDeviceInfo(message.Device?.Di, message);
             var transBit = ValidateDevice(deviceInfo);
-            var userAgent = Utilities.StripUnicodeCharactersFromString(Utilities.ConvertNA2Empty(message.Device?.UserAgent));
+            var userAgent = ProcessUserAgent(message);
             var botResult = ProcessBotDetection(message, deviceInfo, userAgent);
             var ipResult = ProcessIP(message);
+            var url = ProcessUrl(message);
 
-            GenerateFingerPrintSample(message);
+            message.FingerPrint?.GenerateGroupHashCodes();
 
-            var url = Utilities.ConvertNA2Empty(Utilities.SubStringUrl(message.Device?.Url ?? string.Empty));
+            return BuildRawTransactionModel(message, deviceInfo, transBit, userAgent, botResult, ipResult, url);
+        }
 
+        private static string ProcessUserAgent(MessageQueue message)
+        {
+            return Utilities.StripUnicodeCharactersFromString(Utilities.ConvertNA2Empty(message.Device?.UserAgent));
+        }
+
+        private static string? ProcessUrl(MessageQueue message)
+        {
+            return Utilities.ConvertNA2Empty(Utilities.SubStringUrl(message.Device?.Url ?? string.Empty)?.ToString());
+        }
+
+        private static RawTransactionModel BuildRawTransactionModel(
+            MessageQueue message, 
+            DeviceInfoModel deviceInfo, 
+            BitArray transBit, 
+            string userAgent, 
+            BotDetectionResult botResult, 
+            IpProcessingResult ipResult, 
+            string? url)
+        {
             return new RawTransactionModel
             {
                 DeviceCode = deviceInfo.Tagging,
-                InvalidDevice = string.IsNullOrWhiteSpace(message.Device?.Di) ? null : message.Device.Di,
+                InvalidDevice = GetInvalidDevice(message.Device?.Di),
                 TransStatus = Utilities.ConvertBitArray2Int(transBit),
                 LoginName = message.Account,
                 SubscriberName = message.Subscriber,
                 SubscriberId = message.SubscriberId,
-                TransTime = Convert.ToDateTime(message.TransDate.ToString(DATETIME_FORMAT, System.Globalization.CultureInfo.InvariantCulture)),
+                TransTime = ParseTransactionTime(message.TransDate),
                 PluginID = DEFAULT_PLUGIN_ID,
                 URL = url,
                 Action = message.Action,
@@ -116,11 +134,11 @@
                 UserAgent = userAgent,
                 FlaggedCode = botResult.FlaggedCode,
                 BotDetection = botResult.BotDetection,
-                BotComponent = botResult.BotDModel?.Component ?? string.Empty,
+                BotComponent = GetBotComponent(botResult.BotDModel),
                 IP = ipResult.RealIP,
-                IPId = ipResult.IpConverted?.IpNumber ?? 0,
+                IPId = GetIpId(ipResult.IpConverted),
                 FakeIP = message.FakeIP?.Trim(),
-                IsIPV6 = ipResult.IpConverted?.IsIpV6 ?? false,
+                IsIPV6 = GetIsIPV6(ipResult.IpConverted),
                 ScriptVersion = deviceInfo.Version,
                 WebRTCIP = deviceInfo.Rtc?.Trim(),
                 FPPatternCode01 = message.FPPatternCode01?.Trim(),
@@ -129,22 +147,29 @@
             };
         }
 
-        private static void GenerateFingerPrintSample(MessageQueue message)
+        private static string GetBotComponent(BotDModel? botDModel)
         {
-            var fp = new APFingerprintModel
-            {
-                Audio = "{\"sampleRate\":44100,\"channelCount\":2,\"fingerprint\":\"audiofp123456\"}",
-                Browser = "{\"userAgent\":\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/115.0.0.0 Safari/537.36\",\"language\":\"en-US\",\"languages\":[\"en-US\",\"en\"],\"doNotTrack\":\"1\",\"cookieEnabled\":true,\"javaEnabled\":false,\"timezone\":\"Asia/Ho_Chi_Minh\"}",
-                Hardware = "{\"platform\":\"Win32\",\"architecture\":\"x64\",\"oscpu\":\"Windows NT 10.0; Win64; x64\",\"cpuClass\":\"x86\",\"hardwareConcurrency\":8,\"deviceMemory\":16}",
-                Preferences = "{\"darkMode\":true,\"saveData\":false,\"reducedMotion\":false}",
-                Graphic = "{\"canvas\":{\"fingerprint\":\"ab12cd34ef56\",\"status\":\"success\",\"width\":300,\"height\":150},\"webglBasics\":{\"vendor\":\"Google Inc.\",\"renderer\":\"ANGLE (NVIDIA GeForce GTX 1650 Direct3D11 vs_5_0 ps_5_0)\",\"version\":\"WebGL 1.0\",\"shadingLanguageVersion\":\"WebGL GLSL ES 1.0\"},\"fonts\":{\"installed\":[\"Arial\",\"Verdana\",\"Times New Roman\"]},\"screenResolution\":{\"width\":1920,\"height\":1080},\"colorDepth\":{\"value\":24}}"
-            };
+            return botDModel?.Component ?? string.Empty;
+        }
 
-            fp.GenerateGroupHashCodes();
+        private static long GetIpId(IpModel? ipModel)
+        {
+            return (long)(ipModel?.IpNumber ?? 0);
+        }
 
-            message.FingerPrint = fp;
-            message.FPPatternCode01 = "FPPatternCode01Sample";
-            message.FPPatternCode02 = "FPPatternCode02Sample";
+        private static bool GetIsIPV6(IpModel? ipModel)
+        {
+            return ipModel?.IsIpV6 ?? false;
+        }
+
+        private static string? GetInvalidDevice(string? deviceId)
+        {
+            return string.IsNullOrWhiteSpace(deviceId) ? null : deviceId;
+        }
+
+        private static DateTime ParseTransactionTime(DateTime transDate)
+        {
+            return Convert.ToDateTime(transDate.ToString(DATETIME_FORMAT, System.Globalization.CultureInfo.InvariantCulture));
         }
 
         // Helper methods
@@ -152,12 +177,13 @@
         {
             var fullMessage = $"{appSettings.Environment} - {message}";
             if (exception != null)
+            {
                 fullMessage += $"\n{exception}";
+            }
             _ = LogService.ErrorAsync(fullMessage);
         }
 
         // Result records
-        private sealed record DeviceProcessingResult(DeviceInfoModel DeviceInfo, string? Url, string? UserAgent, string? OriginalDeviceCode);
         private sealed record BotDetectionResult(BotDModel BotDModel, string? FlaggedCode, string? BotDetection);
         private sealed record IpProcessingResult(string? RealIP, IpModel? IpConverted);
     }
