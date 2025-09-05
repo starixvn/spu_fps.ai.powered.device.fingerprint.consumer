@@ -6,25 +6,25 @@
 
         public string? FPPatternCode02 { get; set; }
 
-        public string? FPGroupHardwareCode { get; set; }
+        public string? HardwareCode { get; set; }
 
-        public string? FPGroupGraphicsCode { get; set; }
+        public string? GraphicCode { get; set; }
 
-        public string? FPGroupAudioCode { get; set; }
+        public string? AudioCode { get; set; }
 
-        public string? FPGroupBrowserCode { get; set; }
+        public string? BrowserCode { get; set; }
 
-        public string? FPGroupPreferencesCode { get; set; }
+        public string? PreferencesCode { get; set; }
 
-        public string? FPGroupHardwareDetails { get; set; }
+        public string? HardwareDetails { get; set; }
 
-        public string? FPGroupGraphicsDetails { get; set; }
+        public string? GraphicDetails { get; set; }
 
-        public string? FPGroupAudioDetails { get; set; }
+        public string? AudioDetails { get; set; }
 
-        public string? FPGroupBrowserDetails { get; set; }
+        public string? BrowserDetails { get; set; }
 
-        public string? FPGroupPreferencesDetails { get; set; }
+        public string? PreferencesDetails { get; set; }
 
         public DateTime CreatedDate { get; set; }
     }

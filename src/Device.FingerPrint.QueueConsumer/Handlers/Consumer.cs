@@ -70,7 +70,7 @@
                 ProcessSingleMessage(message, transformedData, errorList);
             });
 
-            LogErrors(errorList.ToList());
+            LogErrors([.. errorList]);
             return transformedData;
         }
 

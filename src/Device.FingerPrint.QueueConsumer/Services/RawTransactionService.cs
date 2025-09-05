@@ -52,7 +52,7 @@
 
         private static string GenDISample()
         {
-            return "{\"sk\":\"4c6054c9ff0c3fc4b4c2d03dcbc21fa52711ffffa496ec3cca56e2790d6cd21d\",\"f4\":\"11470ce51eaaae4836ec8e8a4fc48f02\",\"tag\":\"328c9c5f6ead4e2a81f1240b80220ec9\",\"f5\":\"c56ff16e37764374e1cb25c952f6aef4\",\"rtc\":\"127.0.0.1;119.82.130.208;119.82.130.209;111.11.111.111\",\"v\":\"1.2.3\"}\r\n";
+            return "{\"sk\":\"84e39e4a71ad4aa1acb52c28e29de7aa\",\"v\":\"2.0.1\",\"f4\":\"47665965da83948245218f2098aa76a9\",\"tag\":\"328c9c5f6ead4e2a81f1240b80220ec9\",\"f5\":\"bf360f336c67e06421dbd9d8b356a353\",\"rtc\":\"119.82.130.208\"}";
         }
 
         private static BitArray ValidateDevice(DeviceInfoModel deviceInfo)
@@ -137,7 +137,7 @@
                 Browser = "{\"userAgent\":\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/115.0.0.0 Safari/537.36\",\"language\":\"en-US\",\"languages\":[\"en-US\",\"en\"],\"doNotTrack\":\"1\",\"cookieEnabled\":true,\"javaEnabled\":false,\"timezone\":\"Asia/Ho_Chi_Minh\"}",
                 Hardware = "{\"platform\":\"Win32\",\"architecture\":\"x64\",\"oscpu\":\"Windows NT 10.0; Win64; x64\",\"cpuClass\":\"x86\",\"hardwareConcurrency\":8,\"deviceMemory\":16}",
                 Preferences = "{\"darkMode\":true,\"saveData\":false,\"reducedMotion\":false}",
-                Graphics = "{\"canvas\":{\"fingerprint\":\"ab12cd34ef56\",\"status\":\"success\",\"width\":300,\"height\":150},\"webglBasics\":{\"vendor\":\"Google Inc.\",\"renderer\":\"ANGLE (NVIDIA GeForce GTX 1650 Direct3D11 vs_5_0 ps_5_0)\",\"version\":\"WebGL 1.0\",\"shadingLanguageVersion\":\"WebGL GLSL ES 1.0\"},\"fonts\":{\"installed\":[\"Arial\",\"Verdana\",\"Times New Roman\"]},\"screenResolution\":{\"width\":1920,\"height\":1080},\"colorDepth\":{\"value\":24}}"
+                Graphic = "{\"canvas\":{\"fingerprint\":\"ab12cd34ef56\",\"status\":\"success\",\"width\":300,\"height\":150},\"webglBasics\":{\"vendor\":\"Google Inc.\",\"renderer\":\"ANGLE (NVIDIA GeForce GTX 1650 Direct3D11 vs_5_0 ps_5_0)\",\"version\":\"WebGL 1.0\",\"shadingLanguageVersion\":\"WebGL GLSL ES 1.0\"},\"fonts\":{\"installed\":[\"Arial\",\"Verdana\",\"Times New Roman\"]},\"screenResolution\":{\"width\":1920,\"height\":1080},\"colorDepth\":{\"value\":24}}"
             };
 
             fp.GenerateGroupHashCodes();

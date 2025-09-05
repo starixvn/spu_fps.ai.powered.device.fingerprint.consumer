@@ -69,17 +69,5 @@
                 return null;
             }
         }
-
-        //private static DeviceInfoModel TransformDeviceInfo(DeviceInfo deviceInfo)
-        //{
-        //    return new DeviceInfoModel
-        //    {
-        //        Tagging = deviceInfo.Tag,
-        //        F4 = deviceInfo.F4,
-        //        F5 = deviceInfo.F5,
-        //        Rtc = deviceInfo.Rtc,
-        //        Version = deviceInfo.Version
-        //    };
-        //}
     }
 }

@@ -24,7 +24,7 @@ namespace Device.FingerPrint.Features.Transaction.Services
 
         public void InsertRawFingerprint(IEnumerable<RawTransactionModel> transactions)
         {
-            var rawFPDetailJson = JsonConvert.SerializeObject(TransformInsertRawFingerprint(transactions)).Replace("\\", "\\\\\\");
+            var rawFPDetailJson = JsonConvert.SerializeObject(TransformInsertRawFingerprint(transactions));
 
             transactionDataAccess.InsertRawFingerprint(rawFPDetailJson);
         }
@@ -88,28 +88,28 @@ namespace Device.FingerPrint.Features.Transaction.Services
                            !string.IsNullOrEmpty(t.FPPatternCode02))
                 .GroupBy(t => new
                 {
-                    t.FingerPrint.FPGroupAudioCode,
-                    t.FingerPrint.FPGroupBrowserCode,
-                    t.FingerPrint.FPGroupGraphicsCode,
-                    t.FingerPrint.FPGroupHardwareCode,
-                    t.FingerPrint.FPGroupPreferencesCode,
+                    t.FingerPrint.AudioCode,
+                    t.FingerPrint.BrowserCode,
+                    t.FingerPrint.GraphicCode,
+                    t.FingerPrint.HardwareCode,
+                    t.FingerPrint.PreferencesCode,
                     t.FPPatternCode01,
                     t.FPPatternCode02
                 })
                 .Select(static group => new InsertRawFingerprintEntity
                 {
-                    FPGroupAudioCode = group.Key.FPGroupAudioCode,
-                    FPGroupBrowserCode = group.Key.FPGroupBrowserCode,
-                    FPGroupGraphicsCode = group.Key.FPGroupGraphicsCode,
-                    FPGroupHardwareCode = group.Key.FPGroupHardwareCode,
-                    FPGroupPreferencesCode = group.Key.FPGroupPreferencesCode,
+                    AudioCode = group.Key.AudioCode,
+                    BrowserCode = group.Key.BrowserCode,
+                    GraphicCode = group.Key.GraphicCode,
+                    HardwareCode = group.Key.HardwareCode,
+                    PreferencesCode = group.Key.PreferencesCode,
                     FPPatternCode01 = group.Key.FPPatternCode01,
                     FPPatternCode02 = group.Key.FPPatternCode02,
-                    FPGroupAudioDetails = group.First().FingerPrint.Audio,
-                    FPGroupBrowserDetails = group.First().FingerPrint.Browser,
-                    FPGroupGraphicsDetails = group.First().FingerPrint.Graphics,
-                    FPGroupHardwareDetails = group.First().FingerPrint.Hardware,
-                    FPGroupPreferencesDetails = group.First().FingerPrint.Preferences,
+                    AudioDetails = group.First().FingerPrint.Audio,
+                    BrowserDetails = group.First().FingerPrint.Browser,
+                    GraphicDetails = group.First().FingerPrint.Graphic,
+                    HardwareDetails = group.First().FingerPrint.Hardware,
+                    PreferencesDetails = group.First().FingerPrint.Preferences,
                     CreatedDate = group.Min(t => t.TransTime.Date)
                 });
         }

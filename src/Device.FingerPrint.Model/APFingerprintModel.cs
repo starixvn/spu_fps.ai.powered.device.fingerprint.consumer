@@ -10,20 +10,20 @@ namespace Device.FingerPrint.Model
         public string? Browser { get; set; }
         public string? Hardware { get; set; }
         public string? Preferences { get; set; }
-        public string? Graphics { get; set; }
-        public string? FPGroupAudioCode { get; set; }
-        public string? FPGroupBrowserCode { get; set; }
-        public string? FPGroupHardwareCode { get; set; }
-        public string? FPGroupPreferencesCode { get; set; }
-        public string? FPGroupGraphicsCode { get; set; }
+        public string? Graphic { get; set; }
+        public string? AudioCode { get; set; }
+        public string? BrowserCode { get; set; }
+        public string? HardwareCode { get; set; }
+        public string? PreferencesCode { get; set; }
+        public string? GraphicCode { get; set; }
 
         public void GenerateGroupHashCodes()
         {
-            FPGroupAudioCode = GenerateHashCode(Audio);
-            FPGroupBrowserCode = GenerateHashCode(Browser);
-            FPGroupHardwareCode = GenerateHashCode(Hardware);
-            FPGroupPreferencesCode = GenerateHashCode(Preferences);
-            FPGroupGraphicsCode = GenerateHashCode(Graphics);
+            AudioCode = GenerateHashCode(Audio);
+            BrowserCode = GenerateHashCode(Browser);
+            HardwareCode = GenerateHashCode(Hardware);
+            PreferencesCode = GenerateHashCode(Preferences);
+            GraphicCode = GenerateHashCode(Graphic);
         }
 
         private static string? GenerateHashCode(string? input)
