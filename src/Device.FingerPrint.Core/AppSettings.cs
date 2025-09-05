@@ -26,25 +26,11 @@ namespace Device.FingerPrint.Core
 
         long RedisExpired { get; }
 
-        string JWTPassword { get; }
-
-        string JWT { get; }
-
-        string JWTIssue { get; }
-
-        string JWTAudience { get; }
-
-        bool IsExtraSub { get; }
-
-        int MaxMonthsGetAssociationByDevice { get; }
-
         long EverTaggingExpireSecond { get; }
 
         int EverTaggingDBIndex { get; }
 
         long ApiEverTaggingCacheMaxAge { get; }
-
-        bool IsDisableJsChallenge { get; }
 
         bool IsVaultEnable { get; }
 
@@ -61,7 +47,6 @@ namespace Device.FingerPrint.Core
 
         public const string DeviceIdEncryptKey = "&％#@?,:*!~^.";
 
-        private readonly string cdnApiUrl;
         private readonly string portalApiUrl;
         private readonly string apiUrl;
         private readonly string spName;
@@ -75,25 +60,11 @@ namespace Device.FingerPrint.Core
         private readonly long redisExpired;
         private readonly int redisDatabase;
 
-        private readonly string jWTPassword;
-
-        private readonly string jWTIssue;
-
-        private readonly string jWTAudience;
-
-        private readonly string jWT;
-
-        private readonly bool isExtraSub;
-
-        private readonly int maxMonthsGetAssociationByDevice;
-
         private readonly long everTaggingExpireSecond;
 
         private readonly int everTaggingDBIndex;
 
         private readonly long apiEverTaggingCacheMaxAge;
-
-        private readonly bool isDisableJsChallenge;
 
         private readonly bool isVaultEnable;
 
@@ -102,16 +73,13 @@ namespace Device.FingerPrint.Core
             this.configuration = configuration;
 
             // Initialize all settings in constructor to avoid readonly field assignment issues
-            var (apiUrlVal, cdnApiUrlVal, portalApiUrlVal, spNameVal, environmentVal, sentryDsnVal) = GetApiSettings();
+            var (apiUrlVal, portalApiUrlVal, spNameVal, environmentVal, sentryDsnVal) = GetApiSettings();
             var (cryptoPasswordVal, cryptoIVVal, cryptoSaltVal) = GetCryptoSettings();
             var (redisDatabaseVal, redisExpiredVal, everTaggingExpireSecondVal, everTaggingDBIndexVal, apiEverTaggingCacheMaxAgeVal) = GetRedisSettings();
-            var (jWTPasswordVal, jWTIssueVal, jWTAudienceVal, jWTVal) = GetJWTSettings();
-            var (isExtraSubVal, maxMonthsGetAssociationByDeviceVal, isDisableJsChallengeVal) = GetConsumerSettings();
             var isVaultEnableVal = GetVaultSettings();
 
             // Assign to readonly fields
             apiUrl = apiUrlVal;
-            cdnApiUrl = cdnApiUrlVal;
             portalApiUrl = portalApiUrlVal;
             spName = spNameVal;
             environment = environmentVal;
@@ -124,21 +92,13 @@ namespace Device.FingerPrint.Core
             everTaggingExpireSecond = everTaggingExpireSecondVal;
             everTaggingDBIndex = everTaggingDBIndexVal;
             apiEverTaggingCacheMaxAge = apiEverTaggingCacheMaxAgeVal;
-            jWTPassword = jWTPasswordVal;
-            jWTIssue = jWTIssueVal;
-            jWTAudience = jWTAudienceVal;
-            jWT = jWTVal;
-            isExtraSub = isExtraSubVal;
-            maxMonthsGetAssociationByDevice = maxMonthsGetAssociationByDeviceVal;
-            isDisableJsChallenge = isDisableJsChallengeVal;
             isVaultEnable = isVaultEnableVal;
         }
 
-        private (string apiUrl, string cdnApiUrl, string portalApiUrl, string spName, string environment, string sentryDsn) GetApiSettings()
+        private (string apiUrl, string portalApiUrl, string spName, string environment, string sentryDsn) GetApiSettings()
         {
             return (
                 GetValue<string>("AppConfig:ApiUrl") ?? string.Empty,
-                GetValue<string>("AppConfig:CDNApiUrl") ?? string.Empty,
                 GetValue<string>("AppConfig:PortalApiUrl") ?? string.Empty,
                 GetValue<string>("StoredProcedurePath") ?? "App_Data",
                 GetValue<string>("AppConfig:Environment") ?? string.Empty,
@@ -172,29 +132,6 @@ namespace Device.FingerPrint.Core
             );
         }
 
-        private (string jWTPassword, string jWTIssue, string jWTAudience, string jWT) GetJWTSettings()
-        {
-            return (
-                GetValue<string>("AppConfig:JWT:Password") ?? "!QAZxdr567890",
-                GetValue<string>("AppConfig:JWT:Issue") ?? string.Empty,
-                GetValue<string>("AppConfig:JWT:Audience") ?? string.Empty,
-                GetValue<string>("AppConfig:JWT") ?? string.Empty
-            );
-        }
-
-        private (bool isExtraSub, int maxMonthsGetAssociationByDevice, bool isDisableJsChallenge) GetConsumerSettings()
-        {
-            var isExtraSubValue = GetValue<string>("Consumer:IsExtraSub");
-            var maxMonthsValue = GetValue<string>("API:MaxMonthsGetAssociationByDevice");
-            var isDisableJsChallengeValue = GetValue<string>("Consumer:IsDisableJsChallenge");
-
-            return (
-                !string.IsNullOrEmpty(isExtraSubValue) && Convert.ToBoolean(isExtraSubValue),
-                Convert.ToInt32(string.IsNullOrEmpty(maxMonthsValue) ? "0" : maxMonthsValue),
-                !string.IsNullOrEmpty(isDisableJsChallengeValue) && Convert.ToBoolean(isDisableJsChallengeValue)
-            );
-        }
-
         private bool GetVaultSettings()
         {
             var isVaultEnableValue = GetValue<string>("VaultOptions:Enable");
@@ -215,29 +152,17 @@ namespace Device.FingerPrint.Core
 
         public string CryptoSalt => cryptoSalt;
 
-        public string CDNApiUrl => cdnApiUrl;
-
         public string PortalApiUrl => portalApiUrl;
 
         public int RedisDatabase => redisDatabase;
 
         public long RedisExpired => redisExpired;
 
-        public string JWTPassword => jWTPassword;
-
-        public string JWT => jWT;
-
-        public bool IsExtraSub => isExtraSub;
-
-        public int MaxMonthsGetAssociationByDevice => maxMonthsGetAssociationByDevice;
-
         public long EverTaggingExpireSecond => everTaggingExpireSecond;
 
         public int EverTaggingDBIndex => everTaggingDBIndex;
 
         public long ApiEverTaggingCacheMaxAge => apiEverTaggingCacheMaxAge;
-
-        public bool IsDisableJsChallenge => isDisableJsChallenge;
 
         public bool IsVaultEnable => isVaultEnable;
 
@@ -265,9 +190,5 @@ namespace Device.FingerPrint.Core
         }
 
         public IConfiguration Configuration => configuration;
-
-        public string JWTIssue => jWTIssue;
-
-        public string JWTAudience => jWTAudience;
     }
 }

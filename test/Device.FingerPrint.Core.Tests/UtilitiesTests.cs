@@ -1,7 +1,5 @@
-using Device.FingerPrint.Model;
 using FluentAssertions;
 using System.Collections;
-using System.Numerics;
 using Xunit;
 
 namespace Device.FingerPrint.Core.Tests
@@ -71,24 +69,6 @@ namespace Device.FingerPrint.Core.Tests
         public void StripUnicode_RemovesNonAscii()
         {
             Utilities.StripUnicodeCharactersFromString("abcĐ").Should().Be("abc");
-        }
-
-        [Fact]
-        public void EncodeCapturedData_ProducesNonEmpty()
-        {
-            var di = new DeviceInfoModel { Battery = "1", CapturedDate = DateTime.Now.Ticks, OSName = "x", TimeZone = "+7", LocalIps = "1.1.1.1" };
-            var encoded = Utilities.EncodeCapturedData(di);
-            encoded.Should().NotBeNullOrEmpty();
-        }
-
-        [Theory]
-        [InlineData("c2Vzc2lvbg==", 0, true)]
-        [InlineData("c2Vzc2lvbg==:1", 0, true)]
-        [InlineData(":1", 0, false)]
-        public void ParseSessionKey_ValidatesBase64(string sessionKey, int defaultDb, bool expectedNotNull)
-        {
-            var model = Utilities.ParseSessionKey(sessionKey, defaultDb);
-            (model != null).Should().Be(expectedNotNull);
         }
     }
 }

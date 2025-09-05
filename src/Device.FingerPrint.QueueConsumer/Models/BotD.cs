@@ -8,4 +8,11 @@
 
         public string? Component { get; set; }
     }
+
+    public class BotDResult
+    {
+        public bool Bot { get; set; }
+
+        public string? BotKind { get; set; }
+    }
 }

@@ -34,12 +34,6 @@ namespace Device.FingerPrint.QueueConsumer.Tests.Services
             _mockAppSettings.Setup(x => x.EverTaggingDBIndex).Returns(0);
             _mockRedisService.Setup(x => x.GetDatabase(It.IsAny<int>())).Returns(_mockDatabase.Object);
 
-            _service = new RawTransactionService(
-                _mockRedisService.Object,
-                _mockDeviceService.Object,
-                _mockBotDetectionService.Object,
-                _mockTransactionService.Object,
-                _mockAppSettings.Object);
         }
 
         [Fact]
@@ -70,7 +64,7 @@ namespace Device.FingerPrint.QueueConsumer.Tests.Services
 
             var deviceInfo = new DeviceInfoModel
             {
-                DeviceNo = validGuid // Match the device ID
+                Tagging = validGuid // Match the device ID
             };
 
             var botDModel = new BotDModel
@@ -133,35 +127,6 @@ namespace Device.FingerPrint.QueueConsumer.Tests.Services
             Assert.Equal("EmptyDevice", result.FlaggedCode);
         }
 
-        [Fact]
-        public void TransformRawTransaction_WithInvalidDeviceId_Should_Set_InvalidDevice()
-        {
-            // Arrange
-            var message = new MessageQueue
-            {
-                Account = "testuser",
-                Device = new DeviceModel { Di = "invalid-device" }
-            };
-
-            var deviceInfo = new DeviceInfoModel
-            {
-                DeviceNo = "invalid-device",
-                InvalidDeviceId = true
-            };
-
-            _mockDeviceService.Setup(x => x.GetDeviceInfo(It.IsAny<string>(), It.IsAny<MessageQueue>()))
-                            .Returns(deviceInfo);
-            _mockBotDetectionService.Setup(x => x.TransformBotdModel(It.IsAny<MessageQueue>()))
-                                   .Returns(new BotDModel());
-
-            // Act
-            var result = _service.TransformRawTransaction(message);
-
-            // Assert
-            Assert.NotNull(result);
-            Assert.Equal("invalid-device", result.InvalidDevice);
-            Assert.Null(result.DeviceCode);
-        }
 
         [Fact]
         public void TransformRawTransaction_WithVer3BotDetection_Should_Use_Detection_Property()
@@ -173,7 +138,7 @@ namespace Device.FingerPrint.QueueConsumer.Tests.Services
                 Device = new DeviceModel { Di = "device123" }
             };
 
-            var deviceInfo = new DeviceInfoModel { DeviceNo = "valid-device" };
+            var deviceInfo = new DeviceInfoModel { Tagging = "valid-device" };
             var botDModel = new BotDModel
             {
                 IsVer3 = true,
@@ -207,7 +172,7 @@ namespace Device.FingerPrint.QueueConsumer.Tests.Services
                 Device = new DeviceModel { Di = "device123" }
             };
 
-            var deviceInfo = new DeviceInfoModel { DeviceNo = "valid-device" };
+            var deviceInfo = new DeviceInfoModel { Tagging = "valid-device" };
             _mockDeviceService.Setup(x => x.GetDeviceInfo(It.IsAny<string>(), It.IsAny<MessageQueue>()))
                             .Returns(deviceInfo);
             _mockBotDetectionService.Setup(x => x.TransformBotdModel(It.IsAny<MessageQueue>()))

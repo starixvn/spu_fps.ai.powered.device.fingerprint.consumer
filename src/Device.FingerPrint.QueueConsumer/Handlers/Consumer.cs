@@ -30,7 +30,15 @@
         {
             try
             {
-                ProcessMessageBatch(context.Message);
+                if (ShouldSkipProcessing(context))
+                    return Task.CompletedTask;
+
+                var rawTransModels = TransformMessages(context.Message);
+                if (rawTransModels.Any())
+                {
+                    ProcessTransactions(rawTransModels);
+                }
+
                 return Task.CompletedTask;
             }
             catch (Exception ex)
@@ -40,104 +48,77 @@
             }
         }
 
-        private void ProcessMessageBatch(Batch<MessageQueue> messageBatch)
+        private bool ShouldSkipProcessing(ConsumeContext<Batch<MessageQueue>> context)
         {
-            if (!ShouldProcessMessages())
-            {
-                return;
-            }
+            return !appSettings.GetValue<bool>("Consumer:IsConsume") || context.Message.Length <= 0;
+        }
 
-            var rawTransModels = TransformRawTransactionModel(messageBatch);
-
-            if (!HasValidTransactions(rawTransModels))
-            {
-                return;
-            }
-
+        private void ProcessTransactions(IEnumerable<RawTransactionModel> rawTransModels)
+        {
+            transactionService.InsertRawFingerprint(rawTransModels);
             transactionService.InsertRawTransaction(rawTransModels);
         }
 
-        private bool ShouldProcessMessages()
+        private IEnumerable<RawTransactionModel> TransformMessages(Batch<MessageQueue> messages)
         {
-            return appSettings.GetValue<bool>("Consumer:IsConsume");
-        }
+            var validMessages = RemoveDuplicates(messages);
+            var transformedData = new ConcurrentBag<RawTransactionModel>();
+            var errorList = new ConcurrentBag<MessageQueue>();
 
-        private static bool HasValidTransactions(IEnumerable<RawTransactionModel> rawTransModels)
-        {
-            return rawTransModels?.Any() == true;
-        }
-
-        private IEnumerable<RawTransactionModel> TransformRawTransactionModel(Batch<MessageQueue> messages)
-        {
-            if (IsEmptyMessageBatch(messages))
+            Parallel.ForEach(validMessages, new ParallelOptions { MaxDegreeOfParallelism = 10 }, message =>
             {
-                return [];
-            }
-
-            var transformationContext = CreateTransformationContext();
-            var validatedMessages = ValidDuplicateTrans(messages);
-
-            ProcessMessagesInParallel(validatedMessages, transformationContext);
-            LogErrorsIfAny(transformationContext.ErrorList);
-
-            return [.. transformationContext.TransformedDataBag];
-        }
-
-        private static bool IsEmptyMessageBatch(Batch<MessageQueue> messages)
-        {
-            return messages.Length <= 0;
-        }
-
-        private static TransformationContext CreateTransformationContext()
-        {
-            return new TransformationContext
-            {
-                TransformedDataBag = [],
-                ErrorList = []
-            };
-        }
-
-        private void ProcessMessagesInParallel(IEnumerable<ConsumeContext<MessageQueue>> validatedMessages, TransformationContext context)
-        {
-            var parallelOptions = new ParallelOptions { MaxDegreeOfParallelism = 10 };
-
-            Parallel.ForEach(validatedMessages, parallelOptions, message =>
-            {
-                ProcessSingleMessage(message, context);
+                ProcessSingleMessage(message, transformedData, errorList);
             });
+
+            LogErrors(errorList.ToList());
+            return transformedData;
         }
 
-        private void ProcessSingleMessage(ConsumeContext<MessageQueue> message, TransformationContext context)
+        private void ProcessSingleMessage(
+            ConsumeContext<MessageQueue> message,
+            ConcurrentBag<RawTransactionModel> transformedData,
+            ConcurrentBag<MessageQueue> errorList)
         {
             if (!IsValidMessage(message))
             {
-                AddToErrorList(message, context.ErrorList);
+                errorList.Add(message.Message);
                 return;
             }
 
-            TryTransformMessage(message, context.TransformedDataBag);
-        }
-
-        private static void AddToErrorList(ConsumeContext<MessageQueue> message, List<MessageQueue> errorList)
-        {
-            errorList.Add(message.Message);
-        }
-
-        private void TryTransformMessage(ConsumeContext<MessageQueue> message, ConcurrentBag<RawTransactionModel> transformedDataBag)
-        {
             try
             {
-                var rawTransFinalModel = TransformMessage(message);
-
-                if (rawTransFinalModel != null)
-                {
-                    transformedDataBag.Add(rawTransFinalModel);
-                }
+                var transformed = TransformMessage(message.Message);
+                if (transformed != null)
+                    transformedData.Add(transformed);
             }
             catch (Exception ex)
             {
                 _ = QueueConsumer.Utilities.LogErrorAsync(ex);
             }
+        }
+
+        private RawTransactionModel? TransformMessage(MessageQueue message)
+        {
+            return message.Mobile?.IsMobileAppTrans == true
+                ? mobileRawTransactionService.TransformRawTransaction(message)
+                : rawTransactionService.TransformRawTransaction(message);
+        }
+
+        private static IEnumerable<ConsumeContext<MessageQueue>> RemoveDuplicates(Batch<MessageQueue> messages)
+        {
+            var duplicates = messages
+                .GroupBy(x => new { x.Message.Account, x.Message.TransDate })
+                .Where(g => g.Count() > 1)
+                .SelectMany(g => g.Skip(1))
+                .ToList();
+
+            if (duplicates.Count > 0)
+            {
+                var duplicateContent = JsonConvert.SerializeObject(duplicates.Select(x => x.Message));
+                LogService.Error($"DuplicateMessages:\n {duplicateContent}");
+            }
+
+            return messages.Except(duplicates);
         }
 
         private static bool IsValidMessage(ConsumeContext<MessageQueue> message)
@@ -148,71 +129,13 @@
                    message.Message.Account.Length <= 100;
         }
 
-        private RawTransactionModel TransformMessage(ConsumeContext<MessageQueue> message)
+        private static void LogErrors(List<MessageQueue> errorList)
         {
-            if (IsMobileAppTransaction(message))
-            {
-                return mobileRawTransactionService.TransformRawTransaction(message.Message);
-            }
-
-            return rawTransactionService.TransformRawTransaction(message.Message);
-        }
-
-        private static bool IsMobileAppTransaction(ConsumeContext<MessageQueue> message)
-        {
-            return message.Message.Mobile?.IsMobileAppTrans == true;
-        }
-
-        private static void LogErrorsIfAny(List<MessageQueue> errorList)
-        {
-            if (errorList.Count != 0)
+            if (errorList.Count > 0)
             {
                 var serializedErrors = JsonConvert.SerializeObject(errorList);
                 LogService.Error($"Account ErrorList:\n {serializedErrors}");
             }
-        }
-
-        private static IEnumerable<ConsumeContext<MessageQueue>> ValidDuplicateTrans(Batch<MessageQueue> listMessage)
-        {
-            var groupedMessages = GroupMessagesByAccountAndDate(listMessage);
-            var duplicateMessages = GetDuplicateMessages(groupedMessages);
-
-            LogDuplicateMessages(duplicateMessages);
-
-            return GetValidMessages(listMessage, duplicateMessages);
-        }
-
-        private static IEnumerable<IGrouping<object, ConsumeContext<MessageQueue>>> GroupMessagesByAccountAndDate(Batch<MessageQueue> listMessage)
-        {
-            return listMessage.GroupBy(x => new { x.Message.Account, x.Message.TransDate });
-        }
-
-        private static List<ConsumeContext<MessageQueue>> GetDuplicateMessages(IEnumerable<IGrouping<object, ConsumeContext<MessageQueue>>> groupedMessages)
-        {
-            return [.. groupedMessages
-                .Where(g => g.Count() > 1)
-                .SelectMany(g => g.Skip(1))];
-        }
-
-        private static void LogDuplicateMessages(List<ConsumeContext<MessageQueue>> duplicateMessages)
-        {
-            if (duplicateMessages.Count > 0)
-            {
-                var duplicateMessagesContent = duplicateMessages.Select(x => x.Message);
-                var serializedDuplicates = JsonConvert.SerializeObject(duplicateMessagesContent);
-                LogService.Error($"DuplicateMessages:\n {serializedDuplicates}");
-            }
-        }
-
-        private static IEnumerable<ConsumeContext<MessageQueue>> GetValidMessages(Batch<MessageQueue> listMessage, List<ConsumeContext<MessageQueue>> duplicateMessages)
-        {
-            return listMessage.Except(duplicateMessages);
-        }
-
-        private sealed class TransformationContext
-        {
-            public ConcurrentBag<RawTransactionModel> TransformedDataBag { get; set; }
-            public List<MessageQueue> ErrorList { get; set; }
         }
     }
 }

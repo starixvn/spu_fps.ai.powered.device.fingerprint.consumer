@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net;
 using System.Numerics;
 using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 
 namespace Device.FingerPrint.Core
@@ -14,21 +15,20 @@ namespace Device.FingerPrint.Core
     {
         private const int TOTAL_REDIS_DB = 16;
         private const int MAX_ANSI_CODE = 255;
-        private const int IPV4_BYTE_LENGTH = 4;
         private const int IPV6_BYTE_LENGTH = 16;
         private const int BASE64_MODULO = 4;
         private const int BIT_ARRAY_PADDING_LENGTH = 8;
         private const int UNICODE_REGEX_TIMEOUT_SECONDS = 1;
         private const int MIN_SEGMENTS_FOR_CASINO_COLLAPSE = 4;
-        
+
         private const string NOT_AVAILABLE = "N/A";
         private const string CASINO_PATH = "casino";
         private const string COLLAPSED_CASINO_PATH_FORMAT = "/casino/.../casino/{0}";
         private const string ENCODED_DATA_FORMAT = "{0}#{1}#{2}#{3}#{4}";
-        
+
         private static readonly Regex UnicodeRegex = new Regex(
-            @"[^\u0000-\u007F]", 
-            RegexOptions.Compiled, 
+            @"[^\u0000-\u007F]",
+            RegexOptions.Compiled,
             TimeSpan.FromSeconds(UNICODE_REGEX_TIMEOUT_SECONDS));
 
         public static bool IsGuidDeviceId(string deviceCode)
@@ -82,7 +82,7 @@ namespace Device.FingerPrint.Core
             return !string.IsNullOrEmpty(input) && input.Any(c => c > MAX_ANSI_CODE);
         }
 
-        public static string ConvertNA2Empty(string data)
+        public static string? ConvertNA2Empty(string? data)
         {
             return data == NOT_AVAILABLE ? null : data;
         }
@@ -96,10 +96,10 @@ namespace Device.FingerPrint.Core
             return CollapseCasinoPaths(cleanUrl)?.ToString();
         }
 
-        public static string StripUnicodeCharactersFromString(string inputValue)
+        public static string StripUnicodeCharactersFromString(string? inputValue)
         {
             if (string.IsNullOrEmpty(inputValue))
-                return null;
+                return string.Empty;
 
             try
             {
@@ -109,33 +109,6 @@ namespace Device.FingerPrint.Core
             {
                 return inputValue; // Return original if timeout occurs
             }
-        }
-
-        public static string EncodeCapturedData(DeviceInfoModel deviceInfo)
-        {
-            if (deviceInfo == null)
-                throw new ArgumentNullException(nameof(deviceInfo));
-
-            var dataToEncode = string.Format(
-                System.Globalization.CultureInfo.InvariantCulture,
-                ENCODED_DATA_FORMAT,
-                deviceInfo.Battery,
-                deviceInfo.CapturedDate,
-                deviceInfo.OSName,
-                deviceInfo.TimeZone,
-                deviceInfo.LocalIps);
-
-            return Cipher.Encrypt(dataToEncode);
-        }
-
-        public static SessionKeyModel ParseSessionKey(string sessionKey, int defaultRedisDatabase)
-        {
-            if (string.IsNullOrEmpty(sessionKey))
-                return null;
-
-            var sessionKeyModel = CreateSessionKeyModel(sessionKey, defaultRedisDatabase);
-            
-            return IsBase64(sessionKeyModel.SessionKey) ? sessionKeyModel : null;
         }
 
         public static bool IsBase64(string base64String)
@@ -162,8 +135,8 @@ namespace Device.FingerPrint.Core
             if (string.IsNullOrEmpty(prefix))
                 return input;
 
-            return input.StartsWith(prefix, StringComparison.Ordinal) 
-                ? input.Substring(prefix.Length) 
+            return input.StartsWith(prefix, StringComparison.Ordinal)
+                ? input.Substring(prefix.Length)
                 : input;
         }
 
@@ -179,14 +152,14 @@ namespace Device.FingerPrint.Core
         private static IpModel ConvertToIpModel(IPAddress ipAddress)
         {
             byte[] addressBytes = ipAddress.GetAddressBytes();
-            
+
             if (BitConverter.IsLittleEndian)
             {
                 addressBytes = ReverseByteArray(addressBytes);
             }
 
-            return addressBytes.Length > IPV6_BYTE_LENGTH / 2 
-                ? CreateIPv6Model(addressBytes) 
+            return addressBytes.Length > IPV6_BYTE_LENGTH / 2
+                ? CreateIPv6Model(addressBytes)
                 : CreateIPv4Model(addressBytes);
         }
 
@@ -233,7 +206,7 @@ namespace Device.FingerPrint.Core
                 return null;
 
             var segments = GetPathSegments(uri);
-            
+
             if (!ShouldCollapseCasinoPaths(segments))
                 return uri;
 
@@ -272,32 +245,8 @@ namespace Device.FingerPrint.Core
         {
             var lastSegment = segments[^1];
             var shortPath = string.Format(COLLAPSED_CASINO_PATH_FORMAT, lastSegment);
-            
+
             return new Uri($"{originalUri.Scheme}://{originalUri.Host}:{originalUri.Port}{shortPath}");
-        }
-
-        private static SessionKeyModel CreateSessionKeyModel(string sessionKey, int defaultRedisDatabase)
-        {
-            var parts = sessionKey.Split(':');
-            var sessionKeyModel = new SessionKeyModel { RedisDbIndex = defaultRedisDatabase };
-
-            if (parts.Length > 0)
-            {
-                sessionKeyModel.SessionKey = parts[0];
-                
-                if (parts.Length > 1 && 
-                    int.TryParse(parts[1], out var parsedIndex) && 
-                    parsedIndex < TOTAL_REDIS_DB)
-                {
-                    sessionKeyModel.RedisDbIndex = parsedIndex;
-                }
-            }
-            else
-            {
-                sessionKeyModel.SessionKey = sessionKey;
-            }
-
-            return sessionKeyModel;
         }
     }
 }

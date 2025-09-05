@@ -2,12 +2,9 @@
 
 <Functions>
 	<Function Name="Transaction">
-		<Setting Key="DCS_DC_Transform_RawTrans_Insert" SpName="DCS_DC_Transform_RawTrans_Insert" DbName="DCSMain_WEB_LAYER.DCS_DataCenter.ctsServiceAdmin"/>
-
-		<Setting Key="DCS_DC_Transform_FP_TaggingInsert" SpName="DCS_DC_Transform_FP_TaggingInsert" DbName="DCSMain_WEB_LAYER.DCS_DataCenter.ctsServiceAdmin"/>
-		<Setting Key="DCS_DC_Transform_FP_UserAgentInsert" SpName="DCS_DC_Transform_FP_UserAgentInsert" DbName="DCSMain_WEB_LAYER.DCS_DataCenter.ctsServiceAdmin"/>
-		<Setting Key="DCS_DC_Transform_JSChallengeInfo_Insert" SpName="DCS_DC_Transform_JSChallengeInfo_Insert" DbName="DCSMain_WEB_LAYER.DCS_DataCenter.ctsServiceAdmin"/>
-		<Setting Key="DCS_DC_Transform_FP_FingerPrintInsert" SpName="DCS_DC_Transform_FP_FingerPrintInsert" DbName="DCSMain_WEB_LAYER.DCS_DataCenter.ctsServiceAdmin"/>
+		<Setting Key="DCS_DC_Transform_FingerprintAttribute_Get" SpName="DCS_DC_Transform_FingerprintAttribute_Get_xtest" DbName="DCSMain_WEB_LAYER.DCS_DataCenter.ctsService"/>
+		<Setting Key="DCS_DC_Transform_RawTrans_Insert" SpName="DCS_DC_Transform_RawTrans_Insert_xtest" DbName="DCSMain_WEB_LAYER.DCS_DataCenter.ctsServiceAdmin"/>
+		<Setting Key="DCS_DC_Transform_RawFingerprint_Insert" SpName="DCS_DC_Transform_RawFingerprint_Insert_xtest" DbName="DCSMain_WEB_LAYER.DCS_DataCenter.ctsServiceAdmin"/>
 	</Function>
 	<Function Name="LogInfo">
 		<Setting Key="DCS_DT_Log_DCSConsumerLog_Insert" SpName="DCS_DT_Log_DCSConsumerLog_Insert" DbName="DCSMain_WEB_LAYER.DCS_DataTrace.ctsServiceAdmin"/>

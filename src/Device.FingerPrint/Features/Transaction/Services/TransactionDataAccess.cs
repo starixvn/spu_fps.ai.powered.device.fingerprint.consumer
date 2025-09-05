@@ -1,10 +1,15 @@
 ﻿using Device.FingerPrint.Features.Transaction.Criterias;
+using Device.FingerPrint.Features.Transaction.Model;
 using Fanex.Data.Repository;
 
 namespace Device.FingerPrint.Features.Transaction.Services
 {
     public interface ITransactionDataAccess
     {
+        IEnumerable<FPAttributeEntity> GetFingerprintAttribute();
+
+        void InsertRawFingerprint(string rawFPDetailJson);
+
         void InsertRawTransaction(string transJson);
     }
 
@@ -15,6 +20,23 @@ namespace Device.FingerPrint.Features.Transaction.Services
         public TransactionDataAccess()
         {
             repository = new DynamicRepository();
+        }
+
+        public IEnumerable<FPAttributeEntity> GetFingerprintAttribute()
+        {
+            var criteria = new GetFingerprintAttributeCriteria();
+
+            return repository.Fetch<FPAttributeEntity>(criteria);
+        }
+
+        public void InsertRawFingerprint(string rawFPDetailJson)
+        {
+            var criteria = new InsertRawFingerprintCriteria
+            {
+                RawFPDetails = rawFPDetailJson,
+            };
+
+            repository.Execute(criteria);
         }
 
         public void InsertRawTransaction(string transJson)

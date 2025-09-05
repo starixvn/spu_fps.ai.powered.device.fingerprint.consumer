@@ -45,8 +45,6 @@ namespace Device.FingerPrint.Model
 
         public int TransStatus { get; set; }
 
-        public string? SessionKey { get; set; }
-
         public string? FlaggedCode { get; set; }
 
         public string? BotDetection { get; set; }
@@ -92,6 +90,8 @@ namespace Device.FingerPrint.Model
         public string? FPPatternCode01 { get; set; }
 
         public string? FPPatternCode02 { get; set; }
+
+        public APFingerprintModel FingerPrint { get; set; } = new APFingerprintModel();
     }
 
     public class ConvertBigInteger : ConverterBase

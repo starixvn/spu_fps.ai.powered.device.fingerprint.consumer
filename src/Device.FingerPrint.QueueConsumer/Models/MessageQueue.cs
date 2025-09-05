@@ -1,5 +1,6 @@
 ﻿namespace Device.FingerPrint.TransactionAPI.Model
 {
+    using Device.FingerPrint.Model;
     using Device.FingerPrint.QueueConsumer.Models;
     using System;
 
@@ -24,20 +25,16 @@
 
         public DateTime TransDate { get; set; }
 
-        public DateTime SubscriberDate { get; set; }
-
-        public string? Token { get; set; }
-
-        public string? Recaptcha { get; set; }
-
-        public string? SessionKey { get; set; }
-
         public string? BotD { get; set; }
 
         public MobileModel? Mobile { get; set; }
 
         public string? WebRTCIP { get; set; }
 
-        public APFingerprintModel? FingerPrint { get; set; }
+        public string? FPPatternCode01 { get; set; }
+
+        public string? FPPatternCode02 { get; set; }
+
+        public APFingerprintModel FingerPrint { get; set; } = new APFingerprintModel();
     }
 }

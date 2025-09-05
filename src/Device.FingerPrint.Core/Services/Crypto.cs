@@ -13,7 +13,7 @@ namespace Device.FingerPrint.Core.Services
         string GetMD5Hash(string str);
     }
 
-    public class Crypto: ICrypto
+    public class Crypto : ICrypto
     {
         private readonly RijndaelManaged myRijndael = new RijndaelManaged();
         private readonly int iterations;
@@ -64,7 +64,7 @@ namespace Device.FingerPrint.Core.Services
 
         public static byte[] HexStringToByteArray(string strHex)
         {
-            dynamic r = new byte[strHex.Length / 2];
+            byte[] r = new byte[strHex.Length / 2];
             for (int i = 0; i <= strHex.Length - 1; i += 2)
             {
                 r[i / 2] = Convert.ToByte(Convert.ToInt32(strHex.Substring(i, 2), 16));

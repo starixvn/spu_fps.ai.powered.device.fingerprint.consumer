@@ -13,26 +13,20 @@
         RawTransactionModel TransformRawTransaction(MessageQueue message);
     }
 
-    public class RawTransactionService : IRawTransactionService
+    public class RawTransactionService(
+        IDeviceService deviceService,
+        IBotDetectionService botDetectionService,
+        IAppSettings appSettings) : IRawTransactionService
     {
         private const int TRANS_BIT_ARRAY_SIZE = 16;
         private const int DEFAULT_PLUGIN_ID = 0;
         private const string DEVICE_NOT_AVAILABLE = "N/A";
         private const string DATETIME_FORMAT = "yyyy-MM-dd HH:mm:ss.ffff";
 
-        private readonly IDeviceService deviceService;
-        private readonly IBotDetectionService botDetectionService;
-        private readonly IAppSettings appSettings;
 
-        public RawTransactionService(
-            IDeviceService deviceService,
-            IBotDetectionService botDetectionService,
-            IAppSettings appSettings)
-        {
-            this.deviceService = deviceService ?? throw new ArgumentNullException(nameof(deviceService));
-            this.botDetectionService = botDetectionService ?? throw new ArgumentNullException(nameof(botDetectionService));
-            this.appSettings = appSettings ?? throw new ArgumentNullException(nameof(appSettings));
-        }
+        private readonly IDeviceService deviceService = deviceService ?? throw new ArgumentNullException(nameof(deviceService));
+        private readonly IBotDetectionService botDetectionService = botDetectionService ?? throw new ArgumentNullException(nameof(botDetectionService));
+        private readonly IAppSettings appSettings = appSettings ?? throw new ArgumentNullException(nameof(appSettings));
 
         public RawTransactionModel TransformRawTransaction(MessageQueue message)
         {
@@ -44,17 +38,10 @@
 
             try
             {
-                var deviceProcessingResult = ProcessDeviceInfo(message);
-                var deviceValidationResult = ProcessDeviceValidation(deviceProcessingResult.DeviceInfo);
-                var botDetectionResult = ProcessBotDetection(message, deviceProcessingResult.DeviceInfo, deviceProcessingResult.UserAgent);
-                var ipProcessingResult = ProcessIPInfo(message);
+                message.Device ??= new DeviceModel();
+                message.Device.Di = GenDISample();
 
-                return CreateRawTransactionModel(
-                    message,
-                    deviceProcessingResult,
-                    deviceValidationResult,
-                    botDetectionResult,
-                    ipProcessingResult);
+                return CreateRawTransactionModel(message);
             }
             catch (Exception ex)
             {
@@ -63,36 +50,23 @@
             }
         }
 
-        private DeviceProcessingResult ProcessDeviceInfo(MessageQueue message)
+        private static string GenDISample()
         {
-            var deviceInfo = new DeviceInfoModel();
-            var url = string.Empty;
-            var userAgent = string.Empty;
-            var originalDeviceCode = string.Empty;
-
-            if (message.Device != null)
-            {
-                originalDeviceCode = message.Device.Di ?? string.Empty;
-                deviceInfo = deviceService.GetDeviceInfo(originalDeviceCode, message);
-                url = message.Device.Url ?? string.Empty;
-                userAgent = message.Device.UserAgent ?? string.Empty;
-            }
-
-            return new DeviceProcessingResult(deviceInfo, url, userAgent, originalDeviceCode);
+            return "{\"sk\":\"4c6054c9ff0c3fc4b4c2d03dcbc21fa52711ffffa496ec3cca56e2790d6cd21d\",\"f4\":\"11470ce51eaaae4836ec8e8a4fc48f02\",\"tag\":\"328c9c5f6ead4e2a81f1240b80220ec9\",\"f5\":\"c56ff16e37764374e1cb25c952f6aef4\",\"rtc\":\"127.0.0.1;119.82.130.208;119.82.130.209;111.11.111.111\",\"v\":\"1.2.3\"}\r\n";
         }
 
-        private static BitArray ProcessDeviceValidation(DeviceInfoModel deviceInfo)
+        private static BitArray ValidateDevice(DeviceInfoModel deviceInfo)
         {
             var transBit = new BitArray(TRANS_BIT_ARRAY_SIZE);
 
-            if (IsDeviceCodeEmpty(deviceInfo.DeviceNo))
+            if (string.IsNullOrWhiteSpace(deviceInfo.Tagging) || deviceInfo.Tagging == DEVICE_NOT_AVAILABLE)
             {
-                deviceInfo.DeviceNo = null;
+                deviceInfo.Tagging = null;
                 transBit.Set((int)TransStatus.DeviceCodeIsEmpty, true);
             }
-            else if (IsDeviceCodeInvalid(deviceInfo))
+            else if (!Utilities.IsGuidDeviceId(deviceInfo.Tagging))
             {
-                deviceInfo.DeviceNo = null;
+                deviceInfo.Tagging = null;
                 transBit.Set((int)TransStatus.InvalidDI, true);
             }
 
@@ -102,45 +76,44 @@
         private BotDetectionResult ProcessBotDetection(MessageQueue message, DeviceInfoModel deviceInfo, string userAgent)
         {
             var botDModel = botDetectionService.TransformBotdModel(message);
-            var flaggedCode = botDetectionService.GetFlaggedCode(botDModel, deviceInfo.DeviceNo ?? string.Empty, userAgent ?? string.Empty);
-            var botDetection = DetermineBotDetection(botDModel);
+            var flaggedCode = botDetectionService.GetFlaggedCode(botDModel, deviceInfo.Tagging ?? string.Empty, userAgent);
+            var botDetection = botDModel.IsVer3 ? botDModel.Detection : botDetectionService.GetBotDetectionTrue(botDModel);
 
             return new BotDetectionResult(botDModel, flaggedCode, botDetection);
         }
 
-        private static IpProcessingResult ProcessIPInfo(MessageQueue message)
+        private static IpProcessingResult ProcessIP(MessageQueue message)
         {
             var realIP = message.IP?.Trim();
-            var ipConverted = realIP?.Ip2Long();
-
-            return new IpProcessingResult(realIP, ipConverted);
+            return new IpProcessingResult(realIP, realIP?.Ip2Long());
         }
 
-        private static RawTransactionModel CreateRawTransactionModel(
-            MessageQueue message,
-            DeviceProcessingResult deviceResult,
-            BitArray transBit,
-            BotDetectionResult botResult,
-            IpProcessingResult ipResult)
+        private RawTransactionModel CreateRawTransactionModel(MessageQueue message)
         {
-            var fingerPrint = GenerateFingerPrintSample();
-            fingerPrint?.GenerateAllPatternCodes();
+            var deviceInfo = deviceService.GetDeviceInfo(message.Device?.Di, message);
+            var transBit = ValidateDevice(deviceInfo);
+            var userAgent = Utilities.StripUnicodeCharactersFromString(Utilities.ConvertNA2Empty(message.Device?.UserAgent));
+            var botResult = ProcessBotDetection(message, deviceInfo, userAgent);
+            var ipResult = ProcessIP(message);
+
+            GenerateFingerPrintSample(message);
+
+            var url = Utilities.ConvertNA2Empty(Utilities.SubStringUrl(message.Device?.Url ?? string.Empty));
 
             return new RawTransactionModel
             {
-                DeviceCode = deviceResult.DeviceInfo.DeviceNo,
-                InvalidDevice = GetInvalidDeviceCode(deviceResult.OriginalDeviceCode),
-                TransStatus = Core.Utilities.ConvertBitArray2Int(transBit),
+                DeviceCode = deviceInfo.Tagging,
+                InvalidDevice = string.IsNullOrWhiteSpace(message.Device?.Di) ? null : message.Device.Di,
+                TransStatus = Utilities.ConvertBitArray2Int(transBit),
                 LoginName = message.Account,
                 SubscriberName = message.Subscriber,
                 SubscriberId = message.SubscriberId,
-                TransTime = ParseTransactionTime(message.TransDate),
+                TransTime = Convert.ToDateTime(message.TransDate.ToString(DATETIME_FORMAT, System.Globalization.CultureInfo.InvariantCulture)),
                 PluginID = DEFAULT_PLUGIN_ID,
-                URL = GetProcessedUrl(deviceResult),
+                URL = url,
                 Action = message.Action,
                 ActionResult = message.ActionResult,
-                UserAgent = GetProcessedUserAgent(deviceResult),
-                SessionKey = message.SessionKey,
+                UserAgent = userAgent,
                 FlaggedCode = botResult.FlaggedCode,
                 BotDetection = botResult.BotDetection,
                 BotComponent = botResult.BotDModel?.Component ?? string.Empty,
@@ -148,16 +121,17 @@
                 IPId = ipResult.IpConverted?.IpNumber ?? 0,
                 FakeIP = message.FakeIP?.Trim(),
                 IsIPV6 = ipResult.IpConverted?.IsIpV6 ?? false,
-                ScriptVersion = deviceResult.DeviceInfo.Version,
-                WebRTCIP = message.WebRTCIP?.Trim(),
-                FPPatternCode01 = fingerPrint?.FPPatternCode01,
-                FPPatternCode02 = fingerPrint?.FPPatternCode02
+                ScriptVersion = deviceInfo.Version,
+                WebRTCIP = deviceInfo.Rtc?.Trim(),
+                FPPatternCode01 = message.FPPatternCode01?.Trim(),
+                FPPatternCode02 = message.FPPatternCode02?.Trim(),
+                FingerPrint = message.FingerPrint
             };
         }
 
-        private static APFingerprintModel GenerateFingerPrintSample()
+        private static void GenerateFingerPrintSample(MessageQueue message)
         {
-            return new APFingerprintModel
+            var fp = new APFingerprintModel
             {
                 Audio = "{\"sampleRate\":44100,\"channelCount\":2,\"fingerprint\":\"audiofp123456\"}",
                 Browser = "{\"userAgent\":\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/115.0.0.0 Safari/537.36\",\"language\":\"en-US\",\"languages\":[\"en-US\",\"en\"],\"doNotTrack\":\"1\",\"cookieEnabled\":true,\"javaEnabled\":false,\"timezone\":\"Asia/Ho_Chi_Minh\"}",
@@ -165,61 +139,26 @@
                 Preferences = "{\"darkMode\":true,\"saveData\":false,\"reducedMotion\":false}",
                 Graphics = "{\"canvas\":{\"fingerprint\":\"ab12cd34ef56\",\"status\":\"success\",\"width\":300,\"height\":150},\"webglBasics\":{\"vendor\":\"Google Inc.\",\"renderer\":\"ANGLE (NVIDIA GeForce GTX 1650 Direct3D11 vs_5_0 ps_5_0)\",\"version\":\"WebGL 1.0\",\"shadingLanguageVersion\":\"WebGL GLSL ES 1.0\"},\"fonts\":{\"installed\":[\"Arial\",\"Verdana\",\"Times New Roman\"]},\"screenResolution\":{\"width\":1920,\"height\":1080},\"colorDepth\":{\"value\":24}}"
             };
+
+            fp.GenerateGroupHashCodes();
+
+            message.FingerPrint = fp;
+            message.FPPatternCode01 = "FPPatternCode01Sample";
+            message.FPPatternCode02 = "FPPatternCode02Sample";
         }
 
         // Helper methods
-        private static bool IsDeviceCodeEmpty(string deviceNo) =>
-            string.IsNullOrWhiteSpace(deviceNo) || deviceNo == DEVICE_NOT_AVAILABLE;
-
-        private static bool IsDeviceCodeInvalid(DeviceInfoModel deviceInfo)
-        {
-            return !Utilities.IsGuidDeviceId(deviceInfo.DeviceNo ?? string.Empty) || deviceInfo.InvalidDeviceId;
-        }
-
-        private string? DetermineBotDetection(BotDModel botDModel)
-        {
-            return botDModel?.IsVer3 == true
-                ? botDModel?.Detection
-                : botDetectionService.GetBotDetectionTrue(botDModel);
-        }
-
-        private static string? GetInvalidDeviceCode(string originalDeviceCode)
-        {
-            return string.IsNullOrWhiteSpace(originalDeviceCode) ? null : originalDeviceCode;
-        }
-
-        private static DateTime ParseTransactionTime(DateTime transDate)
-        {
-            return Convert.ToDateTime(transDate.ToString(DATETIME_FORMAT, System.Globalization.CultureInfo.InvariantCulture));
-        }
-
-        private static string GetProcessedUrl(DeviceProcessingResult deviceResult)
-        {
-            return string.IsNullOrWhiteSpace(deviceResult.Url)
-                ? Utilities.ConvertNA2Empty(Utilities.SubStringUrl(deviceResult.DeviceInfo.HRef))
-                : Utilities.SubStringUrl(deviceResult.Url);
-        }
-
-        private static string GetProcessedUserAgent(DeviceProcessingResult deviceResult)
-        {
-            return string.IsNullOrWhiteSpace(deviceResult.UserAgent)
-                ? Utilities.ConvertNA2Empty(Utilities.StripUnicodeCharactersFromString(deviceResult.DeviceInfo.UserAgent))
-                : Utilities.StripUnicodeCharactersFromString(deviceResult.UserAgent);
-        }
-
         private void LogError(string message, Exception? exception = null)
         {
             var fullMessage = $"{appSettings.Environment} - {message}";
             if (exception != null)
-            {
                 fullMessage += $"\n{exception}";
-            }
             _ = LogService.ErrorAsync(fullMessage);
         }
 
         // Result records
-        private sealed record DeviceProcessingResult(DeviceInfoModel DeviceInfo, string Url, string UserAgent, string OriginalDeviceCode);
-        private sealed record BotDetectionResult(BotDModel? BotDModel, string? FlaggedCode, string? BotDetection);
+        private sealed record DeviceProcessingResult(DeviceInfoModel DeviceInfo, string? Url, string? UserAgent, string? OriginalDeviceCode);
+        private sealed record BotDetectionResult(BotDModel BotDModel, string? FlaggedCode, string? BotDetection);
         private sealed record IpProcessingResult(string? RealIP, IpModel? IpConverted);
     }
 }
