@@ -10,7 +10,7 @@
 
     public interface IRawTransactionService
     {
-        RawTransactionModel? TransformRawTransaction(MessageQueue message);
+        RawTransactionModel TransformRawTransaction(MessageQueue message);
     }
 
     public class RawTransactionService(
@@ -28,7 +28,7 @@
         private readonly IBotDetectionService botDetectionService = botDetectionService ?? throw new ArgumentNullException(nameof(botDetectionService));
         private readonly IAppSettings appSettings = appSettings ?? throw new ArgumentNullException(nameof(appSettings));
 
-        public RawTransactionModel? TransformRawTransaction(MessageQueue message)
+        public RawTransactionModel TransformRawTransaction(MessageQueue message)
         {
             if (message == null)
             {
@@ -87,48 +87,76 @@
 
         private RawTransactionModel CreateRawTransactionModel(MessageQueue message)
         {
+            // Ensure message has Device object
+            message.Device ??= new DeviceModel();
+            
             var deviceInfo = deviceService.GetDeviceInfo(message.Device?.Di, message);
             var transBit = ValidateDevice(deviceInfo);
-            var userAgent = ProcessUserAgent(message);
+            
+            // Set device ID if valid
+            if (!string.IsNullOrWhiteSpace(deviceInfo.Tagging) && message.Device != null)
+            {
+                message.Device.Di = deviceInfo.Tagging;
+            }
+            else if (message.Device != null && string.IsNullOrWhiteSpace(message.Device.Di))
+            {
+                // If no valid tagging, ensure Di has some value for backward compatibility
+                message.Device.Di = string.Empty;
+            }
+            else
+            {
+                // Device is null or Di already has value - no action needed
+            }
+            
+            var userAgent = ProcessUserAgent(message.Device?.UserAgent);
             var botResult = ProcessBotDetection(message, deviceInfo, userAgent);
             var ipResult = ProcessIP(message);
-            var url = ProcessUrl(message);
 
-            message.FingerPrint?.GenerateGroupHashCodes();
+            message.FingerPrint.GenerateGroupHashCodes();
 
-            return BuildRawTransactionModel(message, deviceInfo, transBit, userAgent, botResult, ipResult, url);
+            return BuildRawTransactionModel(message, deviceInfo, transBit, userAgent, botResult, ipResult);
         }
 
-        private static string ProcessUserAgent(MessageQueue message)
+        private static string ProcessUserAgent(string? userAgent)
         {
-            return Utilities.StripUnicodeCharactersFromString(Utilities.ConvertNA2Empty(message.Device?.UserAgent));
+            return Utilities.StripUnicodeCharactersFromString(Utilities.ConvertNA2Empty(userAgent));
         }
 
-        private static string? ProcessUrl(MessageQueue message)
+        private static Uri? ProcessUrl(string? url)
         {
-            return Utilities.ConvertNA2Empty(Utilities.SubStringUrl(message.Device?.Url ?? string.Empty)?.ToString());
+            return Utilities.SubStringUrl(url ?? string.Empty);
         }
 
-        private static RawTransactionModel BuildRawTransactionModel(
-            MessageQueue message, 
-            DeviceInfoModel deviceInfo, 
-            BitArray transBit, 
-            string userAgent, 
-            BotDetectionResult botResult, 
-            IpProcessingResult ipResult, 
-            string? url)
+        private static string? GetValidDeviceId(string? deviceId)
+        {
+            return string.IsNullOrWhiteSpace(deviceId) ? null : deviceId;
+        }
+
+        private static DateTime ProcessTransactionTime(DateTime transDate)
+        {
+            return Convert.ToDateTime(
+                transDate.ToString(DATETIME_FORMAT, System.Globalization.CultureInfo.InvariantCulture));
+        }
+
+        private RawTransactionModel BuildRawTransactionModel(
+            MessageQueue message,
+            DeviceInfoModel deviceInfo,
+            BitArray transBit,
+            string userAgent,
+            BotDetectionResult botResult,
+            IpProcessingResult ipResult)
         {
             return new RawTransactionModel
             {
                 DeviceCode = deviceInfo.Tagging,
-                InvalidDevice = GetInvalidDevice(message.Device?.Di),
+                InvalidDevice = GetValidDeviceId(message.Device?.Di),
                 TransStatus = Utilities.ConvertBitArray2Int(transBit),
                 LoginName = message.Account,
                 SubscriberName = message.Subscriber,
                 SubscriberId = message.SubscriberId,
-                TransTime = ParseTransactionTime(message.TransDate),
+                TransTime = ProcessTransactionTime(message.TransDate),
                 PluginID = DEFAULT_PLUGIN_ID,
-                URL = url,
+                URL = ProcessUrl(message.Device?.Url)?.ToString(),
                 Action = message.Action,
                 ActionResult = message.ActionResult,
                 UserAgent = userAgent,
@@ -137,12 +165,12 @@
                 BotComponent = GetBotComponent(botResult.BotDModel),
                 IP = ipResult.RealIP,
                 IPId = GetIpId(ipResult.IpConverted),
-                FakeIP = message.FakeIP?.Trim(),
+                FakeIP = GetTrimmedValue(message.FakeIP),
                 IsIPV6 = GetIsIPV6(ipResult.IpConverted),
                 ScriptVersion = deviceInfo.Version,
-                WebRTCIP = deviceInfo.Rtc?.Trim(),
-                FPPatternCode01 = message.FPPatternCode01?.Trim(),
-                FPPatternCode02 = message.FPPatternCode02?.Trim(),
+                WebRTCIP = GetTrimmedValue(deviceInfo.Rtc),
+                FPPatternCode01 = GetTrimmedValue(message.FPPatternCode01),
+                FPPatternCode02 = GetTrimmedValue(message.FPPatternCode02),
                 FingerPrint = message.FingerPrint
             };
         }
@@ -154,22 +182,17 @@
 
         private static long GetIpId(IpModel? ipModel)
         {
-            return (long)(ipModel?.IpNumber ?? 0);
+            return ipModel?.IpNumber != null ? (long)ipModel.IpNumber : 0;
+        }
+
+        private static string? GetTrimmedValue(string? value)
+        {
+            return value?.Trim();
         }
 
         private static bool GetIsIPV6(IpModel? ipModel)
         {
             return ipModel?.IsIpV6 ?? false;
-        }
-
-        private static string? GetInvalidDevice(string? deviceId)
-        {
-            return string.IsNullOrWhiteSpace(deviceId) ? null : deviceId;
-        }
-
-        private static DateTime ParseTransactionTime(DateTime transDate)
-        {
-            return Convert.ToDateTime(transDate.ToString(DATETIME_FORMAT, System.Globalization.CultureInfo.InvariantCulture));
         }
 
         // Helper methods

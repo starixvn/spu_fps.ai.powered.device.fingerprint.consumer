@@ -1,7 +1,5 @@
-﻿using Device.FingerPrint.Core.Services;
-using Fanex.Logging.Extensions.Database;
+﻿using Fanex.Logging.Extensions.Database;
 using Fanex.Logging.Extensions;
-using Newtonsoft.Json;
 using System;
 using System.Threading.Tasks;
 using Fanex.Logging;

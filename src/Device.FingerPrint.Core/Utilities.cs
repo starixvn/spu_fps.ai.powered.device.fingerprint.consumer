@@ -137,10 +137,14 @@ namespace Device.FingerPrint.Core
         public static string RemoveRedisPrefix(string input, string prefix)
         {
             if (string.IsNullOrEmpty(input))
+            {
                 return string.Empty;
+            }
 
             if (string.IsNullOrEmpty(prefix))
+            {
                 return input;
+            }
 
             return input.StartsWith(prefix, StringComparison.Ordinal)
                 ? input.Substring(prefix.Length)
@@ -210,12 +214,16 @@ namespace Device.FingerPrint.Core
         private static Uri? CollapseCasinoPaths(string rawUrl)
         {
             if (!Uri.TryCreate(rawUrl, UriKind.Absolute, out Uri uri))
+            {
                 return null;
+            }
 
             var segments = GetPathSegments(uri);
 
             if (!ShouldCollapseCasinoPaths(segments))
+            {
                 return uri;
+            }
 
             return CreateCollapsedCasinoUri(uri, segments);
         }
@@ -238,13 +246,17 @@ namespace Device.FingerPrint.Core
             // Check if first is casino and last is not casino
             if (!string.Equals(firstSegment, CASINO_PATH, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(lastSegment, CASINO_PATH, StringComparison.OrdinalIgnoreCase))
+            {
                 return false;
+            }
 
             // Check if middle segments are all "casino"
             for (var i = 1; i < segments.Length - 1; i++)
             {
                 if (!string.Equals(segments[i], CASINO_PATH, StringComparison.OrdinalIgnoreCase))
+                {
                     return false;
+                }
             }
 
             return true;

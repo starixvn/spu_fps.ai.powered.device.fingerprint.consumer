@@ -14,7 +14,7 @@
 
         public string? Ip { get; set; }
 
-        public string? Di { get; set; }
+        public string Di { get; set; }
 
         public string? Url { get; set; }
 

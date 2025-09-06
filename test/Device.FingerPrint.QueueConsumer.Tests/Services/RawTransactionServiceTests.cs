@@ -124,9 +124,6 @@ namespace Device.FingerPrint.QueueConsumer.Tests.Services
             _mockBotDetectionService.Setup(x => x.TransformBotdModel(It.IsAny<MessageQueue>()))
                 .Returns(botDModel);
 
-            _mockBotDetectionService.Setup(x => x.GetFlaggedCode(It.IsAny<BotDModel>(), It.IsAny<string>(), It.IsAny<string>()))
-                .Returns("flagged");
-
             _mockBotDetectionService.Setup(x => x.GetBotDetectionTrue(It.IsAny<BotDModel>()))
                 .Returns("bot");
 
@@ -356,11 +353,11 @@ namespace Device.FingerPrint.QueueConsumer.Tests.Services
                 FPPatternCode02 = "FPPatternCode02Sample",
                 FingerPrint = new APFingerprintModel
                 {
-                    Audio = new AudioFingerprintModel(),
-                    Browser = new BrowserFingerprintModel(),
-                    Hardware = new HardwareFingerprintModel(),
-                    Preferences = new PreferencesFingerprintModel(),
-                    Graphic = new GraphicFingerprintModel()
+                    Audio = "audio_sample_data",
+                    Browser = "browser_sample_data", 
+                    Hardware = "hardware_sample_data",
+                    Preferences = "preferences_sample_data",
+                    Graphic = "graphic_sample_data"
                 }
             };
 
@@ -429,6 +426,112 @@ namespace Device.FingerPrint.QueueConsumer.Tests.Services
             // Assert
             Assert.NotNull(result);
             Assert.Equal(expectedIP, result.IP);
+        }
+
+        [Fact]
+        public void TransformRawTransaction_ProcessesUrlCorrectly()
+        {
+            // Arrange
+            var message = new MessageQueue
+            {
+                Account = "testUser",
+                Subscriber = "testSubscriber",
+                SubscriberId = 123,
+                TransDate = DateTime.Now,
+                Action = "login",
+                ActionResult = "success",
+                IP = "192.168.1.1",
+                Device = new DeviceModel
+                {
+                    Di = "test-device-id",
+                    UserAgent = "Test Browser",
+                    Url = "https://example.com:443/test/path?query=value#hash"
+                },
+                FingerPrint = new APFingerprintModel()
+            };
+
+            var deviceInfo = new DeviceInfoModel
+            {
+                Tagging = "valid-guid-device-id",
+                Version = "2.0.1",
+                Rtc = "119.82.130.208"
+            };
+
+            var botDModel = new BotDModel
+            {
+                Component = "testComponent",
+                IsVer3 = true,
+                Detection = "human"
+            };
+
+            _mockDeviceService.Setup(x => x.GetDeviceInfo(It.IsAny<string>(), It.IsAny<MessageQueue>()))
+                .Returns(deviceInfo);
+
+            _mockBotDetectionService.Setup(x => x.TransformBotdModel(It.IsAny<MessageQueue>()))
+                .Returns(botDModel);
+
+            _mockBotDetectionService.Setup(x => x.GetFlaggedCode(It.IsAny<BotDModel>(), It.IsAny<string>(), It.IsAny<string>()))
+                .Returns("clean");
+
+            // Act
+            var result = _rawTransactionService.TransformRawTransaction(message);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal("https://example.com/test/path", result.URL); // Port 443 removed, query/hash stripped
+        }
+
+        [Fact]
+        public void TransformRawTransaction_WithNullUrl_HandlesGracefully()
+        {
+            // Arrange
+            var message = new MessageQueue
+            {
+                Account = "testUser",
+                Subscriber = "testSubscriber",
+                SubscriberId = 123,
+                TransDate = DateTime.Now,
+                Action = "login",
+                ActionResult = "success",
+                IP = "192.168.1.1",
+                Device = new DeviceModel
+                {
+                    Di = "test-device-id",
+                    UserAgent = "Test Browser",
+                    Url = null
+                },
+                FingerPrint = new APFingerprintModel()
+            };
+
+            var deviceInfo = new DeviceInfoModel
+            {
+                Tagging = "valid-guid-device-id",
+                Version = "2.0.1",
+                Rtc = "119.82.130.208"
+            };
+
+            var botDModel = new BotDModel
+            {
+                Component = "testComponent",
+                IsVer3 = true,
+                Detection = "human"
+            };
+
+            _mockDeviceService.Setup(x => x.GetDeviceInfo(It.IsAny<string>(), It.IsAny<MessageQueue>()))
+                .Returns(deviceInfo);
+
+            _mockBotDetectionService.Setup(x => x.TransformBotdModel(It.IsAny<MessageQueue>()))
+                .Returns(botDModel);
+
+            _mockBotDetectionService.Setup(x => x.GetFlaggedCode(It.IsAny<BotDModel>(), It.IsAny<string>(), It.IsAny<string>()))
+                .Returns("clean");
+
+            // Act
+            var result = _rawTransactionService.TransformRawTransaction(message);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Null(result.URL); // Should handle null URL gracefully
         }
 
         [Fact]
