@@ -26,22 +26,20 @@
         private readonly ITransactionService transactionService = transactionService;
         private readonly IAppSettings appSettings = appSettings;
 
-        public Task Consume(ConsumeContext<Batch<MessageQueue>> context)
+        public async Task Consume(ConsumeContext<Batch<MessageQueue>> context)
         {
             try
             {
                 if (ShouldSkipProcessing(context))
                 {
-                    return Task.CompletedTask;   
+                    return;   
                 }
 
                 var rawTransModels = TransformMessages(context.Message);
                 if (rawTransModels.Any())
                 {
-                    ProcessTransactions(rawTransModels);
+                    await ProcessTransactions(rawTransModels);
                 }
-
-                return Task.CompletedTask;
             }
             catch (Exception ex)
             {
@@ -55,11 +53,13 @@
             return !appSettings.GetValue<bool>("Consumer:IsConsume") || context.Message.Length <= 0;
         }
 
-        private void ProcessTransactions(IEnumerable<RawTransactionModel> rawTransModels)
+        private async Task ProcessTransactions(IEnumerable<RawTransactionModel> rawTransModels)
         {
-            transactionService.InsertRawFingerprint(rawTransModels);
-            transactionService.InsertRawTransaction(rawTransModels);
-            transactionService.InsertWebRTCIP(rawTransModels);
+            var task1 = Task.Run(() => transactionService.InsertRawFingerprint(rawTransModels));
+            var task2 = Task.Run(() => transactionService.InsertRawTransaction(rawTransModels));
+            var task3 = Task.Run(() => transactionService.InsertWebRTCIP(rawTransModels));
+
+            await Task.WhenAll(task1, task2, task3);
         }
 
         private IEnumerable<RawTransactionModel> TransformMessages(Batch<MessageQueue> messages)

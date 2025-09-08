@@ -1,6 +1,6 @@
 ﻿namespace Device.FingerPrint.QueueConsumer.Services
 {
-    using Device.FingerPrint.Core.Encoders;
+    using Device.FingerPrint.Core.Decoders;
     using Device.FingerPrint.Model;
     using Device.FingerPrint.TransactionAPI.Model;
     using Fanex.Logging;
@@ -41,12 +41,8 @@
             {
                 try
                 {
-                    var botD = Base64.Decode(message.BotD);
-
-                    if (!string.IsNullOrEmpty(botD) && Utilities.IsValidJson(botD))
-                    {
-                        return JsonConvert.DeserializeObject<BotDModel>(botD) ?? new BotDModel();
-                    }
+                    var botDModel = Base64JsonDecoder.DecodeAndDeserialize<BotDModel>(message.BotD, Utilities.IsValidJson);
+                    return botDModel ?? new BotDModel();
                 }
                 catch (Exception ex)
                 {

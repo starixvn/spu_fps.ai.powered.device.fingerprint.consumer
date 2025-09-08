@@ -1,11 +1,11 @@
-﻿namespace Device.FingerPrint.QueueConsumer.Services
+﻿// Licensed to the .NET Foundation under one or more agreements.
+
+namespace Device.FingerPrint.QueueConsumer.Services
 {
-    using Device.FingerPrint.Core;
-    using Device.FingerPrint.Core.Encoders;
+    using System;
+    using Device.FingerPrint.Core.Decoders;
     using Device.FingerPrint.Model;
     using Device.FingerPrint.TransactionAPI.Model;
-    using Newtonsoft.Json;
-    using System;
 
 
     public interface IDeviceService
@@ -15,8 +15,6 @@
 
     public class DeviceService : IDeviceService
     {
-        private const string base64Key = "wFKfVDGZqRbyYCBi6IveMaQAh1ntWcP8ujT/U7r2xXs+J0L=4d3zEHSo5glN9kOpm";
-
         public DeviceInfoModel GetDeviceInfo(string? di, MessageQueue message)
         {
             try
@@ -56,20 +54,7 @@
 
         private static DeviceInfoModel? DecodeAndDeserializeDeviceInfo(string? di)
         {
-            if (string.IsNullOrEmpty(di))
-            {
-                return null;
-            }
-
-            try
-            {
-                string value = Base64.Decode(di, base64Key);
-                return JsonConvert.DeserializeObject<DeviceInfoModel>(value, JsonSerializerSettingsFactory.Instance);
-            }
-            catch
-            {
-                return null;
-            }
+            return Base64JsonDecoder.DecodeAndDeserialize<DeviceInfoModel>(di);
         }
     }
 }
