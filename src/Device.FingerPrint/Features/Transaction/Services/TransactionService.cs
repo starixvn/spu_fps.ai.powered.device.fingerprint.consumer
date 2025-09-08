@@ -105,11 +105,11 @@ namespace Device.FingerPrint.Features.Transaction.Services
                     PreferencesCode = group.Key.PreferencesCode,
                     FPPatternCode01 = group.Key.FPPatternCode01,
                     FPPatternCode02 = group.Key.FPPatternCode02,
-                    AudioDetails = group.First().FingerPrint.Audio,
-                    BrowserDetails = group.First().FingerPrint.Browser,
-                    GraphicDetails = group.First().FingerPrint.Graphic,
-                    HardwareDetails = group.First().FingerPrint.Hardware,
-                    PreferencesDetails = group.First().FingerPrint.Preferences,
+                    AudioDetails = group.First().FingerPrint.Au,
+                    BrowserDetails = group.First().FingerPrint.Br,
+                    GraphicDetails = group.First().FingerPrint.Gp,
+                    HardwareDetails = group.First().FingerPrint.Hw,
+                    PreferencesDetails = group.First().FingerPrint.Pf,
                     CreatedDate = group.Min(t => t.TransTime.Date)
                 });
         }

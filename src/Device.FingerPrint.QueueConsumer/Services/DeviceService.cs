@@ -15,6 +15,8 @@
 
     public class DeviceService : IDeviceService
     {
+        private const string base64Key = "wFKfVDGZqRbyYCBi6IveMaQAh1ntWcP8ujT/U7r2xXs+J0L=4d3zEHSo5glN9kOpm";
+
         public DeviceInfoModel GetDeviceInfo(string? di, MessageQueue message)
         {
             try
@@ -61,7 +63,7 @@
 
             try
             {
-                string value = Base64.Decode(di);
+                string value = Base64.Decode(di, base64Key);
                 return JsonConvert.DeserializeObject<DeviceInfoModel>(value, JsonSerializerSettingsFactory.Instance);
             }
             catch

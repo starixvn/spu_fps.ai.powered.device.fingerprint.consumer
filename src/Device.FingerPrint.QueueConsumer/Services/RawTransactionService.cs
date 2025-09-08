@@ -112,7 +112,7 @@
             var botResult = ProcessBotDetection(message, deviceInfo, userAgent);
             var ipResult = ProcessIP(message);
 
-            message.FingerPrint.GenerateGroupHashCodes();
+            message.Fingerprint.GenerateGroupHashCodes();
 
             return BuildRawTransactionModel(message, deviceInfo, transBit, userAgent, botResult, ipResult);
         }
@@ -124,6 +124,10 @@
 
         private static Uri? ProcessUrl(string? url)
         {
+            if (string.IsNullOrWhiteSpace(url))
+            {
+                return null;
+            }
             return Utilities.SubStringUrl(url ?? string.Empty);
         }
 
@@ -169,9 +173,9 @@
                 IsIPV6 = GetIsIPV6(ipResult.IpConverted),
                 ScriptVersion = deviceInfo.Version,
                 WebRTCIP = GetTrimmedValue(deviceInfo.Rtc),
-                FPPatternCode01 = GetTrimmedValue(message.FPPatternCode01),
-                FPPatternCode02 = GetTrimmedValue(message.FPPatternCode02),
-                FingerPrint = message.FingerPrint
+                FPPatternCode01 = GetTrimmedValue(deviceInfo.F4),
+                FPPatternCode02 = GetTrimmedValue(deviceInfo.F5),
+                FingerPrint = message.Fingerprint
             };
         }
 

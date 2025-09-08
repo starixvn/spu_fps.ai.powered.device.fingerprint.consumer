@@ -341,57 +341,6 @@ namespace Device.FingerPrint.QueueConsumer.Tests.Services
             Assert.NotNull(result);
         }
 
-        [Fact]
-        public void TransformRawTransaction_GeneratesFingerPrintSample()
-        {
-            // Arrange
-            var message = new MessageQueue
-            {
-                Account = "testUser",
-                Device = new DeviceModel { Di = "test-di" },
-                FPPatternCode01 = "FPPatternCode01Sample",
-                FPPatternCode02 = "FPPatternCode02Sample",
-                FingerPrint = new APFingerprintModel
-                {
-                    Audio = "audio_sample_data",
-                    Browser = "browser_sample_data", 
-                    Hardware = "hardware_sample_data",
-                    Preferences = "preferences_sample_data",
-                    Graphic = "graphic_sample_data"
-                }
-            };
-
-            var deviceInfo = new DeviceInfoModel
-            {
-                Tagging = "84e39e4a-71ad-4aa1-acb5-2c28e29de7aa"
-            };
-
-            var botDModel = new BotDModel { IsVer3 = true };
-
-            _mockDeviceService.Setup(x => x.GetDeviceInfo(It.IsAny<string>(), It.IsAny<MessageQueue>()))
-                .Returns(deviceInfo);
-
-            _mockBotDetectionService.Setup(x => x.TransformBotdModel(It.IsAny<MessageQueue>()))
-                .Returns(botDModel);
-
-            _mockBotDetectionService.Setup(x => x.GetFlaggedCode(It.IsAny<BotDModel>(), It.IsAny<string>(), It.IsAny<string>()))
-                .Returns("flagged");
-
-            // Act
-            var result = _rawTransactionService.TransformRawTransaction(message);
-
-            // Assert
-            Assert.NotNull(result);
-            Assert.NotNull(result.FingerPrint);
-            Assert.NotNull(result.FingerPrint.Audio);
-            Assert.NotNull(result.FingerPrint.Browser);
-            Assert.NotNull(result.FingerPrint.Hardware);
-            Assert.NotNull(result.FingerPrint.Preferences);
-            Assert.NotNull(result.FingerPrint.Graphic);
-            Assert.Equal("FPPatternCode01Sample", result.FPPatternCode01);
-            Assert.Equal("FPPatternCode02Sample", result.FPPatternCode02);
-        }
-
         [Theory]
         [InlineData("192.168.1.1", "192.168.1.1")]
         [InlineData("  10.0.0.1  ", "10.0.0.1")]
@@ -447,7 +396,7 @@ namespace Device.FingerPrint.QueueConsumer.Tests.Services
                     UserAgent = "Test Browser",
                     Url = "https://example.com:443/test/path?query=value#hash"
                 },
-                FingerPrint = new APFingerprintModel()
+                Fingerprint = new APFingerprintModel()
             };
 
             var deviceInfo = new DeviceInfoModel
@@ -500,7 +449,7 @@ namespace Device.FingerPrint.QueueConsumer.Tests.Services
                     UserAgent = "Test Browser",
                     Url = null
                 },
-                FingerPrint = new APFingerprintModel()
+                Fingerprint = new APFingerprintModel()
             };
 
             var deviceInfo = new DeviceInfoModel

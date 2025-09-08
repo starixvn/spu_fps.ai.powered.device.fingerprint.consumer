@@ -1,16 +1,28 @@
 using System;
 using System.Security.Cryptography;
 using System.Text;
+using Newtonsoft.Json;
 
 namespace Device.FingerPrint.Model
 {
     public class APFingerprintModel
     {
-        public string? Audio { get; set; }
-        public string? Browser { get; set; }
-        public string? Hardware { get; set; }
-        public string? Preferences { get; set; }
-        public string? Graphic { get; set; }
+
+        [JsonProperty("au")]
+        public string? Au { get; set; }
+
+        [JsonProperty("br")]
+        public string? Br { get; set; }
+
+        [JsonProperty("hw")]
+        public string? Hw { get; set; }
+
+        [JsonProperty("pf")]
+        public string? Pf { get; set; }
+
+        [JsonProperty("gp")]
+        public string? Gp { get; set; }
+
         public string? AudioCode { get; set; }
         public string? BrowserCode { get; set; }
         public string? HardwareCode { get; set; }
@@ -19,11 +31,11 @@ namespace Device.FingerPrint.Model
 
         public void GenerateGroupHashCodes()
         {
-            AudioCode = GenerateHashCode(Audio);
-            BrowserCode = GenerateHashCode(Browser);
-            HardwareCode = GenerateHashCode(Hardware);
-            PreferencesCode = GenerateHashCode(Preferences);
-            GraphicCode = GenerateHashCode(Graphic);
+            AudioCode = GenerateHashCode(Au);
+            BrowserCode = GenerateHashCode(Br);
+            HardwareCode = GenerateHashCode(Hw);
+            PreferencesCode = GenerateHashCode(Pf);
+            GraphicCode = GenerateHashCode(Gp);
         }
 
         private static string? GenerateHashCode(string? input)
