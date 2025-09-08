@@ -10,6 +10,7 @@ using Moq;
 
 namespace Device.FingerPrint.QueueConsumer.Tests.Handlers
 {
+    [Collection("UnitTestCollection")]
     public class ConsumerTests
     {
         private readonly Mock<IRawTransactionService> _mockRawTransactionService;
