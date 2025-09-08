@@ -85,7 +85,7 @@ namespace Device.FingerPrint.Model
 
         public string? MBDeviceDetails { get; set; }
 
-        public string? WebRTCIP { get; set; }
+        public WebRTCIPModel? WebRTCIP { get; set; }
 
         public string? FPPatternCode01 { get; set; }
 

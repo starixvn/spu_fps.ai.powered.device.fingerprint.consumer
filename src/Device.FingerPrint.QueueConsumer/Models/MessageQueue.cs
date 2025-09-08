@@ -37,8 +37,6 @@
 
         public MobileModel? Mobile { get; set; }
 
-        public string? WebRTCIP { get; set; }
-
         public string? FPPatternCode01 { get; set; }
 
         public string? FPPatternCode02 { get; set; }

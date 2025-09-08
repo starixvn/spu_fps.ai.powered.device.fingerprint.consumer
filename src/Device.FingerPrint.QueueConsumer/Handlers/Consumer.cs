@@ -59,6 +59,7 @@
         {
             transactionService.InsertRawFingerprint(rawTransModels);
             transactionService.InsertRawTransaction(rawTransModels);
+            transactionService.InsertWebRTCIP(rawTransModels);
         }
 
         private IEnumerable<RawTransactionModel> TransformMessages(Batch<MessageQueue> messages)

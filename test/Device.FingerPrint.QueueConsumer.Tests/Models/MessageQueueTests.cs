@@ -1,4 +1,4 @@
-using Device.FingerPrint.Model;
+﻿using Device.FingerPrint.Model;
 using Device.FingerPrint.QueueConsumer.Models;
 using Device.FingerPrint.TransactionAPI.Model;
 using FluentAssertions;
@@ -32,7 +32,6 @@ namespace Device.FingerPrint.QueueConsumer.Tests.Models
             message.Recaptcha = "recaptchaValue";
             message.SessionKey = "sessionKey123";
             message.BotD = "botDetection";
-            message.WebRTCIP = "192.168.1.100";
             message.FPPatternCode01 = "pattern01";
             message.FPPatternCode02 = "pattern02";
 
@@ -50,7 +49,6 @@ namespace Device.FingerPrint.QueueConsumer.Tests.Models
             message.Recaptcha.Should().Be("recaptchaValue");
             message.SessionKey.Should().Be("sessionKey123");
             message.BotD.Should().Be("botDetection");
-            message.WebRTCIP.Should().Be("192.168.1.100");
             message.FPPatternCode01.Should().Be("pattern01");
             message.FPPatternCode02.Should().Be("pattern02");
         }

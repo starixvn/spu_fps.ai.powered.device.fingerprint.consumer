@@ -1,4 +1,6 @@
-﻿using Device.FingerPrint.Features.Transaction.Criterias;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+
+using Device.FingerPrint.Features.Transaction.Criterias;
 using Device.FingerPrint.Features.Transaction.Model;
 using Fanex.Data.Repository;
 
@@ -11,6 +13,8 @@ namespace Device.FingerPrint.Features.Transaction.Services
         void InsertRawFingerprint(string rawFPDetailJson);
 
         void InsertRawTransaction(string transJson);
+
+        void InsertWebRTCIP(int detailsType, string webRTCJson);
     }
 
     public class TransactionDataAccess : ITransactionDataAccess
@@ -44,6 +48,17 @@ namespace Device.FingerPrint.Features.Transaction.Services
             var criteria = new InsertRawTransactionCriteria
             {
                 RawTransJson = transJson,
+            };
+
+            repository.Execute(criteria);
+        }
+
+        public void InsertWebRTCIP(int detailsType, string webRTCJson)
+        {
+            var criteria = new InsertRawDetailsCriteria
+            {
+                DetailsType = detailsType,
+                Details = webRTCJson
             };
 
             repository.Execute(criteria);

@@ -172,7 +172,7 @@
                 FakeIP = GetTrimmedValue(message.FakeIP),
                 IsIPV6 = GetIsIPV6(ipResult.IpConverted),
                 ScriptVersion = deviceInfo.Version,
-                WebRTCIP = GetTrimmedValue(deviceInfo.Rtc),
+                WebRTCIP = new WebRTCIPModel(deviceInfo.Rtc ?? string.Empty),
                 FPPatternCode01 = GetTrimmedValue(deviceInfo.F4),
                 FPPatternCode02 = GetTrimmedValue(deviceInfo.F5),
                 FingerPrint = message.Fingerprint

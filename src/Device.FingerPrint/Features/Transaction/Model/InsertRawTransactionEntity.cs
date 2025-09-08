@@ -78,11 +78,11 @@ namespace Device.FingerPrint.Features.Transaction.Model
 
         public string? MBDeviceDetails { get; set; }
 
-        public string? WebRTCIP { get; set; }
-
         public string? FPPatternCode01 { get; set; }
 
         public string? FPPatternCode02 { get; set; }
+
+        public string? WebRTCIPCode { get; set; }
 
     }
 }

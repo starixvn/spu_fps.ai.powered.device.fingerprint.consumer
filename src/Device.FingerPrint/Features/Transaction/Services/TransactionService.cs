@@ -1,4 +1,6 @@
-﻿using Device.FingerPrint.Features.Transaction.Model;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+
+using Device.FingerPrint.Features.Transaction.Model;
 using Device.FingerPrint.Model;
 using Newtonsoft.Json;
 
@@ -11,11 +13,14 @@ namespace Device.FingerPrint.Features.Transaction.Services
         void InsertRawFingerprint(IEnumerable<RawTransactionModel> transactions);
 
         void InsertRawTransaction(IEnumerable<RawTransactionModel> transactions);
+
+        void InsertWebRTCIP(IEnumerable<RawTransactionModel> transactions);
     }
 
     public class TransactionService(ITransactionDataAccess transactionDataAccess) : ITransactionService
     {
         private readonly ITransactionDataAccess transactionDataAccess = transactionDataAccess;
+        private const int DETAILS_TYPE_WEBRTCIP = 1;
 
         public IEnumerable<FPAttributeEntity> GetFingerprintAttribute()
         {
@@ -34,6 +39,29 @@ namespace Device.FingerPrint.Features.Transaction.Services
             var transJson = JsonConvert.SerializeObject(TransformInsertRawTransaction(transactions));
 
             transactionDataAccess.InsertRawTransaction(transJson);
+        }
+
+        public void InsertWebRTCIP(IEnumerable<RawTransactionModel> transactions)
+        {
+            var webRTCIP = GetWebRTCIPUnique(transactions);
+            var json = JsonConvert.SerializeObject(webRTCIP);
+
+            transactionDataAccess.InsertWebRTCIP(DETAILS_TYPE_WEBRTCIP, json);
+        }
+
+        private static IEnumerable<object> GetWebRTCIPUnique(IEnumerable<RawTransactionModel> rawTransModels)
+        {
+            var webRTCIPs = rawTransModels
+                .Where(x => x.WebRTCIP != null && !string.IsNullOrEmpty(x.WebRTCIP.Code))
+                .GroupBy(x => new { x.WebRTCIP!.Code, x.WebRTCIP.Details })
+                .Select(g => new
+                {
+                    g.Key.Code,
+                    g.Key.Details,
+                    CreatedDate = g.Min(x => x.TransTime).ToString("yyyy-MM-dd")
+                });
+
+            return webRTCIPs.ToList();
         }
 
         private static IEnumerable<InsertRawTransactionEntity> TransformInsertRawTransaction(IEnumerable<RawTransactionModel> transactions)
@@ -74,9 +102,9 @@ namespace Device.FingerPrint.Features.Transaction.Services
                 MBLanguage = transaction.MBLanguage,
                 MBCountry = transaction.MBCountry,
                 MBDeviceDetails = transaction.MBDeviceDetails,
-                WebRTCIP = transaction.WebRTCIP,
                 FPPatternCode01 = transaction.FPPatternCode01,
-                FPPatternCode02 = transaction.FPPatternCode02
+                FPPatternCode02 = transaction.FPPatternCode02,
+                WebRTCIPCode = transaction.WebRTCIP?.Code
             });
         }
 
