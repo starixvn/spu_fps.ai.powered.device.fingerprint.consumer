@@ -131,9 +131,14 @@
             return Utilities.SubStringUrl(url ?? string.Empty);
         }
 
-        private static string? GetValidDeviceId(string? deviceId)
+        private static string? GetInvalidDeviceId(BitArray transBit, string? di)
         {
-            return string.IsNullOrWhiteSpace(deviceId) ? null : deviceId;
+            if (transBit.Get((int)TransStatus.InvalidDI))
+            {
+                return di;
+            }
+
+            return null;
         }
 
         private static DateTime ProcessTransactionTime(DateTime transDate)
@@ -153,7 +158,7 @@
             return new RawTransactionModel
             {
                 DeviceCode = deviceInfo.Tagging,
-                InvalidDevice = GetValidDeviceId(message.Device?.Di),
+                InvalidDevice = GetInvalidDeviceId(transBit, message.Device?.Di),
                 TransStatus = Utilities.ConvertBitArray2Int(transBit),
                 LoginName = message.Account,
                 SubscriberName = message.Subscriber,
