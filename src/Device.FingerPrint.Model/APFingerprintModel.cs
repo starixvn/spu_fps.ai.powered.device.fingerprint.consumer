@@ -1,7 +1,7 @@
-using System;
-using System.Security.Cryptography;
+﻿using System;
 using System.Text;
 using Newtonsoft.Json;
+using Murmur;
 
 namespace Device.FingerPrint.Model
 {
@@ -45,9 +45,23 @@ namespace Device.FingerPrint.Model
                 return null;   
             }
 
-            using var md5 = MD5.Create();
-            byte[] hashBytes = md5.ComputeHash(Encoding.UTF8.GetBytes(input));
-            return BitConverter.ToString(hashBytes).Replace("-", "").ToLowerInvariant();
+            // Use MurmurHash3 to generate hash
+            var murmur = MurmurHash.Create32();
+            byte[] inputBytes = Encoding.UTF8.GetBytes(input);
+            byte[] hashBytes = murmur.ComputeHash(inputBytes);
+            
+            // Convert to hex string (8 characters for 32-bit hash)
+            string hexHash = BitConverter.ToString(hashBytes).Replace("-", "").ToLowerInvariant();
+            
+            // Pad to 32 characters by repeating the hash using StringBuilder
+            var sb = new StringBuilder(hexHash);
+            while (sb.Length < 32)
+            {
+                sb.Append(hexHash);
+            }
+            
+            // Ensure exactly 32 characters
+            return sb.ToString()[..32];
         }
     }
 }

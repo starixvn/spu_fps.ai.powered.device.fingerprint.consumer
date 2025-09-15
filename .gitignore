@@ -348,3 +348,4 @@ FodyWeavers.xsd
 /coverage/*
 /*.md
 /CoverageReport/*
+/.vscode/*

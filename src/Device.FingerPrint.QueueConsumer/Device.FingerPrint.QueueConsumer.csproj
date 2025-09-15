@@ -19,6 +19,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.3.0" />
     <PackageReference Include="Microsoft.AspNetCore.Server.Kestrel.Core" Version="2.3.0" />
     <PackageReference Include="Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets" Version="2.3.0" />
+    <PackageReference Include="murmurhash" Version="1.0.3" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="StackExchange.Redis.Extensions.Core" Version="10.2.0" />
     <PackageReference Include="StackExchange.Redis.Extensions.MsgPack" Version="10.2.0" />
