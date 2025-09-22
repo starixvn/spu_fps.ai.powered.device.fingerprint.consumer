@@ -12,12 +12,10 @@
     }
 
     public class RawTransactionService(
-        IDeviceService deviceService,
         IBotDetectionService botDetectionService,
         IAppSettings appSettings
         ) : IRawTransactionService
     {
-        private readonly IDeviceService deviceService = deviceService;
         private readonly IBotDetectionService botDetectionService = botDetectionService;
         private readonly IAppSettings appSettings = appSettings;
 

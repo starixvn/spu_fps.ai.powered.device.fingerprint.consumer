@@ -10,7 +10,6 @@ namespace Device.FingerPrint.QueueConsumer.Services
         public static void RegisterService(this IServiceCollection services)
         {
             RegisterTransactionService(services);
-            RegisterDeviceService(services);
             RegisterMassTransitService(services);
             RegisterBotDetectionService(services);
         }
@@ -19,11 +18,6 @@ namespace Device.FingerPrint.QueueConsumer.Services
         {
             services.AddSingleton<ITransactionDataAccess, TransactionDataAccess>();
             services.AddSingleton<ITransactionService, TransactionService>();
-        }
-
-        private static void RegisterDeviceService(this IServiceCollection services)
-        {
-            services.AddSingleton<IDeviceService, DeviceService>();
         }
 
         private static void RegisterMassTransitService(this IServiceCollection services)

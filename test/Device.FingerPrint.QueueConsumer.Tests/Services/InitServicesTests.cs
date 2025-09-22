@@ -23,9 +23,6 @@ namespace Device.FingerPrint.QueueConsumer.Tests.Services
             serviceProvider.GetService<ITransactionDataAccess>().Should().NotBeNull();
             serviceProvider.GetService<ITransactionService>().Should().NotBeNull();
 
-            // Verify Device Service
-            serviceProvider.GetService<IDeviceService>().Should().NotBeNull();
-
             // Verify Bot Detection Service
             serviceProvider.GetService<IBotDetectionService>().Should().NotBeNull();
         }
@@ -44,17 +41,14 @@ namespace Device.FingerPrint.QueueConsumer.Tests.Services
 
             // Get first instance
             var firstTransactionService = serviceProvider.GetService<ITransactionService>();
-            var firstDeviceService = serviceProvider.GetService<IDeviceService>();
             var firstBotDetectionService = serviceProvider.GetService<IBotDetectionService>();
 
             // Get second instance
             var secondTransactionService = serviceProvider.GetService<ITransactionService>();
-            var secondDeviceService = serviceProvider.GetService<IDeviceService>();
             var secondBotDetectionService = serviceProvider.GetService<IBotDetectionService>();
 
             // Verify they are the same instance (singleton)
             firstTransactionService.Should().BeSameAs(secondTransactionService);
-            firstDeviceService.Should().BeSameAs(secondDeviceService);
             firstBotDetectionService.Should().BeSameAs(secondBotDetectionService);
         }
 
@@ -73,7 +67,6 @@ namespace Device.FingerPrint.QueueConsumer.Tests.Services
             // Verify all interfaces are registered and can be resolved
             serviceProvider.GetRequiredService<ITransactionDataAccess>().Should().NotBeNull();
             serviceProvider.GetRequiredService<ITransactionService>().Should().NotBeNull();
-            serviceProvider.GetRequiredService<IDeviceService>().Should().NotBeNull();
             serviceProvider.GetRequiredService<IBotDetectionService>().Should().NotBeNull();
         }
 
@@ -105,12 +98,10 @@ namespace Device.FingerPrint.QueueConsumer.Tests.Services
 
             // Verify services can be resolved without dependency issues
             var transactionService = serviceProvider.GetService<ITransactionService>();
-            var deviceService = serviceProvider.GetService<IDeviceService>();
             var botDetectionService = serviceProvider.GetService<IBotDetectionService>();
 
             // All services should be successfully resolved
             transactionService.Should().NotBeNull();
-            deviceService.Should().NotBeNull();
             botDetectionService.Should().NotBeNull();
         }
     }
