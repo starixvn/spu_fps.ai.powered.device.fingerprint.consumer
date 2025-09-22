@@ -34,7 +34,15 @@
             }
             catch (Exception ex)
             {
-                _ = LogService.ErrorAsync($"{appSettings.Environment} - TransformRawTransaction has error:\n {ex.Message}");
+                // Log error but don't let logging issues break the flow
+                try
+                {
+                    _ = LogService.ErrorAsync($"{appSettings.Environment} - TransformRawTransaction has error:\n {ex.Message}");
+                }
+                catch
+                {
+                    // Ignore logging errors in test environment
+                }
                 return null;
             }
         }
