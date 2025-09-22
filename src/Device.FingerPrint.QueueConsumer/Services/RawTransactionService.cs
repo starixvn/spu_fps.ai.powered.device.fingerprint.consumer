@@ -25,37 +25,20 @@
         {
             try
             {
-                var (deviceInfo, url, userAgent, invalidDevice) = ProcessDeviceInfo(message);
+                var deviceInfo = message.DeviceInfo;
+                var userAgent = message.Device?.UserAgent;
+
                 var transBit = ProcessDeviceValidation(deviceInfo);
                 var (botDModel, flaggedCode, botDetection) = ProcessBotDetection(message, deviceInfo, userAgent);
                 var (realIP, ipConverted) = ProcessIPInfo(message);
 
-                return CreateRawTransactionModel(message, deviceInfo, url, userAgent, invalidDevice, transBit, botDModel, flaggedCode, botDetection, realIP, ipConverted);
+                return CreateRawTransactionModel(message, deviceInfo, message.Device?.Url, userAgent, transBit, botDModel, flaggedCode, botDetection, realIP, ipConverted);
             }
             catch (Exception ex)
             {
                 _ = LogService.ErrorAsync($"{appSettings.Environment} - TransformRawTransaction has error:\n {ex.Message}");
                 return null;
             }
-        }
-
-        private (DeviceInfoModel deviceInfo, string url, string userAgent, string invalidDevice) ProcessDeviceInfo(MessageQueue message)
-        {
-            var deviceInfo = new DeviceInfoModel();
-            var url = string.Empty;
-            var userAgent = string.Empty;
-            var invalidDevice = string.Empty;
-
-            if (message.Device != null)
-            {
-                var deviceCode = message.Device.Di;
-                deviceInfo = deviceService.GetDeviceInfo(deviceCode, message);
-                url = message.Device.Url;
-                userAgent = message.Device.UserAgent;
-                invalidDevice = deviceCode; // Store the original device code for potential use
-            }
-
-            return (deviceInfo, url, userAgent, invalidDevice);
         }
 
         private static BitArray ProcessDeviceValidation(DeviceInfoModel deviceInfo)
@@ -105,7 +88,6 @@
             DeviceInfoModel deviceInfo,
             string url,
             string userAgent,
-            string invalidDevice,
             BitArray transBit,
             BotDModel botDModel,
             string flaggedCode,
@@ -130,7 +112,7 @@
             return new RawTransactionModel
             {
                 DeviceCode = deviceInfo.DeviceNo,
-                InvalidDevice = string.IsNullOrWhiteSpace(invalidDevice) ? null : invalidDevice,
+                InvalidDevice = null,
                 TransStatus = Utilities.ConvertBitArray2Int(transBit),
                 LoginName = message.Account,
                 SubscriberName = message.Subscriber,

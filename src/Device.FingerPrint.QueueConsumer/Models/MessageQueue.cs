@@ -37,5 +37,9 @@
         public string? BotD { get; set; }
 
         public MobileModel? Mobile { get; set; }
+
+        public DeviceInfoModel? DeviceInfo { get; set; }
+
+        public bool IsNewFlow { get; set; }
     }
 }

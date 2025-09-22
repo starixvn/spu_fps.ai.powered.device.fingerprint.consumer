@@ -1,5 +1,4 @@
 ﻿using Device.FingerPrint.Core;
-using Device.FingerPrint.Features.Transaction.Services;
 using Device.FingerPrint.Model;
 using Device.FingerPrint.QueueConsumer.Models;
 using Device.FingerPrint.QueueConsumer.Services;
@@ -22,7 +21,7 @@ namespace Device.FingerPrint.QueueConsumer.Tests.Services
 
             // Setup default values
             _mockAppSettings.Setup(x => x.Environment).Returns("Test");
-            
+
             _service = new RawTransactionService(
                 _mockDeviceService.Object,
                 _mockBotDetectionService.Object,
