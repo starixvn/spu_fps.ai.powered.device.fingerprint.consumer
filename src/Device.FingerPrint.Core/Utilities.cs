@@ -12,8 +12,6 @@ namespace Device.FingerPrint.Core
 {
     public static class Utilities
     {
-        private const int _TotalRedisDB = 16;
-
         public static bool IsGuidDeviceId(string deviceCode)
         {
             Guid newGuid;
@@ -112,7 +110,7 @@ namespace Device.FingerPrint.Core
             return data != "N/A" ? data : null;
         }
 
-        public static string SubStringUrl(string url)
+        public static Uri SubStringUrl(string url)
         {
             if (string.IsNullOrEmpty(url))
             {
@@ -122,7 +120,7 @@ namespace Device.FingerPrint.Core
             int cutIndex = url.IndexOfAny(new[] { '?', '#' });
             var cleanUrl = cutIndex != -1 ? url.Substring(0, cutIndex) : url;
 
-            return CollapseCasinoPaths(cleanUrl)?.ToString();
+            return CollapseCasinoPaths(cleanUrl);
         }
 
         private static Uri CollapseCasinoPaths(string rawUrl)
@@ -200,23 +198,6 @@ namespace Device.FingerPrint.Core
             {
                 return false;
             }
-        }
-
-        public static string RemoveRedisPrefix(string input, string prefix)
-        {
-            if (string.IsNullOrEmpty(input))
-            {
-                return string.Empty;
-            }
-
-            #pragma warning disable S1449
-            if (input.StartsWith(prefix))
-            {
-                return input.Replace(prefix, string.Empty);
-            }
-            #pragma warning restore S1449
-
-            return input;
         }
     }
 }

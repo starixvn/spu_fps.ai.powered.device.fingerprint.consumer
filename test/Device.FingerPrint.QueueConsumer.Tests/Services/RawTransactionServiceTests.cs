@@ -3,20 +3,15 @@ using Device.FingerPrint.Features.Transaction.Services;
 using Device.FingerPrint.Model;
 using Device.FingerPrint.QueueConsumer.Models;
 using Device.FingerPrint.QueueConsumer.Services;
-using Device.FingerPrint.Redis;
 using Moq;
-using StackExchange.Redis;
 
 namespace Device.FingerPrint.QueueConsumer.Tests.Services
 {
     public class RawTransactionServiceTests
     {
-        private readonly Mock<IRedisMultiplexDbService> _mockRedisService;
         private readonly Mock<IDeviceService> _mockDeviceService;
         private readonly Mock<IBotDetectionService> _mockBotDetectionService;
-        private readonly Mock<ITransactionService> _mockTransactionService;
         private readonly Mock<IAppSettings> _mockAppSettings;
-        private readonly Mock<IDatabase> _mockDatabase;
         private readonly RawTransactionService _service;
 
         public RawTransactionServiceTests()
@@ -27,7 +22,6 @@ namespace Device.FingerPrint.QueueConsumer.Tests.Services
 
             // Setup default values
             _mockAppSettings.Setup(x => x.Environment).Returns("Test");
-            _mockAppSettings.Setup(x => x.EverTaggingDBIndex).Returns(0);
             
             _service = new RawTransactionService(
                 _mockDeviceService.Object,

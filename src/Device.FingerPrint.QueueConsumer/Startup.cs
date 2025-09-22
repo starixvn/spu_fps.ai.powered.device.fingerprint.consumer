@@ -4,7 +4,6 @@ namespace Device.FingerPrint.QueueConsumer
     using Device.FingerPrint.Core.Services;
     using Device.FingerPrint.QueueConsumer.Handlers;
     using Device.FingerPrint.QueueConsumer.Services;
-    using Device.FingerPrint.Redis;
     using Fanex.Data.MySql;
     using Fanex.Logging;
     using Fanex.Logging.Extensions;
@@ -58,8 +57,6 @@ namespace Device.FingerPrint.QueueConsumer
             ExceptionHandler
                 .UseConfig(new LoggingConfiguration())
                 .UseGetDbExceptionInfo(DatabaseInfoGetters.GetDbExceptionInfo);
-
-            RegisterRedis(services);
 
             InitService(services);
 
@@ -119,11 +116,6 @@ namespace Device.FingerPrint.QueueConsumer
             });
 
             app.UseRouting();
-        }
-
-        private void RegisterRedis(IServiceCollection services)
-        {
-            services.AddSingleton<IRedisMultiplexDbService, RedisMultiplexDbService>();
         }
 
         private void InitService(IServiceCollection services)

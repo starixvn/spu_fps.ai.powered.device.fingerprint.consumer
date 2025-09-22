@@ -41,30 +41,26 @@ namespace Device.FingerPrint.Core.Tests
         }
 
         [Fact]
-        public void RemoveRedisPrefix_StripsPrefix()
-        {
-            Utilities.RemoveRedisPrefix("RealTagging:abc", "RealTagging:").Should().Be("abc");
-            Utilities.RemoveRedisPrefix("abc", "RealTagging:").Should().Be("abc");
-        }
 
-        [Fact]
         public void SubStringUrl_TrimsQueryAndHashes()
         {
-            Utilities.SubStringUrl("https://a.com:443/path?x=1#y").Should().Be("https://a.com/path");
+            Utilities.SubStringUrl("https://a.com:443/path?x=1#y").ToString().Should().Be("https://a.com/path");
         }
 
         [Fact]
+
         public void SubStringUrl_WithPort443_RemovesPort()
         {
             // Test that port 443 is removed from HTTPS URLs
-            Utilities.SubStringUrl("https://a.com:443/path").Should().Be("https://a.com/path");
+            Utilities.SubStringUrl("https://a.com:443/path").ToString().Should().Be("https://a.com/path");
         }
 
         [Fact]
+
         public void SubStringUrl_WithNonStandardPort_KeepsPort()
         {
             // Test that non-standard ports are kept
-            Utilities.SubStringUrl("https://a.com:8080/path").Should().Be("https://a.com:8080/path");
+            Utilities.SubStringUrl("https://a.com:8080/path").ToString().Should().Be("https://a.com:8080/path");
         }
 
         [Fact]

@@ -49,31 +49,11 @@ namespace Device.FingerPrint.Model
 
         public int TransStatus { get; set; }
 
-        [FieldHidden]
-        public int TransId { get; set; }
-
-        [FieldConverter(typeof(ConvertBigInteger))]
-        public BigInteger? FPSTransId { get; set; }
-
-        public string? SessionKey { get; set; }
-
         public string? FlaggedCode { get; set; }
 
         public string? BotDetection { get; set; }
 
         public string? BotComponent { get; set; }
-
-        public string? Country { get; set; }
-
-        public string? CountryCode { get; set; }
-
-        public string? Region { get; set; }
-
-        public string? City { get; set; }
-
-        public string? ISP { get; set; }
-
-        public long IPInfoCode { get; set; }
 
         public string? ChallengeCode { get; set; }
 

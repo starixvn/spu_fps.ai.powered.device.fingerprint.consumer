@@ -98,6 +98,7 @@
             return (realIP, ipConverted);
         }
 
+#pragma warning disable S107
         private RawTransactionModel CreateRawTransactionModel(
             MessageQueue message,
             DeviceInfoModel deviceInfo,
@@ -121,7 +122,7 @@
                 SubscriberId = message.SubscriberId,
                 TransTime = Convert.ToDateTime(message.TransDate.ToString("yyyy-MM-dd HH:mm:ss.ffff", System.Globalization.CultureInfo.InvariantCulture)),
                 PluginID = 0,
-                URL = string.IsNullOrWhiteSpace(url) ? Utilities.ConvertNA2Empty(Utilities.SubStringUrl(deviceInfo.HRef)) : Utilities.SubStringUrl(url),
+                URL = string.IsNullOrWhiteSpace(url) ? Utilities.ConvertNA2Empty(Utilities.SubStringUrl(deviceInfo.HRef)?.ToString()) : Utilities.SubStringUrl(url)?.ToString(),
                 Action = message.Action,
                 ActionResult = message.ActionResult,
                 UserAgent = string.IsNullOrWhiteSpace(userAgent)
@@ -129,7 +130,6 @@
                     : Utilities.StripUnicodeCharactersFromString(userAgent),
                 FingerprintCode = deviceInfo.DeviceFPCode != "N/A" ? deviceInfo.DeviceFPCode : null,
                 FingerprintMoreInfo = deviceInfo.DeviceFPCode != "N/A" ? Utilities.EncodeCapturedData(deviceInfo) : null,
-                SessionKey = message.SessionKey,
                 FlaggedCode = flaggedCode,
                 BotDetection = botDetection,
                 BotComponent = botDModel?.Component ?? string.Empty,

@@ -26,7 +26,6 @@ namespace Device.FingerPrint.QueueConsumer.Tests.Handlers
 
             // Setup default values
             _mockAppSettings.Setup(x => x.GetValue<bool>("Consumer:IsConsume")).Returns(true);
-            _mockAppSettings.Setup(x => x.EverTaggingExpireSecond).Returns(3600);
 
             _consumer = new Consumer(
                 _mockRawTransactionService.Object,
