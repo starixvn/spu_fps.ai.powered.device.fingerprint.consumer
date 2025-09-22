@@ -58,7 +58,7 @@
             return (deviceInfo, url, userAgent, invalidDevice);
         }
 
-        private BitArray ProcessDeviceValidation(DeviceInfoModel deviceInfo)
+        private static BitArray ProcessDeviceValidation(DeviceInfoModel deviceInfo)
         {
             var transBit = new BitArray(16);
 
@@ -90,16 +90,15 @@
             return (botDModel, flaggedCode, botDetection);
         }
 
-        private (string realIP, IpModel ipConverted) ProcessIPInfo(MessageQueue message)
+        private static (string realIP, IpModel ipConverted) ProcessIPInfo(MessageQueue message)
         {
             var realIP = message.IP?.Trim();
             var ipConverted = realIP.Ip2Long();
 
             return (realIP, ipConverted);
         }
-
-#pragma warning disable S107
-        private RawTransactionModel CreateRawTransactionModel(
+        
+        private static RawTransactionModel CreateRawTransactionModel(
             MessageQueue message,
             DeviceInfoModel deviceInfo,
             string url,
@@ -112,24 +111,37 @@
             string realIP,
             IpModel ipConverted)
         {
+            // S1541: Avoid magic numbers - use named constant for plugin id
+            const int DefaultPluginId = 0;
+
+            // S107: Reduce cognitive complexity by extracting logic to local functions
+            string GetUrl() => string.IsNullOrWhiteSpace(url)
+                ? Utilities.ConvertNA2Empty(Utilities.SubStringUrl(deviceInfo.HRef)?.ToString())
+                : Utilities.SubStringUrl(url)?.ToString();
+
+            string GetUserAgent() => string.IsNullOrWhiteSpace(userAgent)
+                ? Utilities.ConvertNA2Empty(Utilities.StripUnicodeCharactersFromString(deviceInfo.UserAgent))
+                : Utilities.StripUnicodeCharactersFromString(userAgent);
+
+            string? GetFingerprintCode() => deviceInfo.DeviceFPCode != "N/A" ? deviceInfo.DeviceFPCode : null;
+            string? GetFingerprintMoreInfo() => deviceInfo.DeviceFPCode != "N/A" ? Utilities.EncodeCapturedData(deviceInfo) : null;
+
             return new RawTransactionModel
             {
                 DeviceCode = deviceInfo.DeviceNo,
                 InvalidDevice = string.IsNullOrWhiteSpace(invalidDevice) ? null : invalidDevice,
-                TransStatus = Core.Utilities.ConvertBitArray2Int(transBit),
+                TransStatus = Utilities.ConvertBitArray2Int(transBit),
                 LoginName = message.Account,
                 SubscriberName = message.Subscriber,
                 SubscriberId = message.SubscriberId,
                 TransTime = Convert.ToDateTime(message.TransDate.ToString("yyyy-MM-dd HH:mm:ss.ffff", System.Globalization.CultureInfo.InvariantCulture)),
-                PluginID = 0,
-                URL = string.IsNullOrWhiteSpace(url) ? Utilities.ConvertNA2Empty(Utilities.SubStringUrl(deviceInfo.HRef)?.ToString()) : Utilities.SubStringUrl(url)?.ToString(),
+                PluginID = DefaultPluginId,
+                URL = GetUrl(),
                 Action = message.Action,
                 ActionResult = message.ActionResult,
-                UserAgent = string.IsNullOrWhiteSpace(userAgent)
-                    ? Utilities.ConvertNA2Empty(Utilities.StripUnicodeCharactersFromString(deviceInfo.UserAgent))
-                    : Utilities.StripUnicodeCharactersFromString(userAgent),
-                FingerprintCode = deviceInfo.DeviceFPCode != "N/A" ? deviceInfo.DeviceFPCode : null,
-                FingerprintMoreInfo = deviceInfo.DeviceFPCode != "N/A" ? Utilities.EncodeCapturedData(deviceInfo) : null,
+                UserAgent = GetUserAgent(),
+                FingerprintCode = GetFingerprintCode(),
+                FingerprintMoreInfo = GetFingerprintMoreInfo(),
                 FlaggedCode = flaggedCode,
                 BotDetection = botDetection,
                 BotComponent = botDModel?.Component ?? string.Empty,
