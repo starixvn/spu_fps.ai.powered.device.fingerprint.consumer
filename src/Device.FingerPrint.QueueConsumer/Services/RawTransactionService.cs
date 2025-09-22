@@ -97,7 +97,9 @@
 
             return (realIP, ipConverted);
         }
-        
+
+#pragma warning disable S1541
+#pragma warning disable S107
         private static RawTransactionModel CreateRawTransactionModel(
             MessageQueue message,
             DeviceInfoModel deviceInfo,
@@ -111,7 +113,6 @@
             string realIP,
             IpModel ipConverted)
         {
-            // S1541: Avoid magic numbers - use named constant for plugin id
             const int DefaultPluginId = 0;
 
             // S107: Reduce cognitive complexity by extracting logic to local functions
@@ -152,5 +153,7 @@
                 ScriptVersion = deviceInfo.Version
             };
         }
+#pragma warning restore S107
+#pragma warning restore S1541
     }
 }
