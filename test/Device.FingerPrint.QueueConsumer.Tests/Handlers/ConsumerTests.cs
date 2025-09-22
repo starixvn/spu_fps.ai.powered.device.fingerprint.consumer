@@ -1,24 +1,17 @@
 ﻿using Device.FingerPrint.Core;
-using Xunit;
-using Moq;
-using Device.FingerPrint.QueueConsumer.Handlers;
-using Device.FingerPrint.QueueConsumer.Services;
 using Device.FingerPrint.Features.Transaction.Services;
 using Device.FingerPrint.Model;
-using MassTransit;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using Device.FingerPrint.QueueConsumer.Handlers;
 using Device.FingerPrint.QueueConsumer.Models;
-using Device.FingerPrint.TransactionAPI.Model;
+using Device.FingerPrint.QueueConsumer.Services;
+using MassTransit;
+using Moq;
 
 namespace Device.FingerPrint.QueueConsumer.Tests.Handlers
 {
     public class ConsumerTests
     {
         private readonly Mock<IRawTransactionService> _mockRawTransactionService;
-        private readonly Mock<IRawTransactionAttributeService> _mockRawTransactionAttributeService;
         private readonly Mock<IMobileRawTransactionService> _mockMobileRawTransactionService;
         private readonly Mock<ITransactionService> _mockTransactionService;
         private readonly Mock<IAppSettings> _mockAppSettings;
@@ -27,7 +20,6 @@ namespace Device.FingerPrint.QueueConsumer.Tests.Handlers
         public ConsumerTests()
         {
             _mockRawTransactionService = new Mock<IRawTransactionService>();
-            _mockRawTransactionAttributeService = new Mock<IRawTransactionAttributeService>();
             _mockMobileRawTransactionService = new Mock<IMobileRawTransactionService>();
             _mockTransactionService = new Mock<ITransactionService>();
             _mockAppSettings = new Mock<IAppSettings>();
@@ -38,7 +30,6 @@ namespace Device.FingerPrint.QueueConsumer.Tests.Handlers
 
             _consumer = new Consumer(
                 _mockRawTransactionService.Object,
-                _mockRawTransactionAttributeService.Object,
                 _mockMobileRawTransactionService.Object,
                 _mockTransactionService.Object,
                 _mockAppSettings.Object);
@@ -54,12 +45,12 @@ namespace Device.FingerPrint.QueueConsumer.Tests.Handlers
         {
             var batchMock = new Mock<Batch<MessageQueue>>();
             batchMock.Setup(x => x.GetEnumerator()).Returns(new List<ConsumeContext<MessageQueue>>().GetEnumerator());
-            
+
             var context = new Mock<ConsumeContext<Batch<MessageQueue>>>();
             context.Setup(x => x.Message).Returns(batchMock.Object);
 
             await _consumer.Consume(context.Object);
-            
+
             Assert.True(true); // Ensure no exception thrown
         }
 
@@ -67,17 +58,17 @@ namespace Device.FingerPrint.QueueConsumer.Tests.Handlers
         public async Task Consume_WhenConsumerIsDisabled_ShouldNotProcessMessages()
         {
             _mockAppSettings.Setup(x => x.GetValue<bool>("Consumer:IsConsume")).Returns(false);
-            
+
             var messageContextMock = new Mock<ConsumeContext<MessageQueue>>();
             messageContextMock.Setup(x => x.Message).Returns(new MessageQueue { Account = "test" });
-            
+
             var messageList = new List<ConsumeContext<MessageQueue>> { messageContextMock.Object };
-            
+
             var batchMock = new Mock<Batch<MessageQueue>>();
             batchMock.Setup(x => x.Length).Returns(1);
             batchMock.Setup(x => x.GetEnumerator()).Returns(messageList.GetEnumerator());
             batchMock.As<IEnumerable<ConsumeContext<MessageQueue>>>().Setup(x => x.GetEnumerator()).Returns(messageList.GetEnumerator());
-            
+
             var context = new Mock<ConsumeContext<Batch<MessageQueue>>>();
             context.Setup(x => x.Message).Returns(batchMock.Object);
 
@@ -91,22 +82,22 @@ namespace Device.FingerPrint.QueueConsumer.Tests.Handlers
         [Fact]
         public async Task Consume_WithInvalidAccount_ShouldSkipMessage()
         {
-            var message = new MessageQueue 
-            { 
+            var message = new MessageQueue
+            {
                 Account = null, // Invalid account
                 Device = new DeviceModel { Di = "device123" }
             };
-            
+
             var messageContextMock = new Mock<ConsumeContext<MessageQueue>>();
             messageContextMock.Setup(x => x.Message).Returns(message);
-            
+
             var messageList = new List<ConsumeContext<MessageQueue>> { messageContextMock.Object };
-            
+
             var batchMock = new Mock<Batch<MessageQueue>>();
             batchMock.Setup(x => x.Length).Returns(1);
             batchMock.Setup(x => x.GetEnumerator()).Returns(messageList.GetEnumerator());
             batchMock.As<IEnumerable<ConsumeContext<MessageQueue>>>().Setup(x => x.GetEnumerator()).Returns(messageList.GetEnumerator());
-            
+
             var context = new Mock<ConsumeContext<Batch<MessageQueue>>>();
             context.Setup(x => x.Message).Returns(batchMock.Object);
 

@@ -1,4 +1,4 @@
-﻿namespace Device.FingerPrint.TransactionAPI.Model
+﻿namespace Device.FingerPrint.Model
 {
     using Device.FingerPrint.QueueConsumer.Models;
     using System;

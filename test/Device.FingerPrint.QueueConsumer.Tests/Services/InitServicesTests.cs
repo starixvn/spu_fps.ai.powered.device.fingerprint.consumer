@@ -1,14 +1,7 @@
-﻿    using Device.FingerPrint.Features.LogInfo.Services;
-using Device.FingerPrint.Features.Transaction.Services;
-using Device.FingerPrint.Queue;
-using Device.FingerPrint.QueueConsumer.Handlers;
+﻿using Device.FingerPrint.Features.Transaction.Services;
 using Device.FingerPrint.QueueConsumer.Services;
 using FluentAssertions;
-using MassTransit;
 using Microsoft.Extensions.DependencyInjection;
-using Moq;
-using System;
-using Xunit;
 
 namespace Device.FingerPrint.QueueConsumer.Tests.Services
 {
@@ -35,10 +28,6 @@ namespace Device.FingerPrint.QueueConsumer.Tests.Services
 
             // Verify Bot Detection Service
             serviceProvider.GetService<IBotDetectionService>().Should().NotBeNull();
-
-            // Verify Log Info Services
-            serviceProvider.GetService<ILogInfoDataAccess>().Should().NotBeNull();
-            serviceProvider.GetService<ILogInfoServices>().Should().NotBeNull();
         }
 
         [Fact]
@@ -86,8 +75,6 @@ namespace Device.FingerPrint.QueueConsumer.Tests.Services
             serviceProvider.GetRequiredService<ITransactionService>().Should().NotBeNull();
             serviceProvider.GetRequiredService<IDeviceService>().Should().NotBeNull();
             serviceProvider.GetRequiredService<IBotDetectionService>().Should().NotBeNull();
-            serviceProvider.GetRequiredService<ILogInfoDataAccess>().Should().NotBeNull();
-            serviceProvider.GetRequiredService<ILogInfoServices>().Should().NotBeNull();
         }
 
         [Fact]

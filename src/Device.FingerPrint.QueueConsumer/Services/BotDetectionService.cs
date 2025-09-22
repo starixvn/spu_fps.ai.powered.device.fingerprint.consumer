@@ -2,7 +2,6 @@
 {
     using Device.FingerPrint.Core.Encoders;
     using Device.FingerPrint.Model;
-    using Device.FingerPrint.TransactionAPI.Model;
     using Fanex.Logging;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;

@@ -52,17 +52,7 @@ namespace Device.FingerPrint.Features.Transaction.Model
 
         public string? BotComponent { get; set; }
 
-        public string? FPTagging { get; set; }
-
-        public string? FPFingerPrintCode { get; set; }
-
-        public string? FPFingerPrintExtraCode { get; set; }
-
-        public string? FPFingerPrintOldCode { get; set; }
-
         public string? ChallengeCode { get; set; }
-
-        public string? FPUserAgentCode { get; set; }
 
         public bool? IsIncognitoMode { get; set; }
 

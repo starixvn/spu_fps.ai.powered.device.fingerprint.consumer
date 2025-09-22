@@ -129,9 +129,7 @@ namespace Device.FingerPrint.QueueConsumer
         private void InitService(IServiceCollection services)
         {
             services.AddSingleton<IRawTransactionService, RawTransactionService>();
-            services.AddSingleton<IRawTransactionAttributeService, RawTransactionAttributeService>();
             services.AddSingleton<ICrypto, Crypto>();
-            services.AddSingleton<IUserAgentService, UserAgentService>();
             services.AddSingleton<IMobileRawTransactionService, MobileRawTransactionService>();
         }
     }

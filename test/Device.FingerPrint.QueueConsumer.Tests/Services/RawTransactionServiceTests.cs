@@ -1,17 +1,11 @@
-﻿using Xunit;
-using Moq;
-using Device.FingerPrint.QueueConsumer.Services;
-using Device.FingerPrint.Model;
-using Device.FingerPrint.Core;
+﻿using Device.FingerPrint.Core;
 using Device.FingerPrint.Features.Transaction.Services;
-using Device.FingerPrint.Redis;
-using StackExchange.Redis;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Globalization;
+using Device.FingerPrint.Model;
 using Device.FingerPrint.QueueConsumer.Models;
-using Device.FingerPrint.TransactionAPI.Model;
+using Device.FingerPrint.QueueConsumer.Services;
+using Device.FingerPrint.Redis;
+using Moq;
+using StackExchange.Redis;
 
 namespace Device.FingerPrint.QueueConsumer.Tests.Services
 {
@@ -27,23 +21,17 @@ namespace Device.FingerPrint.QueueConsumer.Tests.Services
 
         public RawTransactionServiceTests()
         {
-            _mockRedisService = new Mock<IRedisMultiplexDbService>();
             _mockDeviceService = new Mock<IDeviceService>();
             _mockBotDetectionService = new Mock<IBotDetectionService>();
-            _mockTransactionService = new Mock<ITransactionService>();
             _mockAppSettings = new Mock<IAppSettings>();
-            _mockDatabase = new Mock<IDatabase>();
 
             // Setup default values
             _mockAppSettings.Setup(x => x.Environment).Returns("Test");
             _mockAppSettings.Setup(x => x.EverTaggingDBIndex).Returns(0);
-            _mockRedisService.Setup(x => x.GetDatabase(It.IsAny<int>())).Returns(_mockDatabase.Object);
-
+            
             _service = new RawTransactionService(
-                _mockRedisService.Object,
                 _mockDeviceService.Object,
                 _mockBotDetectionService.Object,
-                _mockTransactionService.Object,
                 _mockAppSettings.Object);
         }
 
@@ -166,53 +154,6 @@ namespace Device.FingerPrint.QueueConsumer.Tests.Services
             Assert.NotNull(result);
             Assert.Equal("invalid-device", result.InvalidDevice);
             Assert.Null(result.DeviceCode);
-        }
-
-        [Fact]
-        public void InsertOrUpdateEverTagging_WithException_Should_Handle_Gracefully()
-        {
-            // Arrange
-            var hashKey = "TestHash";
-            var everTaggings = new List<string> { "tag1" };
-            var expireSecond = 3600L;
-
-            _mockDatabase.Setup(x => x.StringSet(It.IsAny<StackExchange.Redis.RedisKey>(), It.IsAny<RedisValue>(), It.IsAny<TimeSpan?>(), It.IsAny<When>(), It.IsAny<CommandFlags>()))
-                        .Throws(new Exception("Redis error"));
-
-            // Act & Assert - Should not throw
-            var exception = Record.Exception(() => _service.InsertOrUpdateEverTagging(hashKey, everTaggings, expireSecond));
-            Assert.Null(exception);
-        }
-
-        [Fact]
-        public void InsertRawTransactionDetail_Should_Call_Both_Insert_Methods()
-        {
-            // Arrange
-            var transactions = new List<RawTransactionModel>
-            {
-                new RawTransactionModel { LoginName = "user1" },
-                new RawTransactionModel { LoginName = "user2" }
-            };
-
-            // Act
-            _service.InsertRawTransactionDetail(transactions);
-
-            // Assert - Verify parallel execution calls (may need adjustment based on actual implementation)
-            Assert.True(true); // Basic assertion since parallel execution is hard to test directly
-        }
-
-        [Fact]
-        public void LogTransactions_Should_Not_Throw()
-        {
-            // Arrange
-            var transactions = new List<RawTransactionModel>
-            {
-                new RawTransactionModel { LoginName = "user1" }
-            };
-
-            // Act & Assert - Should not throw
-            var exception = Record.Exception(() => _service.LogTransactions(transactions));
-            Assert.Null(exception);
         }
 
         [Fact]

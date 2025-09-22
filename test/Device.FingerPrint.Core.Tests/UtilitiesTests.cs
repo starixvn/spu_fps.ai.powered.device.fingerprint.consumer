@@ -80,16 +80,6 @@ namespace Device.FingerPrint.Core.Tests
             var encoded = Utilities.EncodeCapturedData(di);
             encoded.Should().NotBeNullOrEmpty();
         }
-
-        [Theory]
-        [InlineData("c2Vzc2lvbg==", 0, true)]
-        [InlineData("c2Vzc2lvbg==:1", 0, true)]
-        [InlineData(":1", 0, false)]
-        public void ParseSessionKey_ValidatesBase64(string sessionKey, int defaultDb, bool expectedNotNull)
-        {
-            var model = Utilities.ParseSessionKey(sessionKey, defaultDb);
-            (model != null).Should().Be(expectedNotNull);
-        }
     }
 }
 

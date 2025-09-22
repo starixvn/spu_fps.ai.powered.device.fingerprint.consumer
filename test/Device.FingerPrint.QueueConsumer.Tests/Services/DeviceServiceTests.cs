@@ -1,16 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Xunit;
-using FluentAssertions;
-using Device.FingerPrint.QueueConsumer.Services;
-using Device.FingerPrint.QueueConsumer.Models;
+﻿using Device.FingerPrint.Core;
 using Device.FingerPrint.Model;
-using Device.FingerPrint.Core;
+using Device.FingerPrint.QueueConsumer.Models;
+using Device.FingerPrint.QueueConsumer.Services;
+using FluentAssertions;
 using Newtonsoft.Json;
-using Device.FingerPrint.TransactionAPI.Model;
+using System.Text;
 
 namespace Device.FingerPrint.QueueConsumer.Tests.Services
 {
@@ -164,10 +158,10 @@ namespace Device.FingerPrint.QueueConsumer.Tests.Services
             // Assert
             result1.Should().NotBeNull();
             result1.InvalidDeviceId.Should().BeTrue();
-            
+
             result2.Should().NotBeNull();
             result2.InvalidDeviceId.Should().BeTrue();
-            
+
             result3.Should().NotBeNull();
             result3.InvalidDeviceId.Should().BeTrue();
         }
