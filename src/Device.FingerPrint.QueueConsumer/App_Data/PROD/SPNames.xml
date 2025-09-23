@@ -2,7 +2,10 @@
 
 <Functions>
 	<Function Name="Transaction">
-		<Setting Key="DCS_DC_Transform_RawTrans_Insert" SpName="DCS_DC_Transform_RawTrans_Insert" DbName="DCSMain_WEB_LAYER.DCS_DataCenter.ctsServiceAdmin"/>
+		<Setting Key="DCS_DC_Transform_RawTrans_Insert" SpName="DCS_DC_Transform_RawTrans_Insert_xtest" DbName="DCSMain_WEB_LAYER.DCS_DataCenter.ctsServiceAdmin"/>
+		<Setting Key="DCS_DC_Transform_RawFingerprint_Insert" SpName="DCS_DC_Transform_RawFingerprint_Insert_xtest" DbName="DCSMain_WEB_LAYER.DCS_DataCenter.ctsServiceAdmin"/>
+		<Setting Key="DCS_DC_Transform_RawDetails_Insert" SpName="DCS_DC_Transform_RawDetails_Insert_xtest" DbName="DCSMain_WEB_LAYER.DCS_DataCenter.ctsServiceAdmin"/>
+
 		<Setting Key="DCS_DC_Transform_JSChallengeInfo_Insert" SpName="DCS_DC_Transform_JSChallengeInfo_Insert" DbName="DCSMain_WEB_LAYER.DCS_DataCenter.ctsServiceAdmin"/>
 	</Function>
 </Functions>

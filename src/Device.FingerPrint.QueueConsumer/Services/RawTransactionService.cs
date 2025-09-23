@@ -24,11 +24,13 @@
             try
             {
                 var deviceInfo = message.DeviceInfo;
-                var userAgent = message.Device?.UserAgent;
 
+                var userAgent = ProcessUserAgent(deviceInfo.UserAgent);
                 var transBit = ProcessDeviceValidation(deviceInfo);
                 var (botDModel, flaggedCode, botDetection) = ProcessBotDetection(message, deviceInfo, userAgent);
                 var (realIP, ipConverted) = ProcessIPInfo(message);
+
+                message.Fingerprint.GenerateGroupHashCodes();
 
                 return CreateRawTransactionModel(message, deviceInfo, message.Device?.Url, userAgent, transBit, botDModel, flaggedCode, botDetection, realIP, ipConverted);
             }
@@ -45,6 +47,11 @@
                 }
                 return null;
             }
+        }
+
+        private static string ProcessUserAgent(string? userAgent)
+        {
+            return Utilities.StripUnicodeCharactersFromString(Utilities.ConvertNA2Empty(userAgent)) ?? "";
         }
 
         private static BitArray ProcessDeviceValidation(DeviceInfoModel deviceInfo)
@@ -79,11 +86,17 @@
             return (botDModel, flaggedCode, botDetection);
         }
 
-        private static (string realIP, IpModel ipConverted) ProcessIPInfo(MessageQueue message)
+        private static (string? realIP, IpModel ipConverted) ProcessIPInfo(MessageQueue message)
         {
             var realIP = message.IP?.Trim();
+            
+            // Handle null/empty IP by returning IpModel with IpNumber = 0
+            if (string.IsNullOrWhiteSpace(realIP))
+            {
+                return (realIP, new IpModel { IpNumber = 0, IsIpV6 = false });
+            }
+            
             var ipConverted = realIP.Ip2Long();
-
             return (realIP, ipConverted);
         }
 
@@ -98,27 +111,40 @@
             BotDModel botDModel,
             string flaggedCode,
             string botDetection,
-            string realIP,
+            string? realIP,
             IpModel ipConverted)
         {
             const int DefaultPluginId = 0;
 
             // S107: Reduce cognitive complexity by extracting logic to local functions
-            string GetUrl() => string.IsNullOrWhiteSpace(url)
+            string? GetUrl()
+            {
+                return string.IsNullOrWhiteSpace(url)
                 ? Utilities.ConvertNA2Empty(Utilities.SubStringUrl(deviceInfo.HRef)?.ToString())
                 : Utilities.SubStringUrl(url)?.ToString();
+            }
 
-            string GetUserAgent() => string.IsNullOrWhiteSpace(userAgent)
-                ? Utilities.ConvertNA2Empty(Utilities.StripUnicodeCharactersFromString(deviceInfo.UserAgent))
-                : Utilities.StripUnicodeCharactersFromString(userAgent);
+            string GetUserAgent()
+            {
+                return string.IsNullOrWhiteSpace(userAgent)
+                ? Utilities.ConvertNA2Empty(Utilities.StripUnicodeCharactersFromString(deviceInfo.UserAgent)) ?? ""
+                : Utilities.StripUnicodeCharactersFromString(userAgent) ?? "";
+            }
 
-            string? GetFingerprintCode() => deviceInfo.DeviceFPCode != "N/A" ? deviceInfo.DeviceFPCode : null;
-            string? GetFingerprintMoreInfo() => deviceInfo.DeviceFPCode != "N/A" ? Utilities.EncodeCapturedData(deviceInfo) : null;
+            string? GetFingerprintCode()
+            {
+                return deviceInfo.DeviceFPCode != "N/A" ? deviceInfo.DeviceFPCode : null;
+            }
+
+            string? GetFingerprintMoreInfo()
+            {
+                return deviceInfo.DeviceFPCode != "N/A" ? Utilities.EncodeCapturedData(deviceInfo) : null;
+            }
 
             return new RawTransactionModel
             {
-                DeviceCode = deviceInfo.DeviceNo,
-                InvalidDevice = null,
+                DeviceCode = string.IsNullOrEmpty(deviceInfo.DeviceNo) ? deviceInfo.Tagging : deviceInfo.DeviceNo,
+                InvalidDevice = GetInvalidDeviceId(transBit, message.Device?.Di),
                 TransStatus = Utilities.ConvertBitArray2Int(transBit),
                 LoginName = message.Account,
                 SubscriberName = message.Subscriber,
@@ -138,10 +164,32 @@
                 IPId = ipConverted.IpNumber,
                 FakeIP = message.FakeIP?.Trim(),
                 IsIPV6 = ipConverted.IsIpV6,
-                ScriptVersion = deviceInfo.Version
+                ScriptVersion = deviceInfo.Version,
+
+                WebRTCIP = new WebRTCIPModel(deviceInfo.Rtc ?? string.Empty),
+                FPPatternCode01 = GetTrimmedValue(deviceInfo.F4),
+                FPPatternCode02 = GetTrimmedValue(deviceInfo.F5),
+                FingerPrint = message.Fingerprint,
+                IsNewFlow = message.IsNewFlow
             };
         }
 #pragma warning restore S107
 #pragma warning restore S1541
+
+
+        private static string? GetInvalidDeviceId(BitArray transBit, string? di)
+        {
+            if (transBit.Get((int)TransStatus.InvalidDI))
+            {
+                return di;
+            }
+
+            return null;
+        }
+
+        private static string? GetTrimmedValue(string? value)
+        {
+            return value?.Trim();
+        }
     }
 }

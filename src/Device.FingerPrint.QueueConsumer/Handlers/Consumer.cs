@@ -24,13 +24,13 @@
         private readonly IMobileRawTransactionService mobileRawTransactionService = mobileRawTransactionService;
         private readonly ITransactionService transactionService = transactionService;
         private readonly IAppSettings appSettings = appSettings;
+        private readonly object _errorListLock = new();
 
-        public Task Consume(ConsumeContext<Batch<MessageQueue>> context)
+        public async Task Consume(ConsumeContext<Batch<MessageQueue>> context)
         {
             try
             {
-                ProcessMessageBatch(context.Message);
-                return Task.CompletedTask;
+                await ProcessMessageBatch(context.Message);
             }
             catch (Exception ex)
             {
@@ -39,7 +39,7 @@
             }
         }
 
-        private void ProcessMessageBatch(Batch<MessageQueue> messageBatch)
+        private async Task ProcessMessageBatch(Batch<MessageQueue> messageBatch)
         {
             if (!appSettings.GetValue<bool>("Consumer:IsConsume"))
             {
@@ -47,11 +47,38 @@
             }
 
             var rawTransModels = TransformRawTransactionModel(messageBatch);
-
-            if (rawTransModels != null && rawTransModels.Any())
+            
+            if (rawTransModels?.Any() != true)
             {
-                transactionService.InsertRawTransaction(rawTransModels);
+                return;
             }
+
+            await ProcessTransactionsByFlow(rawTransModels);
+        }
+
+        private async Task ProcessTransactionsByFlow(IEnumerable<RawTransactionModel> rawTransModels)
+        {
+            var newFlowMessages = rawTransModels.Where(m => m.IsNewFlow);
+            var regularFlowMessages = rawTransModels.Where(m => !m.IsNewFlow);
+
+            if (newFlowMessages.Any())
+            {
+                await ProcessTransactionsNewFlow(newFlowMessages);
+            }
+            
+            if (regularFlowMessages.Any())
+            {
+                transactionService.InsertRawTransaction(regularFlowMessages);
+            }
+        }
+
+        private async Task ProcessTransactionsNewFlow(IEnumerable<RawTransactionModel> rawTransModels)
+        {
+            var task1 = Task.Run(() => transactionService.InsertRawFingerprint(rawTransModels));
+            var task2 = Task.Run(() => transactionService.InsertRawTransaction(rawTransModels));
+            var task3 = Task.Run(() => transactionService.InsertWebRTCIP(rawTransModels));
+
+            await Task.WhenAll(task1, task2, task3);
         }
 
         private IEnumerable<RawTransactionModel> TransformRawTransactionModel(Batch<MessageQueue> messages)
@@ -61,43 +88,38 @@
                 return [];
             }
 
-            var transformationContext = CreateTransformationContext();
             var validatedMessages = ValidDuplicateTrans(messages);
-
-            ProcessMessagesInParallel(validatedMessages, transformationContext);
-            LogErrorsIfAny(transformationContext.ErrorList);
-
-            return [.. transformationContext.TransformedDataBag];
+            var transformedData = TransformMessages(validatedMessages);
+            
+            return transformedData.transformedModels;
         }
 
-        private static TransformationContext CreateTransformationContext()
+        private (IEnumerable<RawTransactionModel> transformedModels, List<MessageQueue> errors) TransformMessages(IEnumerable<ConsumeContext<MessageQueue>> validatedMessages)
         {
-            return new TransformationContext
-            {
-                TransformedDataBag = [],
-                ErrorList = []
-            };
-        }
-
-        private void ProcessMessagesInParallel(IEnumerable<ConsumeContext<MessageQueue>> validatedMessages, TransformationContext context)
-        {
+            var transformedDataBag = new ConcurrentBag<RawTransactionModel>();
+            var errorList = new List<MessageQueue>();
             var parallelOptions = new ParallelOptions { MaxDegreeOfParallelism = 10 };
 
             Parallel.ForEach(validatedMessages, parallelOptions, message =>
             {
-                ProcessSingleMessage(message, context);
+                if (!IsValidMessage(message))
+                {
+                    lock (_errorListLock)
+                    {
+                        errorList.Add(message.Message);
+                    }
+                    return;
+                }
+
+                var transformedModel = TryTransformMessage(message);
+                if (transformedModel != null)
+                {
+                    transformedDataBag.Add(transformedModel);
+                }
             });
-        }
 
-        private void ProcessSingleMessage(ConsumeContext<MessageQueue> message, TransformationContext context)
-        {
-            if (!IsValidMessage(message))
-            {
-                AddToErrorList(message, context.ErrorList);
-                return;
-            }
-
-            TryTransformMessage(message, context.TransformedDataBag);
+            LogErrorsIfAny(errorList);
+            return (transformedDataBag.ToArray(), errorList);
         }
 
         private static bool IsValidMessage(ConsumeContext<MessageQueue> message)
@@ -108,36 +130,19 @@
                    message.Message.Account.Length <= 100;
         }
 
-        private static void AddToErrorList(ConsumeContext<MessageQueue> message, List<MessageQueue> errorList)
-        {
-            errorList.Add(message.Message);
-        }
-
-        private void TryTransformMessage(ConsumeContext<MessageQueue> message, ConcurrentBag<RawTransactionModel> transformedDataBag)
+        private RawTransactionModel? TryTransformMessage(ConsumeContext<MessageQueue> message)
         {
             try
             {
-                var rawTransFinalModel = TransformMessage(message);
-
-                if (rawTransFinalModel != null)
-                {
-                    transformedDataBag.Add(rawTransFinalModel);
-                }
+                return IsMobileAppTransaction(message)
+                    ? mobileRawTransactionService.TransformRawTransaction(message.Message)
+                    : rawTransactionService.TransformRawTransaction(message.Message);
             }
             catch (Exception ex)
             {
                 _ = QueueConsumer.Utilities.LogErrorAsync(ex);
+                return null;
             }
-        }
-
-        private RawTransactionModel TransformMessage(ConsumeContext<MessageQueue> message)
-        {
-            if (IsMobileAppTransaction(message))
-            {
-                return mobileRawTransactionService.TransformRawTransaction(message.Message);
-            }
-
-            return rawTransactionService.TransformRawTransaction(message.Message);
         }
 
         private static bool IsMobileAppTransaction(ConsumeContext<MessageQueue> message)
@@ -191,10 +196,5 @@
             return listMessage.Except(duplicateMessages);
         }
 
-        private sealed class TransformationContext
-        {
-            public ConcurrentBag<RawTransactionModel> TransformedDataBag { get; set; }
-            public List<MessageQueue> ErrorList { get; set; }
-        }
     }
 }

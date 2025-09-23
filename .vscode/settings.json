@@ -1,0 +1,6 @@
+{
+    "sonarlint.connectedMode.project": {
+        "connectionId": "<default>",
+        "projectKey": "fps.ai.powered.device.fingerprint.consumer"
+    }
+}
