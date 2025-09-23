@@ -81,7 +81,12 @@ namespace Device.FingerPrint.Features.Transaction.Services
                 MBTimezone = transaction.MBTimezone,
                 MBLanguage = transaction.MBLanguage,
                 MBCountry = transaction.MBCountry,
-                MBDeviceDetails = transaction.MBDeviceDetails
+                MBDeviceDetails = transaction.MBDeviceDetails,
+                WebRTCIPCode = transaction.WebRTCIP?.Code,
+                FPPatternCode01 = transaction.FPPatternCode01,
+                FPPatternCode02 = transaction.FPPatternCode02,
+                FPVersion = transaction.FPVersion,
+                TransFlow = transaction.TransFlow
             });
         }
         

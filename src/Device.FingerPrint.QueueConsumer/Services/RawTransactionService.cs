@@ -164,13 +164,13 @@
                 IPId = ipConverted.IpNumber,
                 FakeIP = message.FakeIP?.Trim(),
                 IsIPV6 = ipConverted.IsIpV6,
-                ScriptVersion = deviceInfo.Version,
 
                 WebRTCIP = new WebRTCIPModel(deviceInfo.Rtc ?? string.Empty),
                 FPPatternCode01 = GetTrimmedValue(deviceInfo.F4),
                 FPPatternCode02 = GetTrimmedValue(deviceInfo.F5),
                 FingerPrint = message.Fingerprint,
-                IsNewFlow = message.IsNewFlow
+                FPVersion = deviceInfo.Version ?? string.Empty,
+                TransFlow = message.IsNewFlow ? 1 : 0
             };
         }
 #pragma warning restore S107

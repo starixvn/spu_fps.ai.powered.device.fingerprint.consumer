@@ -83,5 +83,15 @@ namespace Device.FingerPrint.Features.Transaction.Model
         public string? MBCountry { get; set; }
 
         public string? MBDeviceDetails { get; set; }
+
+        public string? WebRTCIPCode { get; set; }
+
+        public string? FPPatternCode01 { get; set; }
+
+        public string? FPPatternCode02 { get; set; }
+
+        public required string FPVersion { get; set; }
+
+        public int TransFlow { get; set; }
     }
 }

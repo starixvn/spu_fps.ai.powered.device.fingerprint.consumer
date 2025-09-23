@@ -59,8 +59,6 @@ namespace Device.FingerPrint.Model
 
         public bool? IsIncognitoMode { get; set; }
 
-        public string? ScriptVersion { get; set; }
-
         public string? MBDeviceCodeMediaDRM { get; set; }
 
         public string? MBDeviceCodeMachine { get; set; }
@@ -98,7 +96,9 @@ namespace Device.FingerPrint.Model
 
         public APFingerprintModel FingerPrint { get; set; } = new APFingerprintModel();
 
-        public bool IsNewFlow { get; set; }
+        public string FPVersion { get; set; }
+
+        public int TransFlow { get; set; }
     }
 
     public class ConvertBigInteger : ConverterBase

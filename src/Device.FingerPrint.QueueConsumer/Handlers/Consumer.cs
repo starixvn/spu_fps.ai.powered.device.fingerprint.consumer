@@ -58,8 +58,8 @@
 
         private async Task ProcessTransactionsByFlow(IEnumerable<RawTransactionModel> rawTransModels)
         {
-            var newFlowMessages = rawTransModels.Where(m => m.IsNewFlow);
-            var regularFlowMessages = rawTransModels.Where(m => !m.IsNewFlow);
+            var newFlowMessages = rawTransModels.Where(m => m.TransFlow == 1);
+            var regularFlowMessages = rawTransModels.Where(m => m.TransFlow == 0);
 
             if (newFlowMessages.Any())
             {
