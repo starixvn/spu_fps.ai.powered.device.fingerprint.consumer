@@ -30,7 +30,7 @@
                 var (botDModel, flaggedCode, botDetection) = ProcessBotDetection(message, deviceInfo, userAgent);
                 var (realIP, ipConverted) = ProcessIPInfo(message);
 
-                message.Fingerprint.GenerateGroupHashCodes();
+                message.Fingerprint?.GenerateGroupHashCodes();
 
                 return CreateRawTransactionModel(message, deviceInfo, message.Device?.Url, userAgent, transBit, botDModel, flaggedCode, botDetection, realIP, ipConverted);
             }
