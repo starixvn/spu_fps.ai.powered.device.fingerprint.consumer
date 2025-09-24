@@ -6,9 +6,10 @@
     using System;
     using System.Collections;
 
+
     public interface IRawTransactionService
     {
-        RawTransactionModel TransformRawTransaction(MessageQueue message);
+        RawTransactionModel? TransformRawTransaction(MessageQueue message);
     }
 
     public class RawTransactionService(
@@ -19,20 +20,24 @@
         private readonly IBotDetectionService botDetectionService = botDetectionService;
         private readonly IAppSettings appSettings = appSettings;
 
-        public RawTransactionModel TransformRawTransaction(MessageQueue message)
+        public RawTransactionModel? TransformRawTransaction(MessageQueue message)
         {
             try
             {
                 var deviceInfo = message.DeviceInfo;
+                if (deviceInfo == null)
+                {
+                    return null;
+                }
 
                 var userAgent = ProcessUserAgent(deviceInfo.UserAgent);
                 var transBit = ProcessDeviceValidation(deviceInfo);
-                var (botDModel, flaggedCode, botDetection) = ProcessBotDetection(message, deviceInfo, userAgent);
+                var (botDModel, flaggedCode, botDetection) = ProcessBotDetection(deviceInfo, userAgent);
                 var (realIP, ipConverted) = ProcessIPInfo(message);
 
                 message.Fingerprint?.GenerateGroupHashCodes();
 
-                return CreateRawTransactionModel(message, deviceInfo, message.Device?.Url, userAgent, transBit, botDModel, flaggedCode, botDetection, realIP, ipConverted);
+                return CreateRawTransactionModel(message, deviceInfo, message.Device?.Url ?? string.Empty, userAgent, transBit, botDModel, flaggedCode, botDetection, realIP, ipConverted);
             }
             catch (Exception ex)
             {
@@ -51,23 +56,32 @@
 
         private static string ProcessUserAgent(string? userAgent)
         {
-            return Utilities.StripUnicodeCharactersFromString(Utilities.ConvertNA2Empty(userAgent)) ?? "";
+            var converted = Utilities.ConvertNA2Empty(userAgent ?? "");
+            return Utilities.StripUnicodeCharactersFromString(converted ?? "") ?? "";
         }
 
         private static BitArray ProcessDeviceValidation(DeviceInfoModel deviceInfo)
         {
             var transBit = new BitArray(16);
 
-            if (string.IsNullOrWhiteSpace(deviceInfo.DeviceNo) || deviceInfo.DeviceNo == "N/A")
+            if (deviceInfo is null)
             {
-                deviceInfo.DeviceNo = null;
-                transBit.Set((int)TransStatus.DeviceCodeIsEmpty, true);
+                return transBit;
             }
-            else if (!Utilities.IsGuidDeviceId(deviceInfo.DeviceNo) || deviceInfo.InvalidDeviceId)
+
+            var deviceCode = deviceInfo.IsNewFlow ? deviceInfo.Tagging : deviceInfo.DeviceNo;
+            var isEmptyOrNA = string.IsNullOrWhiteSpace(deviceCode) || deviceCode == "N/A";
+            var isInvalid = !isEmptyOrNA && deviceCode != null && (deviceInfo.InvalidDeviceId || !Utilities.IsGuidDeviceId(deviceCode));
+
+            if (isEmptyOrNA)
             {
-                // Keep the original device code (invalidDevice) as is, don't overwrite it
-                deviceInfo.DeviceNo = null;
+                transBit.Set((int)TransStatus.DeviceCodeIsEmpty, true);
+                ClearDeviceCode(deviceInfo);
+            }
+            else if (isInvalid)
+            {
                 transBit.Set((int)TransStatus.InvalidDI, true);
+                ClearDeviceCode(deviceInfo);
             }
             else
             {
@@ -77,11 +91,34 @@
             return transBit;
         }
 
-        private (BotDModel botDModel, string flaggedCode, string botDetection) ProcessBotDetection(MessageQueue message, DeviceInfoModel deviceInfo, string userAgent)
+        private static void ClearDeviceCode(DeviceInfoModel deviceInfo)
         {
-            var botDModel = botDetectionService.TransformBotdModel(message);
-            var flaggedCode = botDetectionService.GetFlaggedCode(botDModel, deviceInfo.DeviceNo, userAgent);
-            var botDetection = botDModel?.IsVer3 == true ? botDModel?.Detection : botDetectionService.GetBotDetectionTrue(botDModel);
+            if (deviceInfo.IsNewFlow)
+            {
+                deviceInfo.Tagging = null;
+            }
+            else
+            {
+                deviceInfo.DeviceNo = null;
+            }
+        }
+
+        private (BotDModel botDModel, string flaggedCode, string botDetection) ProcessBotDetection(DeviceInfoModel? deviceInfo, string userAgent)
+        {
+            if(deviceInfo is null)
+            {
+                return (new BotDModel(), Flagged.Human.ToString(), string.Empty);
+            }
+
+            var botDModel = deviceInfo.BotD ?? new BotDModel();
+            var tagging = deviceInfo.Tagging ?? string.Empty;
+
+            if (!deviceInfo.IsNewFlow)
+            {
+                tagging = deviceInfo.DeviceNo ?? string.Empty;
+            }
+            var flaggedCode = botDetectionService.GetFlaggedCode(botDModel, tagging, userAgent);
+            var botDetection = botDModel.IsVer3 ? (botDModel.Detection ?? string.Empty) : (botDetectionService.GetBotDetectionTrue(botDModel) ?? string.Empty);
 
             return (botDModel, flaggedCode, botDetection);
         }
@@ -119,16 +156,23 @@
             // S107: Reduce cognitive complexity by extracting logic to local functions
             string? GetUrl()
             {
-                return string.IsNullOrWhiteSpace(url)
-                ? Utilities.ConvertNA2Empty(Utilities.SubStringUrl(deviceInfo.HRef)?.ToString())
-                : Utilities.SubStringUrl(url)?.ToString();
+                if (string.IsNullOrWhiteSpace(url))
+                {
+                    var href = deviceInfo.HRef ?? string.Empty;
+                    return string.IsNullOrEmpty(href) ? null : Utilities.ConvertNA2Empty(Utilities.SubStringUrl(href)?.ToString() ?? string.Empty);
+                }
+                return Utilities.SubStringUrl(url)?.ToString();
             }
 
             string GetUserAgent()
             {
-                return string.IsNullOrWhiteSpace(userAgent)
-                ? Utilities.ConvertNA2Empty(Utilities.StripUnicodeCharactersFromString(deviceInfo.UserAgent)) ?? ""
-                : Utilities.StripUnicodeCharactersFromString(userAgent) ?? "";
+                if (string.IsNullOrWhiteSpace(userAgent))
+                {
+                    var deviceUserAgent = deviceInfo.UserAgent ?? string.Empty;
+                    var converted = Utilities.ConvertNA2Empty(Utilities.StripUnicodeCharactersFromString(deviceUserAgent) ?? string.Empty);
+                    return converted ?? "";
+                }
+                return Utilities.StripUnicodeCharactersFromString(userAgent) ?? "";
             }
 
             string? GetFingerprintCode()
@@ -149,7 +193,9 @@
                 LoginName = message.Account,
                 SubscriberName = message.Subscriber,
                 SubscriberId = message.SubscriberId,
-                TransTime = Convert.ToDateTime(message.TransDate.ToString("yyyy-MM-dd HH:mm:ss.ffff", System.Globalization.CultureInfo.InvariantCulture)),
+                TransTime = DateTimeOffset.Parse(
+                    message.TransDate.ToString("yyyy-MM-dd HH:mm:ss.ffff", System.Globalization.CultureInfo.InvariantCulture), 
+                    System.Globalization.CultureInfo.InvariantCulture).DateTime,
                 PluginID = DefaultPluginId,
                 URL = GetUrl(),
                 Action = message.Action,

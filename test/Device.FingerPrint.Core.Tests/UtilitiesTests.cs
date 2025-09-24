@@ -1,7 +1,6 @@
 using Device.FingerPrint.Model;
 using FluentAssertions;
 using System.Collections;
-using System.Numerics;
 using Xunit;
 
 namespace Device.FingerPrint.Core.Tests

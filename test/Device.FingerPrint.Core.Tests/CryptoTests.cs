@@ -1,4 +1,3 @@
-using Device.FingerPrint.Core;
 using Device.FingerPrint.Core.Services;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
@@ -61,7 +60,7 @@ namespace Device.FingerPrint.Core.Tests
         {
             var crypto = new Crypto(CreateAppSettings());
             crypto.Dispose();
-            
+
             // Should not throw when disposed
             crypto.Dispose();
         }

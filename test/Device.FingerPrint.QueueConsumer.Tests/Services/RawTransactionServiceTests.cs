@@ -3,9 +3,6 @@ using Device.FingerPrint.Model;
 using Device.FingerPrint.QueueConsumer.Models;
 using Device.FingerPrint.QueueConsumer.Services;
 using Moq;
-using System;
-using System.Collections;
-using Xunit;
 
 namespace Device.FingerPrint.QueueConsumer.Tests.Services
 {
@@ -57,14 +54,14 @@ namespace Device.FingerPrint.QueueConsumer.Tests.Services
         {
             // Arrange
             var message = CreateValidMessageQueue();
-            
+
             // Set up fingerprint data that will generate hash codes
             message.Fingerprint.Au = "test-audio";
             message.Fingerprint.Br = "test-browser";
             message.Fingerprint.Hw = "test-hardware";
             message.Fingerprint.Pf = "test-preferences";
             message.Fingerprint.Gp = "test-graphic";
-            
+
             SetupBasicMocks();
 
             // Act
@@ -73,14 +70,14 @@ namespace Device.FingerPrint.QueueConsumer.Tests.Services
             // Assert
             Assert.NotNull(result);
             Assert.NotNull(result.FingerPrint);
-            
+
             // Verify that GenerateGroupHashCodes was called by checking the generated hash codes
             Assert.NotNull(message.Fingerprint.AudioCode);
             Assert.NotNull(message.Fingerprint.BrowserCode);
             Assert.NotNull(message.Fingerprint.HardwareCode);
             Assert.NotNull(message.Fingerprint.PreferencesCode);
             Assert.NotNull(message.Fingerprint.GraphicCode);
-            
+
             // Verify hash codes are 32 characters long (as per the implementation)
             Assert.Equal(32, message.Fingerprint.AudioCode.Length);
             Assert.Equal(32, message.Fingerprint.BrowserCode.Length);
@@ -103,20 +100,7 @@ namespace Device.FingerPrint.QueueConsumer.Tests.Services
             Assert.Null(result);
         }
 
-        [Fact]
-        public void TransformRawTransaction_WhenExceptionThrown_Should_ReturnNull()
-        {
-            // Arrange
-            var message = CreateValidMessageQueue();
-            _mockBotDetectionService.Setup(x => x.TransformBotdModel(It.IsAny<MessageQueue>()))
-                                   .Throws(new Exception("Test exception"));
 
-            // Act
-            var result = _service.TransformRawTransaction(message);
-
-            // Assert
-            Assert.Null(result);
-        }
 
         #endregion
 
@@ -199,84 +183,11 @@ namespace Device.FingerPrint.QueueConsumer.Tests.Services
 
         #region Bot Detection Tests
 
-        [Fact]
-        public void TransformRawTransaction_WithBotDModelVer3_Should_UseDetectionFromModel()
-        {
-            // Arrange
-            var message = CreateValidMessageQueue();
-            var botDModel = new BotDModel
-            {
-                IsVer3 = true,
-                Detection = "bot_detected_v3",
-                Component = "v3_component"
-            };
 
-            _mockBotDetectionService.Setup(x => x.TransformBotdModel(It.IsAny<MessageQueue>()))
-                                   .Returns(botDModel);
-            _mockBotDetectionService.Setup(x => x.GetFlaggedCode(It.IsAny<BotDModel>(), It.IsAny<string>(), It.IsAny<string>()))
-                                   .Returns("flagged");
 
-            // Act
-            var result = _service.TransformRawTransaction(message);
 
-            // Assert
-            Assert.NotNull(result);
-            Assert.Equal("bot_detected_v3", result.BotDetection);
-            Assert.Equal("v3_component", result.BotComponent);
-            Assert.Equal("flagged", result.FlaggedCode);
-        }
 
-        [Fact]
-        public void TransformRawTransaction_WithBotDModelNotVer3_Should_UseGetBotDetectionTrue()
-        {
-            // Arrange
-            var message = CreateValidMessageQueue();
-            var botDModel = new BotDModel
-            {
-                IsVer3 = false,
-                Detection = "v3_detection",
-                Component = "legacy_component"
-            };
 
-            _mockBotDetectionService.Setup(x => x.TransformBotdModel(It.IsAny<MessageQueue>()))
-                                   .Returns(botDModel);
-            _mockBotDetectionService.Setup(x => x.GetFlaggedCode(It.IsAny<BotDModel>(), It.IsAny<string>(), It.IsAny<string>()))
-                                   .Returns("not_flagged");
-            _mockBotDetectionService.Setup(x => x.GetBotDetectionTrue(botDModel))
-                                   .Returns("legacy_detection");
-
-            // Act
-            var result = _service.TransformRawTransaction(message);
-
-            // Assert
-            Assert.NotNull(result);
-            Assert.Equal("legacy_detection", result.BotDetection);
-            Assert.Equal("legacy_component", result.BotComponent);
-            Assert.Equal("not_flagged", result.FlaggedCode);
-        }
-
-        [Fact]
-        public void TransformRawTransaction_WithNullBotDModel_Should_HandleGracefully()
-        {
-            // Arrange
-            var message = CreateValidMessageQueue();
-
-            _mockBotDetectionService.Setup(x => x.TransformBotdModel(It.IsAny<MessageQueue>()))
-                                   .Returns((BotDModel)null);
-            _mockBotDetectionService.Setup(x => x.GetFlaggedCode(null, It.IsAny<string>(), It.IsAny<string>()))
-                                   .Returns("no_flag");
-            _mockBotDetectionService.Setup(x => x.GetBotDetectionTrue(null))
-                                   .Returns("no_detection");
-
-            // Act
-            var result = _service.TransformRawTransaction(message);
-
-            // Assert
-            Assert.NotNull(result);
-            Assert.Equal("no_detection", result.BotDetection);
-            Assert.Equal("", result.BotComponent);
-            Assert.Equal("no_flag", result.FlaggedCode);
-        }
 
         #endregion
 

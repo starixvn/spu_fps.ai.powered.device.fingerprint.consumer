@@ -1,12 +1,7 @@
-using Microsoft.Extensions.Hosting;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.AspNetCore.Hosting;
-using Device.FingerPrint.QueueConsumer;
-using Xunit;
-using System;
-using System.IO;
-using System.Threading.Tasks;
+using Microsoft.Extensions.Hosting;
 
 namespace Device.FingerPrint.QueueConsumer.Tests
 {
@@ -52,7 +47,7 @@ namespace Device.FingerPrint.QueueConsumer.Tests
             // Assert
             Assert.NotNull(host);
             Assert.NotNull(host.Services);
-            
+
             // Verify basic services are registered
             var configuration = host.Services.GetService(typeof(IConfiguration));
             Assert.NotNull(configuration);
@@ -70,7 +65,7 @@ namespace Device.FingerPrint.QueueConsumer.Tests
 
             // Assert
             Assert.NotNull(host);
-            
+
             // Verify that web host is configured
             var webHost = host.Services.GetService<IWebHostEnvironment>();
             Assert.NotNull(webHost);
@@ -134,13 +129,13 @@ namespace Device.FingerPrint.QueueConsumer.Tests
 
             // Act
             var hostBuilder = Program.CreateHostBuilder(args);
-            
+
             // Build host to verify configuration
             var host = hostBuilder.Build();
 
             // Assert
             Assert.NotNull(host);
-            
+
             // Verify web host environment is configured
             var webHostEnvironment = host.Services.GetService<IWebHostEnvironment>();
             Assert.NotNull(webHostEnvironment);
@@ -166,7 +161,7 @@ namespace Device.FingerPrint.QueueConsumer.Tests
                 await host.StopAsync();
                 host.Dispose();
             });
-            
+
             Assert.Null(exception);
         }
 
@@ -190,7 +185,7 @@ namespace Device.FingerPrint.QueueConsumer.Tests
 
                 // Assert
                 Assert.NotNull(host);
-                
+
                 var webHostEnvironment = host.Services.GetRequiredService<IWebHostEnvironment>();
                 Assert.Equal(environment, webHostEnvironment.EnvironmentName);
             }

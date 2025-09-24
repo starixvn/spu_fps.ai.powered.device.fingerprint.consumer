@@ -1,4 +1,3 @@
-using Device.FingerPrint.Core;
 using Device.FingerPrint.Core.Encoders;
 using FluentAssertions;
 using Xunit;
