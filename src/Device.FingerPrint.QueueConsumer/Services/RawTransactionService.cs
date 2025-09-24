@@ -31,6 +31,8 @@
                 }
 
                 var userAgent = ProcessUserAgent(deviceInfo.UserAgent);
+
+                deviceInfo.IsNewFlow = message.IsNewFlow;
                 var transBit = ProcessDeviceValidation(deviceInfo);
                 var (botDModel, flaggedCode, botDetection) = ProcessBotDetection(deviceInfo, userAgent);
                 var (realIP, ipConverted) = ProcessIPInfo(message);
