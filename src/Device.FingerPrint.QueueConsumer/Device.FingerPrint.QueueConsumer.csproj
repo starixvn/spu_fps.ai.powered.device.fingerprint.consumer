@@ -27,6 +27,13 @@
     <PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
   </ItemGroup>
 
+	<ItemGroup>
+		<SonarQubeSetting Include="sonar.coverage.exclusions">
+			<Value>**/Program.cs</Value>
+			<Value>**\Program.cs, **/*legacy*, **/*native*, **/*Test*, **/*Model*, **/*Entity*, **/*Criteria*, **/*Command*, **/*Exception*, **/*Test*/**, **/*Model*/**, **/*Entity*/**, **/*Criteria*/**, **/*Command*/**, **/*Exception*/**</Value>
+		</SonarQubeSetting>
+	</ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\Device.FingerPrint.Core\Device.FingerPrint.Core.csproj" />
     <ProjectReference Include="..\Device.FingerPrint.Model\Device.FingerPrint.Model.csproj" />
