@@ -213,7 +213,7 @@
                 FakeIP = message.FakeIP?.Trim(),
                 IsIPV6 = ipConverted.IsIpV6,
 
-                WebRTCIP = new WebRTCIPModel(deviceInfo.Rtc ?? string.Empty),
+                WebRTCIP = string.IsNullOrEmpty(deviceInfo.Rtc) ? null : new WebRTCIPModel(deviceInfo.Rtc ?? string.Empty),
                 FPPatternCode01 = GetTrimmedValue(deviceInfo.F4),
                 FPPatternCode02 = GetTrimmedValue(deviceInfo.F5),
                 FingerPrint = message.Fingerprint,
