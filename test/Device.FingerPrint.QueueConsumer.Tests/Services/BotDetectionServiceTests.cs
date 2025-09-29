@@ -24,18 +24,6 @@ namespace Device.FingerPrint.QueueConsumer.Tests.Services
         }
 
         [Fact]
-        public void TransformBotdModel_Should_Return_BotDModel_When_Valid_Base64_Json()
-        {
-            var service = new BotDetectionService();
-            var botDJson = "{\"Result\":{\"Bot\":true,\"BotKind\":\"search-engine\"}}";
-            var botDBase64 = System.Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(botDJson));
-            var message = new MessageQueue { BotD = botDBase64 };
-            var result = service.TransformBotdModel(message);
-            Assert.True(result.Result.Bot);
-            Assert.Equal("search-engine", result.Result.BotKind);
-        }
-
-        [Fact]
         public void GetBotDetectionTrue_Should_Return_Keys_With_Bot_True()
         {
             var service = new BotDetectionService();

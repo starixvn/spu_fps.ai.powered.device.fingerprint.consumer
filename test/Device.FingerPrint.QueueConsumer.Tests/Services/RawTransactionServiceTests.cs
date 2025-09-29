@@ -471,15 +471,6 @@ namespace Device.FingerPrint.QueueConsumer.Tests.Services
 
         private void SetupBasicMocks()
         {
-            var botDModel = new BotDModel
-            {
-                IsVer3 = false,
-                Detection = "none",
-                Component = "test"
-            };
-
-            _mockBotDetectionService.Setup(x => x.TransformBotdModel(It.IsAny<MessageQueue>()))
-                                   .Returns(botDModel);
             _mockBotDetectionService.Setup(x => x.GetFlaggedCode(It.IsAny<BotDModel>(), It.IsAny<string>(), It.IsAny<string>()))
                                    .Returns("normal");
             _mockBotDetectionService.Setup(x => x.GetBotDetectionTrue(It.IsAny<BotDModel>()))
