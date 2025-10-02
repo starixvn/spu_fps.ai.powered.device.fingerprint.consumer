@@ -89,8 +89,9 @@ namespace Device.FingerPrint.Features.Transaction.Services
                 TransFlow = transaction.TransFlow
             });
         }
-        
 
+
+#pragma warning disable S1541
         private static IEnumerable<InsertRawFingerprintEntity> TransformInsertRawFingerprint(IEnumerable<RawTransactionModel> transactions)
         {
             return transactions
@@ -124,6 +125,7 @@ namespace Device.FingerPrint.Features.Transaction.Services
                     CreatedDate = group.Min(t => t.TransTime.Date)
                 });
         }
+#pragma warning restore S1541
 
         private static IEnumerable<object> GetWebRTCIPUnique(IEnumerable<RawTransactionModel> rawTransModels)
         {

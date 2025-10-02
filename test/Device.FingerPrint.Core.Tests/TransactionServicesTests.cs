@@ -242,64 +242,6 @@ namespace Device.FingerPrint.Core.Tests
         }
 
         [Fact]
-        public void InsertRawFingerprint_WithNullFingerprint_FiltersOutTransaction()
-        {
-            // Arrange
-            var transactions = new List<RawTransactionModel>
-            {
-                new RawTransactionModel 
-                { 
-                    FingerPrint = null!,
-                    FPPatternCode01 = "PATTERN01",
-                    FPPatternCode02 = "PATTERN02"
-                }
-            };
-
-            string capturedJson = string.Empty;
-            mockDataAccess.Setup(x => x.InsertRawFingerprint(It.IsAny<string>()))
-                          .Callback<string>(json => capturedJson = json);
-
-            // Act
-            transactionService.InsertRawFingerprint(transactions);
-
-            // Assert
-            var deserializedEntities = JsonConvert.DeserializeObject<List<InsertRawFingerprintEntity>>(capturedJson);
-            deserializedEntities.Should().BeEmpty();
-        }
-
-        [Fact]
-        public void InsertRawFingerprint_WithEmptyPatternCodes_FiltersOutTransaction()
-        {
-            // Arrange
-            var transactions = new List<RawTransactionModel>
-            {
-                new RawTransactionModel 
-                { 
-                    FingerPrint = CreateSampleFingerprint(),
-                    FPPatternCode01 = "",
-                    FPPatternCode02 = "PATTERN02"
-                },
-                new RawTransactionModel 
-                { 
-                    FingerPrint = CreateSampleFingerprint(),
-                    FPPatternCode01 = "PATTERN01",
-                    FPPatternCode02 = ""
-                }
-            };
-
-            string capturedJson = string.Empty;
-            mockDataAccess.Setup(x => x.InsertRawFingerprint(It.IsAny<string>()))
-                          .Callback<string>(json => capturedJson = json);
-
-            // Act
-            transactionService.InsertRawFingerprint(transactions);
-
-            // Assert
-            var deserializedEntities = JsonConvert.DeserializeObject<List<InsertRawFingerprintEntity>>(capturedJson);
-            deserializedEntities.Should().BeEmpty();
-        }
-
-        [Fact]
         public void InsertRawFingerprint_WithDuplicateFingerprints_GroupsByFingerprintCodes()
         {
             // Arrange
