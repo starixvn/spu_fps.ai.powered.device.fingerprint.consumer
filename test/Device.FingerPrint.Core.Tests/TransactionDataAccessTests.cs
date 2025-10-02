@@ -30,25 +30,5 @@ namespace Device.FingerPrint.Core.Tests
             var act = () => _dataAccess.InsertRawTransaction(transJson);
             act.Should().NotThrow();
         }
-
-        [Fact]
-        public void InsertFPUserAgent_DoesNotThrow()
-        {
-            var userAgentJson = "{\"userAgent\":\"Mozilla/5.0\"}";
-            var isTransOfDBExtra = false;
-
-            var act = () => _dataAccess.InsertFPUserAgent(userAgentJson);
-            act.Should().NotThrow();
-        }
-
-        [Fact]
-        public void InsertFPFingerPrint_DoesNotThrow()
-        {
-            var fingerPrintJson = "{\"fingerprint\":\"data\"}";
-            var isTransOfDBExtra = false;
-
-            var act = () => _dataAccess.InsertFPFingerPrint(fingerPrintJson);
-            act.Should().NotThrow();
-        }
     }
 }

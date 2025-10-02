@@ -1,6 +1,3 @@
-using System;
-using System.Linq;
-using Device.FingerPrint.Core;
 using FluentAssertions;
 using Xunit;
 
@@ -13,10 +10,10 @@ namespace Device.FingerPrint.Core.Tests
         {
             // Arrange
             string plainText = "Hello World!";
-            
+
             // Act
             string result = Cipher.Encrypt(plainText);
-            
+
             // Assert
             result.Should().NotBeNull();
             result.Should().NotBe(plainText);
@@ -29,10 +26,10 @@ namespace Device.FingerPrint.Core.Tests
         {
             // Arrange
             string plainText = string.Empty;
-            
+
             // Act
             string result = Cipher.Encrypt(plainText);
-            
+
             // Assert
             result.Should().BeNull();
         }
@@ -42,10 +39,10 @@ namespace Device.FingerPrint.Core.Tests
         {
             // Arrange
             string plainText = "   ";
-            
+
             // Act
             string result = Cipher.Encrypt(plainText);
-            
+
             // Assert
             result.Should().BeNull();
         }
@@ -55,10 +52,10 @@ namespace Device.FingerPrint.Core.Tests
         {
             // Arrange
             string plainText = null;
-            
+
             // Act
             string result = Cipher.Encrypt(plainText);
-            
+
             // Assert
             result.Should().BeNull();
         }
@@ -69,11 +66,11 @@ namespace Device.FingerPrint.Core.Tests
             // Arrange
             string input1 = "test1";
             string input2 = "test2";
-            
+
             // Act
             string result1 = Cipher.Encrypt(input1);
             string result2 = Cipher.Encrypt(input2);
-            
+
             // Assert
             result1.Should().NotBe(result2);
         }
@@ -83,10 +80,10 @@ namespace Device.FingerPrint.Core.Tests
         {
             // Arrange
             string plainText = "!@#$%^&*()_+-=[]{}|;':\",./<>?";
-            
+
             // Act
             string result = Cipher.Encrypt(plainText);
-            
+
             // Assert
             result.Should().NotBeNull();
             result.Should().NotBe(plainText);
@@ -99,10 +96,10 @@ namespace Device.FingerPrint.Core.Tests
             // Arrange
             string originalText = "Test String for Decryption";
             string encryptedText = Cipher.Encrypt(originalText);
-            
+
             // Act
             string result = Cipher.Decrypt(encryptedText);
-            
+
             // Assert
             result.Should().Be(originalText);
         }
@@ -112,10 +109,10 @@ namespace Device.FingerPrint.Core.Tests
         {
             // Arrange
             string encryptedText = string.Empty;
-            
+
             // Act
             string result = Cipher.Decrypt(encryptedText);
-            
+
             // Assert
             result.Should().BeNull();
         }
@@ -125,10 +122,10 @@ namespace Device.FingerPrint.Core.Tests
         {
             // Arrange
             string encryptedText = "   ";
-            
+
             // Act
             string result = Cipher.Decrypt(encryptedText);
-            
+
             // Assert
             result.Should().BeNull();
         }
@@ -138,10 +135,10 @@ namespace Device.FingerPrint.Core.Tests
         {
             // Arrange
             string encryptedText = null;
-            
+
             // Act
             string result = Cipher.Decrypt(encryptedText);
-            
+
             // Assert
             result.Should().BeNull();
         }
@@ -151,7 +148,7 @@ namespace Device.FingerPrint.Core.Tests
         {
             // Arrange
             string invalidEncryptedText = "InvalidBase64String!@#";
-            
+
             // Act & Assert
             Action action = () => Cipher.Decrypt(invalidEncryptedText);
             action.Should().Throw<FormatException>();
@@ -162,7 +159,7 @@ namespace Device.FingerPrint.Core.Tests
         {
             // Arrange
             string corruptedData = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes("corrupted data"));
-            
+
             // Act & Assert
             Action action = () => Cipher.Decrypt(corruptedData);
             action.Should().Throw<System.Security.Cryptography.CryptographicException>();
@@ -173,10 +170,10 @@ namespace Device.FingerPrint.Core.Tests
         {
             // Arrange
             string original = "test string";
-            
+
             // Act
             string result = Cipher.Hashing(original);
-            
+
             // Assert
             result.Should().NotBeNull();
             result.Should().HaveLength(64); // SHA256 hash is 64 characters in hex
@@ -188,10 +185,10 @@ namespace Device.FingerPrint.Core.Tests
         {
             // Arrange
             string original = string.Empty;
-            
+
             // Act
             string result = Cipher.Hashing(original);
-            
+
             // Assert
             result.Should().NotBeNull();
             result.Should().HaveLength(64);
@@ -203,7 +200,7 @@ namespace Device.FingerPrint.Core.Tests
         {
             // Arrange
             string original = null;
-            
+
             // Act & Assert
             Action action = () => Cipher.Hashing(original);
             action.Should().Throw<ArgumentNullException>();
@@ -214,11 +211,11 @@ namespace Device.FingerPrint.Core.Tests
         {
             // Arrange
             string original = "consistent input";
-            
+
             // Act
             string result1 = Cipher.Hashing(original);
             string result2 = Cipher.Hashing(original);
-            
+
             // Assert
             result1.Should().Be(result2);
         }
@@ -229,11 +226,11 @@ namespace Device.FingerPrint.Core.Tests
             // Arrange
             string input1 = "test1";
             string input2 = "test2";
-            
+
             // Act
             string result1 = Cipher.Hashing(input1);
             string result2 = Cipher.Hashing(input2);
-            
+
             // Assert
             result1.Should().NotBe(result2);
         }
@@ -243,10 +240,10 @@ namespace Device.FingerPrint.Core.Tests
         {
             // Arrange
             string original = "!@#$%^&*()_+-=[]{}|;':\",./<>?";
-            
+
             // Act
             string result = Cipher.Hashing(original);
-            
+
             // Assert
             result.Should().NotBeNull();
             result.Should().HaveLength(64);
@@ -258,10 +255,10 @@ namespace Device.FingerPrint.Core.Tests
         {
             // Arrange
             string original = "Unicode test: 你好世界 🌍 🚀";
-            
+
             // Act
             string result = Cipher.Hashing(original);
-            
+
             // Assert
             result.Should().NotBeNull();
             result.Should().HaveLength(64);
@@ -273,10 +270,10 @@ namespace Device.FingerPrint.Core.Tests
         {
             // Arrange
             string original = "test string";
-            
+
             // Act
             long result = Cipher.Hashing2Int(original);
-            
+
             // Assert
             result.Should().BeOfType(typeof(long));
         }
@@ -286,10 +283,10 @@ namespace Device.FingerPrint.Core.Tests
         {
             // Arrange
             string original = string.Empty;
-            
+
             // Act
             long result = Cipher.Hashing2Int(original);
-            
+
             // Assert
             result.Should().BeOfType(typeof(long));
         }
@@ -299,7 +296,7 @@ namespace Device.FingerPrint.Core.Tests
         {
             // Arrange
             string original = null;
-            
+
             // Act & Assert
             Action action = () => Cipher.Hashing2Int(original);
             action.Should().Throw<ArgumentNullException>();
@@ -310,11 +307,11 @@ namespace Device.FingerPrint.Core.Tests
         {
             // Arrange
             string original = "consistent input";
-            
+
             // Act
             long result1 = Cipher.Hashing2Int(original);
             long result2 = Cipher.Hashing2Int(original);
-            
+
             // Assert
             result1.Should().Be(result2);
         }
@@ -325,11 +322,11 @@ namespace Device.FingerPrint.Core.Tests
             // Arrange
             string input1 = "test1";
             string input2 = "test2";
-            
+
             // Act
             long result1 = Cipher.Hashing2Int(input1);
             long result2 = Cipher.Hashing2Int(input2);
-            
+
             // Assert
             result1.Should().NotBe(result2);
         }
@@ -339,10 +336,10 @@ namespace Device.FingerPrint.Core.Tests
         {
             // Arrange
             string original = "!@#$%^&*()_+-=[]{}|;':\",./<>?";
-            
+
             // Act
             long result = Cipher.Hashing2Int(original);
-            
+
             // Assert
             result.Should().BeOfType(typeof(long));
         }
@@ -352,11 +349,11 @@ namespace Device.FingerPrint.Core.Tests
         {
             // Arrange
             string originalText = "This is a test string with special characters: !@#$%^&*()_+-=[]{}|;':\",./<>?";
-            
+
             // Act
             string encrypted = Cipher.Encrypt(originalText);
             string decrypted = Cipher.Decrypt(encrypted);
-            
+
             // Assert
             decrypted.Should().Be(originalText);
         }
@@ -366,11 +363,11 @@ namespace Device.FingerPrint.Core.Tests
         {
             // Arrange
             string originalText = "Unicode test: 你好世界 🌍 🚀";
-            
+
             // Act
             string encrypted = Cipher.Encrypt(originalText);
             string decrypted = Cipher.Decrypt(encrypted);
-            
+
             // Assert
             decrypted.Should().Be(originalText);
         }
@@ -380,11 +377,11 @@ namespace Device.FingerPrint.Core.Tests
         {
             // Arrange
             string originalText = new string('A', 1000); // 1000 character string
-            
+
             // Act
             string encrypted = Cipher.Encrypt(originalText);
             string decrypted = Cipher.Decrypt(encrypted);
-            
+
             // Assert
             decrypted.Should().Be(originalText);
         }
@@ -394,11 +391,11 @@ namespace Device.FingerPrint.Core.Tests
         {
             // Arrange
             string originalText = "1234567890";
-            
+
             // Act
             string encrypted = Cipher.Encrypt(originalText);
             string decrypted = Cipher.Decrypt(encrypted);
-            
+
             // Assert
             decrypted.Should().Be(originalText);
         }
@@ -408,13 +405,13 @@ namespace Device.FingerPrint.Core.Tests
         {
             // Arrange
             string originalText = "Test consistency";
-            
+
             // Act
             string encrypted1 = Cipher.Encrypt(originalText);
             string decrypted1 = Cipher.Decrypt(encrypted1);
             string encrypted2 = Cipher.Encrypt(originalText);
             string decrypted2 = Cipher.Decrypt(encrypted2);
-            
+
             // Assert
             decrypted1.Should().Be(originalText);
             decrypted2.Should().Be(originalText);
@@ -426,11 +423,11 @@ namespace Device.FingerPrint.Core.Tests
         {
             // Arrange
             string originalText = "Mixed content: 123 ABC !@# 你好 🌍";
-            
+
             // Act
             string encrypted = Cipher.Encrypt(originalText);
             string decrypted = Cipher.Decrypt(encrypted);
-            
+
             // Assert
             decrypted.Should().Be(originalText);
         }
@@ -440,12 +437,12 @@ namespace Device.FingerPrint.Core.Tests
         {
             // Arrange
             string largeText = new string('A', 10000); // 10KB string
-            
+
             // Act & Assert
             var stopwatch = System.Diagnostics.Stopwatch.StartNew();
             string result = Cipher.Encrypt(largeText);
             stopwatch.Stop();
-            
+
             result.Should().NotBeNull();
             stopwatch.ElapsedMilliseconds.Should().BeLessThan(1000); // Should complete within 1 second
         }
@@ -455,12 +452,12 @@ namespace Device.FingerPrint.Core.Tests
         {
             // Arrange
             string largeText = new string('A', 10000); // 10KB string
-            
+
             // Act & Assert
             var stopwatch = System.Diagnostics.Stopwatch.StartNew();
             string result = Cipher.Hashing(largeText);
             stopwatch.Stop();
-            
+
             result.Should().NotBeNull();
             stopwatch.ElapsedMilliseconds.Should().BeLessThan(100); // Should complete within 100ms
         }

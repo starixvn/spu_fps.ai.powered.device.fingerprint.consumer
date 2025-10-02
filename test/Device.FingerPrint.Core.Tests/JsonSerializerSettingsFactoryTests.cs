@@ -1,4 +1,3 @@
-using Device.FingerPrint.Core;
 using FluentAssertions;
 using Newtonsoft.Json;
 using Xunit;

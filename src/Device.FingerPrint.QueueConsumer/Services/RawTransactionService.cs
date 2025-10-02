@@ -1,106 +1,89 @@
 ﻿namespace Device.FingerPrint.QueueConsumer.Services
 {
     using Device.FingerPrint.Core;
-    using Device.FingerPrint.Features.Transaction.Services;
     using Device.FingerPrint.Model;
-    using Device.FingerPrint.Redis;
-    using Device.FingerPrint.TransactionAPI.Model;
     using Fanex.Logging;
-    using Newtonsoft.Json;
-    using StackExchange.Redis;
     using System;
     using System.Collections;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
+
 
     public interface IRawTransactionService
     {
-        RawTransactionModel TransformRawTransaction(MessageQueue message);
-
-        void InsertOrUpdateEverTagging(string hashKey, IEnumerable<string> everTaggings, long expireSecond);
-
-        void InsertRawTransactionDetail(IEnumerable<RawTransactionModel> transactions);
-
-        void LogTransactions(IEnumerable<RawTransactionModel> transactions);
-
+        RawTransactionModel? TransformRawTransaction(MessageQueue message);
     }
 
-    public class RawTransactionService : IRawTransactionService
+    public class RawTransactionService(
+        IBotDetectionService botDetectionService,
+        IAppSettings appSettings
+        ) : IRawTransactionService
     {
-        private readonly IDeviceService deviceService;
-        private readonly IBotDetectionService botDetectionService;
-        private readonly ITransactionService transactionService;
-        private readonly IAppSettings appSettings;
-        private readonly IDatabase everTaggingRedisDB;
+        private readonly IBotDetectionService botDetectionService = botDetectionService;
+        private readonly IAppSettings appSettings = appSettings;
 
-        public RawTransactionService(
-            IRedisMultiplexDbService redisMultiplexService,
-            IDeviceService deviceService,
-            IBotDetectionService botDetectionService,
-            ITransactionService transactionService,
-            IAppSettings appSettings
-        )
-        {
-            this.deviceService = deviceService;
-            this.botDetectionService = botDetectionService;
-            this.transactionService = transactionService;
-            this.appSettings = appSettings;
-
-            this.everTaggingRedisDB = redisMultiplexService.GetDatabase(appSettings.EverTaggingDBIndex);
-        }
-
-        public RawTransactionModel TransformRawTransaction(MessageQueue message)
+        public RawTransactionModel? TransformRawTransaction(MessageQueue message)
         {
             try
             {
-                var (deviceInfo, url, userAgent, invalidDevice) = ProcessDeviceInfo(message);
+                var deviceInfo = message.DeviceInfo;
+                if (deviceInfo == null)
+                {
+                    return null;
+                }
+
+                var userAgent = ProcessUserAgent(deviceInfo.UserAgent);
+
+                deviceInfo.IsNewFlow = message.IsNewFlow;
                 var transBit = ProcessDeviceValidation(deviceInfo);
-                var (botDModel, flaggedCode, botDetection) = ProcessBotDetection(message, deviceInfo, userAgent);
+                var (botDModel, flaggedCode, botDetection) = ProcessBotDetection(deviceInfo, userAgent);
                 var (realIP, ipConverted) = ProcessIPInfo(message);
 
-                return CreateRawTransactionModel(message, deviceInfo, url, userAgent, invalidDevice, transBit, botDModel, flaggedCode, botDetection, realIP, ipConverted);
+                message.Fingerprint?.GenerateGroupHashCodes();
+
+                return CreateRawTransactionModel(message, deviceInfo, message.Device?.Url ?? string.Empty, userAgent, transBit, botDModel, flaggedCode, botDetection, realIP, ipConverted);
             }
             catch (Exception ex)
             {
-                _ = LogService.ErrorAsync($"{appSettings.Environment} - TransformRawTransaction has error:\n {ex.Message}");
+                // Log error but don't let logging issues break the flow
+                try
+                {
+                    _ = LogService.ErrorAsync($"{appSettings.Environment} - TransformRawTransaction has error:\n {ex.Message}");
+                }
+                catch
+                {
+                    // Ignore logging errors in test environment
+                }
                 return null;
             }
         }
 
-        private (DeviceInfoModel deviceInfo, string url, string userAgent, string invalidDevice) ProcessDeviceInfo(MessageQueue message)
+        private static string ProcessUserAgent(string? userAgent)
         {
-            var deviceInfo = new DeviceInfoModel();
-            var url = string.Empty;
-            var userAgent = string.Empty;
-            var invalidDevice = string.Empty;
-
-            if (message.Device != null)
-            {
-                var deviceCode = message.Device.Di;
-                deviceInfo = deviceService.GetDeviceInfo(deviceCode, message);
-                url = message.Device.Url;
-                userAgent = message.Device.UserAgent;
-                invalidDevice = deviceCode; // Store the original device code for potential use
-            }
-
-            return (deviceInfo, url, userAgent, invalidDevice);
+            var converted = Utilities.ConvertNA2Empty(userAgent ?? "");
+            return Utilities.StripUnicodeCharactersFromString(converted ?? "") ?? "";
         }
 
-        private BitArray ProcessDeviceValidation(DeviceInfoModel deviceInfo)
+        private static BitArray ProcessDeviceValidation(DeviceInfoModel deviceInfo)
         {
             var transBit = new BitArray(16);
 
-            if (string.IsNullOrWhiteSpace(deviceInfo.DeviceNo) || deviceInfo.DeviceNo == "N/A")
+            if (deviceInfo is null)
             {
-                deviceInfo.DeviceNo = null;
-                transBit.Set((int)TransStatus.DeviceCodeIsEmpty, true);
+                return transBit;
             }
-            else if (!Utilities.IsGuidDeviceId(deviceInfo.DeviceNo) || deviceInfo.InvalidDeviceId)
+
+            var deviceCode = deviceInfo.IsNewFlow ? deviceInfo.Tagging : deviceInfo.DeviceNo;
+            var isEmptyOrNA = string.IsNullOrWhiteSpace(deviceCode) || deviceCode == "N/A";
+            var isInvalid = !isEmptyOrNA && deviceCode != null && (deviceInfo.InvalidDeviceId || !Utilities.IsGuidDeviceId(deviceCode));
+
+            if (isEmptyOrNA)
             {
-                // Keep the original device code (invalidDevice) as is, don't overwrite it
-                deviceInfo.DeviceNo = null;
+                transBit.Set((int)TransStatus.DeviceCodeIsEmpty, true);
+                ClearDeviceCode(deviceInfo);
+            }
+            else if (isInvalid)
+            {
                 transBit.Set((int)TransStatus.InvalidDI, true);
+                ClearDeviceCode(deviceInfo);
             }
             else
             {
@@ -110,57 +93,118 @@
             return transBit;
         }
 
-        private (BotDModel botDModel, string flaggedCode, string botDetection) ProcessBotDetection(MessageQueue message, DeviceInfoModel deviceInfo, string userAgent)
+        private static void ClearDeviceCode(DeviceInfoModel deviceInfo)
         {
-            var botDModel = botDetectionService.TransformBotdModel(message);
-            var flaggedCode = botDetectionService.GetFlaggedCode(botDModel, deviceInfo.DeviceNo, userAgent);
-            var botDetection = botDModel?.IsVer3 == true ? botDModel?.Detection : botDetectionService.GetBotDetectionTrue(botDModel);
+            if (deviceInfo.IsNewFlow)
+            {
+                deviceInfo.Tagging = null;
+            }
+            else
+            {
+                deviceInfo.DeviceNo = null;
+            }
+        }
+
+        private (BotDModel botDModel, string flaggedCode, string botDetection) ProcessBotDetection(DeviceInfoModel? deviceInfo, string userAgent)
+        {
+            if(deviceInfo is null)
+            {
+                return (new BotDModel(), Flagged.Human.ToString(), string.Empty);
+            }
+
+            var botDModel = deviceInfo.BotD ?? new BotDModel();
+            var tagging = deviceInfo.Tagging ?? string.Empty;
+
+            if (!deviceInfo.IsNewFlow)
+            {
+                tagging = deviceInfo.DeviceNo ?? string.Empty;
+            }
+            var flaggedCode = botDetectionService.GetFlaggedCode(botDModel, tagging, userAgent);
+            var botDetection = botDModel.IsVer3 ? (botDModel.Detection ?? string.Empty) : (botDetectionService.GetBotDetectionTrue(botDModel) ?? string.Empty);
 
             return (botDModel, flaggedCode, botDetection);
         }
 
-        private (string realIP, IpModel ipConverted) ProcessIPInfo(MessageQueue message)
+        private static (string? realIP, IpModel ipConverted) ProcessIPInfo(MessageQueue message)
         {
             var realIP = message.IP?.Trim();
+            
+            // Handle null/empty IP by returning IpModel with IpNumber = 0
+            if (string.IsNullOrWhiteSpace(realIP))
+            {
+                return (realIP, new IpModel { IpNumber = 0, IsIpV6 = false });
+            }
+            
             var ipConverted = realIP.Ip2Long();
-
             return (realIP, ipConverted);
         }
 
-
+#pragma warning disable S1541
 #pragma warning disable S107
-        private RawTransactionModel CreateRawTransactionModel(
+        private static RawTransactionModel CreateRawTransactionModel(
             MessageQueue message,
             DeviceInfoModel deviceInfo,
             string url,
             string userAgent,
-            string invalidDevice,
             BitArray transBit,
             BotDModel botDModel,
             string flaggedCode,
             string botDetection,
-            string realIP,
+            string? realIP,
             IpModel ipConverted)
         {
+            const int DefaultPluginId = 0;
+
+            // S107: Reduce cognitive complexity by extracting logic to local functions
+            string? GetUrl()
+            {
+                if (string.IsNullOrWhiteSpace(url))
+                {
+                    var href = deviceInfo.HRef ?? string.Empty;
+                    return string.IsNullOrEmpty(href) ? null : Utilities.ConvertNA2Empty(Utilities.SubStringUrl(href)?.ToString() ?? string.Empty);
+                }
+                return Utilities.SubStringUrl(url)?.ToString();
+            }
+
+            string GetUserAgent()
+            {
+                if (string.IsNullOrWhiteSpace(userAgent))
+                {
+                    var deviceUserAgent = deviceInfo.UserAgent ?? string.Empty;
+                    var converted = Utilities.ConvertNA2Empty(Utilities.StripUnicodeCharactersFromString(deviceUserAgent) ?? string.Empty);
+                    return converted ?? "";
+                }
+                return Utilities.StripUnicodeCharactersFromString(userAgent) ?? "";
+            }
+
+            string? GetFingerprintCode()
+            {
+                return deviceInfo.DeviceFPCode != "N/A" ? deviceInfo.DeviceFPCode : null;
+            }
+
+            string? GetFingerprintMoreInfo()
+            {
+                return deviceInfo.DeviceFPCode != "N/A" ? Utilities.EncodeCapturedData(deviceInfo) : null;
+            }
+
             return new RawTransactionModel
             {
-                DeviceCode = deviceInfo.DeviceNo,
-                InvalidDevice = string.IsNullOrWhiteSpace(invalidDevice) ? null : invalidDevice,
-                TransStatus = Core.Utilities.ConvertBitArray2Int(transBit),
+                DeviceCode = string.IsNullOrEmpty(deviceInfo.DeviceNo) ? deviceInfo.Tagging : deviceInfo.DeviceNo,
+                InvalidDevice = GetInvalidDeviceId(transBit, message.Device?.Di),
+                TransStatus = Utilities.ConvertBitArray2Int(transBit),
                 LoginName = message.Account,
                 SubscriberName = message.Subscriber,
                 SubscriberId = message.SubscriberId,
-                TransTime = Convert.ToDateTime(message.TransDate.ToString("yyyy-MM-dd HH:mm:ss.ffff", System.Globalization.CultureInfo.InvariantCulture)),
-                PluginID = 0,
-                URL = string.IsNullOrWhiteSpace(url) ? Utilities.ConvertNA2Empty(Utilities.SubStringUrl(deviceInfo.HRef)) : Utilities.SubStringUrl(url),
+                TransTime = DateTimeOffset.Parse(
+                    message.TransDate.ToString("yyyy-MM-dd HH:mm:ss.ffff", System.Globalization.CultureInfo.InvariantCulture), 
+                    System.Globalization.CultureInfo.InvariantCulture).DateTime,
+                PluginID = DefaultPluginId,
+                URL = GetUrl(),
                 Action = message.Action,
                 ActionResult = message.ActionResult,
-                UserAgent = string.IsNullOrWhiteSpace(userAgent)
-                    ? Utilities.ConvertNA2Empty(Utilities.StripUnicodeCharactersFromString(deviceInfo.UserAgent))
-                    : Utilities.StripUnicodeCharactersFromString(userAgent),
-                FingerprintCode = deviceInfo.DeviceFPCode != "N/A" ? deviceInfo.DeviceFPCode : null,
-                FingerprintMoreInfo = deviceInfo.DeviceFPCode != "N/A" ? Utilities.EncodeCapturedData(deviceInfo) : null,
-                SessionKey = message.SessionKey,
+                UserAgent = GetUserAgent(),
+                FingerprintCode = GetFingerprintCode(),
+                FingerprintMoreInfo = GetFingerprintMoreInfo(),
                 FlaggedCode = flaggedCode,
                 BotDetection = botDetection,
                 BotComponent = botDModel?.Component ?? string.Empty,
@@ -168,88 +212,32 @@
                 IPId = ipConverted.IpNumber,
                 FakeIP = message.FakeIP?.Trim(),
                 IsIPV6 = ipConverted.IsIpV6,
-                ScriptVersion = deviceInfo.Version
+
+                WebRTCIP = string.IsNullOrEmpty(deviceInfo.Rtc) ? null : new WebRTCIPModel(deviceInfo.Rtc ?? string.Empty),
+                FPPatternCode01 = GetTrimmedValue(deviceInfo.F4),
+                FPPatternCode02 = GetTrimmedValue(deviceInfo.F5),
+                FingerPrint = message.Fingerprint,
+                FPVersion = deviceInfo.Version ?? string.Empty,
+                TransFlow = message.IsNewFlow ? 1 : 0
             };
         }
 #pragma warning restore S107
+#pragma warning restore S1541
 
-        public void InsertOrUpdateEverTagging(string hashKey, IEnumerable<string> everTaggings, long expireSecond)
+
+        private static string? GetInvalidDeviceId(BitArray transBit, string? di)
         {
-            try
+            if (transBit.Get((int)TransStatus.InvalidDI))
             {
-                foreach (var code in everTaggings)
-                {
-                    var expiry = TimeSpan.FromSeconds(expireSecond);
+                return di;
+            }
 
-                    everTaggingRedisDB.StringSet(
-                        key: $"{hashKey}:{code}",
-                        value: DateTimeOffset.Now.ToString(),
-                        expiry: expiry,
-                        flags: CommandFlags.FireAndForget
-                    );
-                }
-            }
-            catch (Exception ex)
-            {
-                _ = QueueConsumer.Utilities.LogErrorAsync(ex);
-            }
+            return null;
         }
 
-        public void InsertRawTransactionDetail(IEnumerable<RawTransactionModel> transactions)
+        private static string? GetTrimmedValue(string? value)
         {
-            Parallel.Invoke(
-                () => InsertFPFingerPrint(transactions),
-                () => InsertFPUserAgent(transactions)
-            );
+            return value?.Trim();
         }
-
-        private void InsertFPUserAgent(IEnumerable<RawTransactionModel> transactions)
-        {
-            try
-            {
-                var userAgentInfos = GetValidInfo(transactions, t => t.UserAgentInfo);
-                if (userAgentInfos != null && userAgentInfos.Any())
-                {
-                    var userAgentJson = JsonConvert.SerializeObject(userAgentInfos);
-                    transactionService.InsertFPUserAgent(userAgentJson);
-                }
-            }
-            catch (Exception ex)
-            {
-                _ = QueueConsumer.Utilities.LogErrorAsync(ex);
-            }
-        }
-
-
-        private void InsertFPFingerPrint(IEnumerable<RawTransactionModel> transactions)
-        {
-            try
-            {
-                var fingerprintAttribute = GetValidInfo(transactions, t => t.FingerprintAttribute);
-                if (fingerprintAttribute != null && fingerprintAttribute.Any())
-                {
-                    var fingerPrintJson = JsonConvert.SerializeObject(fingerprintAttribute);
-                    transactionService.InsertFPFingerPrint(fingerPrintJson);
-                }
-            }
-            catch (Exception ex)
-            {
-                _ = QueueConsumer.Utilities.LogErrorAsync(ex);
-            }
-        }
-
-        private static IEnumerable<TResult> GetValidInfo<TResult>(IEnumerable<RawTransactionModel> transactions, Func<RawTransactionModel, TResult> selector)
-        {
-            return transactions
-                .Select(selector)
-                .Where(result => !EqualityComparer<TResult>.Default.Equals(result, default(TResult)))
-                .Distinct();
-        }
-
-        public void LogTransactions(IEnumerable<RawTransactionModel> transactions)
-        {
-            // Method intentionally left empty - logging functionality removed
-        }
-
     }
 }

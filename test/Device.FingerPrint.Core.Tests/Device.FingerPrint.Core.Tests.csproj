@@ -26,7 +26,6 @@
     <ProjectReference Include="..\..\src\Device.FingerPrint.Core\Device.FingerPrint.Core.csproj" />
     <ProjectReference Include="..\..\src\Device.FingerPrint.Model\Device.FingerPrint.Model.csproj" />
     <ProjectReference Include="..\..\src\Device.FingerPrint\Device.FingerPrint.csproj" />
-    <ProjectReference Include="..\..\src\Device.FingerPrint.Redis\Device.FingerPrint.Redis.csproj" />
   </ItemGroup>
 
 </Project>

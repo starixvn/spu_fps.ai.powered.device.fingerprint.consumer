@@ -1,8 +1,5 @@
-﻿using Xunit;
+﻿using Device.FingerPrint.Model;
 using Device.FingerPrint.QueueConsumer.Services;
-using Device.FingerPrint.Model;
-using Device.FingerPrint.QueueConsumer.Models;
-using Device.FingerPrint.TransactionAPI.Model;
 
 namespace Device.FingerPrint.QueueConsumer.Tests.Services
 {
@@ -24,18 +21,6 @@ namespace Device.FingerPrint.QueueConsumer.Tests.Services
             var botD = new BotDModel { Result = new BotDResultModel { Bot = false, BotKind = "" } };
             var result = service.GetFlaggedCode(botD, "", "headless-chrome");
             Assert.Equal("Headless", result);
-        }
-
-        [Fact]
-        public void TransformBotdModel_Should_Return_BotDModel_When_Valid_Base64_Json()
-        {
-            var service = new BotDetectionService();
-            var botDJson = "{\"Result\":{\"Bot\":true,\"BotKind\":\"search-engine\"}}";
-            var botDBase64 = System.Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(botDJson));
-            var message = new MessageQueue { BotD = botDBase64 };
-            var result = service.TransformBotdModel(message);
-            Assert.True(result.Result.Bot);
-            Assert.Equal("search-engine", result.Result.BotKind);
         }
 
         [Fact]

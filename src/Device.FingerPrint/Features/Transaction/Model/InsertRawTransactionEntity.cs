@@ -52,17 +52,7 @@ namespace Device.FingerPrint.Features.Transaction.Model
 
         public string? BotComponent { get; set; }
 
-        public string? FPTagging { get; set; }
-
-        public string? FPFingerPrintCode { get; set; }
-
-        public string? FPFingerPrintExtraCode { get; set; }
-
-        public string? FPFingerPrintOldCode { get; set; }
-
         public string? ChallengeCode { get; set; }
-
-        public string? FPUserAgentCode { get; set; }
 
         public bool? IsIncognitoMode { get; set; }
 
@@ -93,5 +83,15 @@ namespace Device.FingerPrint.Features.Transaction.Model
         public string? MBCountry { get; set; }
 
         public string? MBDeviceDetails { get; set; }
+
+        public string? WebRTCIPCode { get; set; }
+
+        public string? FPPatternCode01 { get; set; }
+
+        public string? FPPatternCode02 { get; set; }
+
+        public required string FPVersion { get; set; }
+
+        public int TransFlow { get; set; }
     }
 }

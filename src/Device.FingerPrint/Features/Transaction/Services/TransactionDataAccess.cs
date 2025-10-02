@@ -5,11 +5,11 @@ namespace Device.FingerPrint.Features.Transaction.Services
 {
     public interface ITransactionDataAccess
     {
+        void InsertRawFingerprint(string rawFPDetailJson);
+
         void InsertRawTransaction(string transJson);
 
-        void InsertFPUserAgent(string userAgentJson);
-
-        void InsertFPFingerPrint(string fingerPrintJson);
+        void InsertWebRTCIP(int detailsType, string webRTCJson);
     }
 
     public class TransactionDataAccess : ITransactionDataAccess
@@ -19,6 +19,16 @@ namespace Device.FingerPrint.Features.Transaction.Services
         public TransactionDataAccess()
         {
             repository = new DynamicRepository();
+        }
+
+        public void InsertRawFingerprint(string rawFPDetailJson)
+        {
+            var criteria = new InsertRawFingerprintCriteria
+            {
+                RawFPDetails = rawFPDetailJson,
+            };
+
+            repository.Execute(criteria);
         }
 
         public void InsertRawTransaction(string transJson)
@@ -31,21 +41,12 @@ namespace Device.FingerPrint.Features.Transaction.Services
             repository.Execute(criteria);
         }
 
-        public void InsertFPUserAgent(string userAgentJson)
+        public void InsertWebRTCIP(int detailsType, string webRTCJson)
         {
-            var criteria = new InsertFPUserAgentCriteria
+            var criteria = new InsertRawDetailsCriteria
             {
-                UserAgentJson = userAgentJson
-            };
-
-            repository.Execute(criteria);
-        }
-
-        public void InsertFPFingerPrint(string fingerPrintJson)
-        {
-            var criteria = new InsertFPFingerPrintCriteria
-            {
-                FingerPrintJson = fingerPrintJson
+                DetailsType = detailsType,
+                Details = webRTCJson
             };
 
             repository.Execute(criteria);

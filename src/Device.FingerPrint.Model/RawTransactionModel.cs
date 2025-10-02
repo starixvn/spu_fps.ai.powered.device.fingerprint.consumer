@@ -1,7 +1,6 @@
-﻿using System.Numerics;
+﻿using FileHelpers;
 using System;
-using FileHelpers;
-using Device.FingerPrint.Model.DTO;
+using System.Numerics;
 
 namespace Device.FingerPrint.Model
 {
@@ -50,53 +49,15 @@ namespace Device.FingerPrint.Model
 
         public int TransStatus { get; set; }
 
-        [FieldHidden]
-        public int TransId { get; set; }
-
-        [FieldConverter(typeof(ConvertBigInteger))]
-        public BigInteger? FPSTransId { get; set; }
-
-        public string? SessionKey { get; set; }
-
         public string? FlaggedCode { get; set; }
 
         public string? BotDetection { get; set; }
 
         public string? BotComponent { get; set; }
 
-        public string? Country { get; set; }
-
-        public string? CountryCode { get; set; }
-
-        public string? Region { get; set; }
-
-        public string? City { get; set; }
-
-        public string? ISP { get; set; }
-
-        public long IPInfoCode { get; set; }
-
-        public string? FPTagging { get; set; }
-
-        public string? FPFingerPrintCode { get; set; }
-
-        public string? FPFingerPrintExtraCode { get; set; }
-
-        public string? FPFingerPrintOldCode { get; set; }
-
-        public string? FPUserAgentCode { get; set; }
-
-        public InsertFPFingerprintEntity? FingerprintAttribute { get; set; }
-
         public string? ChallengeCode { get; set; }
 
-        public string? RawUserAgent { get; set; }
-
-        public UserAgentInfoModel? UserAgentInfo { get; set; }
-
         public bool? IsIncognitoMode { get; set; }
-
-        public string? ScriptVersion { get; set; }
 
         public string? MBDeviceCodeMediaDRM { get; set; }
 
@@ -125,6 +86,19 @@ namespace Device.FingerPrint.Model
         public string? MBCountry { get; set; }
 
         public string? MBDeviceDetails { get; set; }
+
+
+        public WebRTCIPModel? WebRTCIP { get; set; }
+
+        public string? FPPatternCode01 { get; set; }
+
+        public string? FPPatternCode02 { get; set; }
+
+        public APFingerprintModel FingerPrint { get; set; } = new APFingerprintModel();
+
+        public string FPVersion { get; set; }
+
+        public int TransFlow { get; set; }
     }
 
     public class ConvertBigInteger : ConverterBase

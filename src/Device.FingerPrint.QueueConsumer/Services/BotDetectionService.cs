@@ -1,8 +1,6 @@
 ﻿namespace Device.FingerPrint.QueueConsumer.Services
 {
-    using Device.FingerPrint.Core.Encoders;
     using Device.FingerPrint.Model;
-    using Device.FingerPrint.TransactionAPI.Model;
     using Fanex.Logging;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
@@ -14,8 +12,6 @@
     public interface IBotDetectionService
     {
         string GetFlaggedCode(BotDModel botD, string deviceNo, string userAgent);
-
-        BotDModel TransformBotdModel(MessageQueue message);
 
         string GetBotDetectionTrue(BotDModel botDModel);
     }
@@ -33,28 +29,6 @@
             }
 
             return flaggedCode;
-        }
-
-        public BotDModel TransformBotdModel(MessageQueue message)
-        {
-            if (!string.IsNullOrEmpty(message.BotD))
-            {
-                try
-                {
-                    var botD = Base64.Decode(message.BotD);
-
-                    if (!string.IsNullOrEmpty(botD) && Utilities.IsValidJson(botD))
-                    {
-                        return JsonConvert.DeserializeObject<BotDModel>(botD);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    LogService.Info("Error TransformBotdModel: " + ex.Message + "\n" + JsonConvert.SerializeObject(message));
-                }
-            }
-
-            return new BotDModel();
         }
 
         public string GetBotDetectionTrue(BotDModel botDModel)

@@ -1,8 +1,5 @@
-using Xunit;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
-using Device.FingerPrint.QueueConsumer;
-using System.Collections.Generic;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Device.FingerPrint.QueueConsumer.Tests
 {
@@ -29,7 +26,7 @@ namespace Device.FingerPrint.QueueConsumer.Tests
 
             // Act & Assert - Should not throw
             var exception = Record.Exception(() => startup.ConfigureServices(services));
-            
+
             // Note: This test validates the method doesn't crash, not the specific registrations
             // due to complex dependencies that require full application context
             Assert.True(exception == null || IsExpectedConfigurationError(exception));
@@ -50,10 +47,8 @@ namespace Device.FingerPrint.QueueConsumer.Tests
                 ["ConnectionStrings:DefaultConnection"] = "Server=localhost;Database=TestDB;User Id=test;Password=test;",
                 ["AppSettings:Setting1"] = "TestValue1",
                 ["MassTransit:RabbitMq:Host"] = "localhost",
-                ["MassTransit:RabbitMq:Username"] = "test", 
-                ["MassTransit:RabbitMq:Password"] = "test",
-                ["Redis:ConnectionString"] = "localhost:6379",
-                ["Logging:LogLevel:Default"] = "Information"
+                ["MassTransit:RabbitMq:Username"] = "test",
+                ["MassTransit:RabbitMq:Password"] = "test"
             };
 
             return new ConfigurationBuilder()

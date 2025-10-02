@@ -1,6 +1,7 @@
-﻿namespace Device.FingerPrint.TransactionAPI.Model
+﻿namespace Device.FingerPrint.Model
 {
     using Device.FingerPrint.QueueConsumer.Models;
+    using Newtonsoft.Json;
     using System;
 
     [Serializable]
@@ -37,5 +38,12 @@
         public string? BotD { get; set; }
 
         public MobileModel? Mobile { get; set; }
+
+        public DeviceInfoModel? DeviceInfo { get; set; }
+
+        public bool IsNewFlow { get; set; }
+
+        [JsonProperty("fingerprint")]
+        public APFingerprintModel Fingerprint { get; set; } = new APFingerprintModel();
     }
 }

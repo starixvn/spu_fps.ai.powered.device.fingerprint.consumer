@@ -12,8 +12,6 @@ namespace Device.FingerPrint.Core
 {
     public static class Utilities
     {
-        private const int _TotalRedisDB = 16;
-
         public static bool IsGuidDeviceId(string deviceCode)
         {
             Guid newGuid;
@@ -112,9 +110,7 @@ namespace Device.FingerPrint.Core
             return data != "N/A" ? data : null;
         }
 
-
-#pragma warning disable S3995
-        public static string SubStringUrl(string url)
+        public static Uri SubStringUrl(string url)
         {
             if (string.IsNullOrEmpty(url))
             {
@@ -124,9 +120,8 @@ namespace Device.FingerPrint.Core
             int cutIndex = url.IndexOfAny(new[] { '?', '#' });
             var cleanUrl = cutIndex != -1 ? url.Substring(0, cutIndex) : url;
 
-            return CollapseCasinoPaths(cleanUrl)?.ToString();
+            return CollapseCasinoPaths(cleanUrl);
         }
-#pragma warning restore S3995
 
         private static Uri CollapseCasinoPaths(string rawUrl)
         {
@@ -182,38 +177,6 @@ namespace Device.FingerPrint.Core
                 deviceInfo.TimeZone,
                 deviceInfo.LocalIps));
         }
-
-        public static SessionKeyModel ParseSessionKey(string sessionKey, int defaultRedisDatabase)
-        {
-            if (sessionKey == null)
-            {
-                return null;
-            }
-
-            var parts = sessionKey.Split(':');
-            var sessionKeyModel = new SessionKeyModel { RedisDbIndex = defaultRedisDatabase };
-
-            if (parts.Length > 0)
-            {
-                sessionKeyModel.SessionKey = parts[0];
-                if (parts.Length > 1 && int.TryParse(parts[1], out var parsedIndex))
-                {
-                    sessionKeyModel.RedisDbIndex = parsedIndex < _TotalRedisDB ? parsedIndex : defaultRedisDatabase;
-                }
-            }
-            else
-            {
-                sessionKeyModel.SessionKey = sessionKey;
-            }
-
-            if (IsBase64(sessionKeyModel.SessionKey))
-            {
-                return sessionKeyModel;
-            }
-
-            return null;
-        }
-
         public static bool IsBase64(string base64String)
         {
             if (string.IsNullOrEmpty(base64String))
@@ -235,23 +198,6 @@ namespace Device.FingerPrint.Core
             {
                 return false;
             }
-        }
-
-        public static string RemoveRedisPrefix(string input, string prefix)
-        {
-            if (string.IsNullOrEmpty(input))
-            {
-                return string.Empty;
-            }
-
-            #pragma warning disable S1449
-            if (input.StartsWith(prefix))
-            {
-                return input.Replace(prefix, string.Empty);
-            }
-            #pragma warning restore S1449
-
-            return input;
         }
     }
 }
