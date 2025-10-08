@@ -96,7 +96,8 @@ namespace Device.FingerPrint.Model
 
         public APFingerprintModel FingerPrint { get; set; } = new APFingerprintModel();
 
-        public string FPVersion { get; set; }
+        public string? Version { get; set; }
+        public string? FPVersion { get; set; }
 
         public int TransFlow { get; set; }
     }

@@ -217,7 +217,8 @@
                 FPPatternCode01 = GetTrimmedValue(deviceInfo.F4),
                 FPPatternCode02 = GetTrimmedValue(deviceInfo.F5),
                 FingerPrint = message.Fingerprint,
-                FPVersion = deviceInfo.Version ?? string.Empty,
+                Version = deviceInfo.Version ?? string.Empty,
+                FPVersion = deviceInfo.FPVersion ?? string.Empty,
                 TransFlow = message.IsNewFlow ? 1 : 0
             };
         }

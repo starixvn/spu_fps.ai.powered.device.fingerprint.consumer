@@ -47,5 +47,8 @@
         public string? SessionKey { get; set; }
 
         public bool IsNewFlow { get; set; }
+
+        public string? FPVersion { get; set; }
+
     }
 }

@@ -60,6 +60,7 @@ namespace Device.FingerPrint.QueueConsumer.Tests.Services
             message.TransDate = testDate;
             message.FakeIP = "198.51.100.1";
             message.DeviceInfo!.Version = "2.1";
+            message.DeviceInfo!.FPVersion = "1.0.1";
             message.DeviceInfo.F4 = "fp_pattern_01";
             message.DeviceInfo.F5 = "fp_pattern_02";
             message.DeviceInfo.Rtc = "10.0.0.1";
@@ -83,7 +84,8 @@ namespace Device.FingerPrint.QueueConsumer.Tests.Services
             result.IP.Should().Be("192.168.1.1");
             result.FakeIP.Should().Be("198.51.100.1");
             result.PluginID.Should().Be(0);
-            result.FPVersion.Should().Be("2.1");
+            result.Version.Should().Be("2.1");
+            result.FPVersion.Should().Be("1.0.1");
             result.FPPatternCode01.Should().Be("fp_pattern_01");
             result.FPPatternCode02.Should().Be("fp_pattern_02");
             result.WebRTCIP.Should().NotBeNull();
