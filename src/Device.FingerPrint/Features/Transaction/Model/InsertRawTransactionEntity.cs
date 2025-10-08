@@ -90,10 +90,12 @@ namespace Device.FingerPrint.Features.Transaction.Model
 
         public string? FPPatternCode02 { get; set; }
 
-        public string? Version { get; set; }
+        public string? ActivatorVersion { get; set; }
 
-        public string? FPVersion { get; set; }
+        public string? FingerprintVersion { get; set; }
 
         public int TransFlow { get; set; }
+
+        public int TaggingType { get; set; }
     }
 }

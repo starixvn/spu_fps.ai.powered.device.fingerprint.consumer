@@ -219,7 +219,8 @@
                 FingerPrint = message.Fingerprint,
                 Version = deviceInfo.Version ?? string.Empty,
                 FPVersion = deviceInfo.FPVersion ?? string.Empty,
-                TransFlow = message.IsNewFlow ? 1 : 0
+                TransFlow = message.IsNewFlow ? 1 : 0,
+                TaggingType = deviceInfo.TaggingType ?? 0,
             };
         }
 #pragma warning restore S107

@@ -184,7 +184,7 @@ namespace Device.FingerPrint.Core.Tests
             entity.WebRTCIPCode.Should().Be(webRtcModel.Code);
             entity.FPPatternCode01.Should().Be("PATTERN01");
             entity.FPPatternCode02.Should().Be("PATTERN02");
-            entity.FPVersion.Should().Be("1.0");
+            entity.FingerprintVersion.Should().Be("1.0");
             entity.TransFlow.Should().Be(1);
         }
 

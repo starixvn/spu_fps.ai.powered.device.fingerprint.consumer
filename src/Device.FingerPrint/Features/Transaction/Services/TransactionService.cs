@@ -85,9 +85,10 @@ namespace Device.FingerPrint.Features.Transaction.Services
                 WebRTCIPCode = transaction.WebRTCIP?.Code,
                 FPPatternCode01 = transaction.FPPatternCode01,
                 FPPatternCode02 = transaction.FPPatternCode02,
-                Version = transaction.Version,
-                FPVersion = transaction.FPVersion,
-                TransFlow = transaction.TransFlow
+                ActivatorVersion = transaction.Version,
+                FingerprintVersion = transaction.FPVersion,
+                TransFlow = transaction.TransFlow,
+                TaggingType = transaction.TaggingType,
             });
         }
 

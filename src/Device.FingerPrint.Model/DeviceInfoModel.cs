@@ -50,5 +50,7 @@
 
         public string? FPVersion { get; set; }
 
+        public int? TaggingType { get; set; }
+
     }
 }
