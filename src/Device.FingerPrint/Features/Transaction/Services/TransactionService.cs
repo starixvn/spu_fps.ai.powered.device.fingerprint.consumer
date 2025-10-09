@@ -89,21 +89,22 @@ namespace Device.FingerPrint.Features.Transaction.Services
                 TransFlow = transaction.TransFlow
             });
         }
-        
 
+
+#pragma warning disable S1541
         private static IEnumerable<InsertRawFingerprintEntity> TransformInsertRawFingerprint(IEnumerable<RawTransactionModel> transactions)
         {
             return transactions
-                .Where(t => t.FingerPrint != null &&
-                           !string.IsNullOrEmpty(t.FPPatternCode01) &&
-                           !string.IsNullOrEmpty(t.FPPatternCode02))
+                .Where(t =>
+                    !string.IsNullOrEmpty(t.FPPatternCode01) ||
+                    !string.IsNullOrEmpty(t.FPPatternCode02))
                 .GroupBy(t => new
                 {
-                    t.FingerPrint.AudioCode,
-                    t.FingerPrint.BrowserCode,
-                    t.FingerPrint.GraphicCode,
-                    t.FingerPrint.HardwareCode,
-                    t.FingerPrint.PreferencesCode,
+                    t.FingerPrint?.AudioCode,
+                    t.FingerPrint?.BrowserCode,
+                    t.FingerPrint?.GraphicCode,
+                    t.FingerPrint?.HardwareCode,
+                    t.FingerPrint?.PreferencesCode,
                     t.FPPatternCode01,
                     t.FPPatternCode02
                 })
@@ -116,14 +117,15 @@ namespace Device.FingerPrint.Features.Transaction.Services
                     PreferencesCode = group.Key.PreferencesCode,
                     FPPatternCode01 = group.Key.FPPatternCode01,
                     FPPatternCode02 = group.Key.FPPatternCode02,
-                    AudioDetails = group.First().FingerPrint.Au,
-                    BrowserDetails = group.First().FingerPrint.Br,
-                    GraphicDetails = group.First().FingerPrint.Gp,
-                    HardwareDetails = group.First().FingerPrint.Hw,
-                    PreferencesDetails = group.First().FingerPrint.Pf,
+                    AudioDetails = group.First().FingerPrint?.Au,
+                    BrowserDetails = group.First().FingerPrint?.Br,
+                    GraphicDetails = group.First().FingerPrint?.Gp,
+                    HardwareDetails = group.First().FingerPrint?.Hw,
+                    PreferencesDetails = group.First().FingerPrint?.Pf,
                     CreatedDate = group.Min(t => t.TransTime.Date)
                 });
         }
+#pragma warning restore S1541
 
         private static IEnumerable<object> GetWebRTCIPUnique(IEnumerable<RawTransactionModel> rawTransModels)
         {
