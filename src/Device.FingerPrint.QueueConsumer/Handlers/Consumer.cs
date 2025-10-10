@@ -176,7 +176,7 @@
             {
                 try
                 {
-                    var duplicateMessages = duplicateGroups.SelectMany(g => g.Skip(1)).Select(x => x.Message);
+                    var duplicateMessages = duplicateGroups.SelectMany(g => g).Select(x => x.Message);
                     var serializedDuplicates = JsonConvert.SerializeObject(duplicateMessages);
                     LogService.Error($"DuplicateMessages:\n {serializedDuplicates}");
                 }

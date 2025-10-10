@@ -7,6 +7,8 @@
     [Serializable]
     public class MessageQueue
     {
+        public Guid CorrelationID { get; set; } 
+
         public string? Account { get; set; }
 
         public string? Action { get; set; }
