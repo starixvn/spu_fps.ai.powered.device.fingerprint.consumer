@@ -96,6 +96,6 @@ namespace Device.FingerPrint.Features.Transaction.Model
 
         public int TransFlow { get; set; }
 
-        public int TaggingType { get; set; }
+        public int? TaggingType { get; set; }
     }
 }

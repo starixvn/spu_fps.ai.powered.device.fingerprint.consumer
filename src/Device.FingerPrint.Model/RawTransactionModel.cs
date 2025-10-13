@@ -100,7 +100,8 @@ namespace Device.FingerPrint.Model
         public string? FPVersion { get; set; }
 
         public int TransFlow { get; set; }
-        public int TaggingType { get; set; }
+
+        public int? TaggingType { get; set; }
     }
 
     public class ConvertBigInteger : ConverterBase

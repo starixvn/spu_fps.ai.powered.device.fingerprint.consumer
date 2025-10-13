@@ -217,10 +217,10 @@
                 FPPatternCode01 = GetTrimmedValue(deviceInfo.F4),
                 FPPatternCode02 = GetTrimmedValue(deviceInfo.F5),
                 FingerPrint = message.Fingerprint,
-                Version = deviceInfo.Version ?? string.Empty,
-                FPVersion = deviceInfo.FPVersion ?? string.Empty,
+                Version = deviceInfo.Version,
+                FPVersion = deviceInfo.FPVersion,
                 TransFlow = message.IsNewFlow ? 1 : 0,
-                TaggingType = deviceInfo.TaggingType ?? 0,
+                TaggingType = deviceInfo.TaggingType,
             };
         }
 #pragma warning restore S107
