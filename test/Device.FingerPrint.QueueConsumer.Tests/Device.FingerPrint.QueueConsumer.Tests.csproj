@@ -29,8 +29,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\\..\\src\\Device.FingerPrint.Core\\Device.FingerPrint.Core.csproj" />
-    <ProjectReference
-      Include="..\\..\\src\\Device.FingerPrint.QueueConsumer\\Device.FingerPrint.QueueConsumer.csproj" />
+    <ProjectReference Include="..\\..\\src\\Device.FingerPrint.QueueConsumer\\Device.FingerPrint.QueueConsumer.csproj" />
   </ItemGroup>
 
 </Project>
